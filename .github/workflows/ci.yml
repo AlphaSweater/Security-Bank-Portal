@@ -18,6 +18,10 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    env:
+      CLIENT_DIR: client   # Frontend folder
+      SERVER_DIR: server   # Backend folder
+
     strategy:
       matrix:
         node-version: [18.x, 20.x]
@@ -31,40 +35,43 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: 📂 List repo files
+        run: ls -la
+
       # ---------- Frontend ----------
       - name: 💾 Cache frontend dependencies
         uses: actions/cache@v3
         with:
-          path: Client/node_modules
-          key: frontend-${{ runner.os }}-node-${{ hashFiles('Client/package-lock.json') }}
+          path: ${{ env.CLIENT_DIR }}/node_modules
+          key: frontend-${{ runner.os }}-node-${{ hashFiles('${{ env.CLIENT_DIR }}/package-lock.json') }}
           restore-keys: |
             frontend-${{ runner.os }}-node-
 
       - name: 🎨 Install frontend dependencies
-        working-directory: ./Client
+        working-directory: ${{ env.CLIENT_DIR }}
         run: npm ci
 
       - name: 🏗️ Build frontend
-        working-directory: ./Client
+        working-directory: ${{ env.CLIENT_DIR }}
         run: npm run build --if-present
 
       - name: 🧪 Run frontend tests
-        working-directory: ./Client
+        working-directory: ${{ env.CLIENT_DIR }}
         run: npm test -- --ci --watchAll=false
 
       # ---------- Backend ----------
       - name: 💾 Cache backend dependencies
         uses: actions/cache@v3
         with:
-          path: server/node_modules
-          key: backend-${{ runner.os }}-node-${{ hashFiles('server/package-lock.json') }}
+          path: ${{ env.SERVER_DIR }}/node_modules
+          key: backend-${{ runner.os }}-node-${{ hashFiles('${{ env.SERVER_DIR }}/package-lock.json') }}
           restore-keys: |
             backend-${{ runner.os }}-node-
 
       - name: 🛠 Install backend dependencies
-        working-directory: ./server
+        working-directory: ${{ env.SERVER_DIR }}
         run: npm ci
 
       - name: 🧪 Run backend tests
-        working-directory: ./server
+        working-directory: ${{ env.SERVER_DIR }}
         run: npm test -- --ci
