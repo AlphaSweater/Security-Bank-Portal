@@ -26,41 +26,38 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: 🔧 Setup Node.js ${{ matrix.node-version }}
+      # ---------- Frontend ----------
+      - name: 🔧 Setup Node.js ${{ matrix.node-version }} (frontend)
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
+          cache-dependency-path: ./Client/package-lock.json
 
-      - name: 📦 Install root dependencies
-        run: |
-          if [ -f package.json ]; then
-            npm ci
-          fi
-
-      # ---------- Frontend ----------
       - name: 🎨 Install frontend dependencies
-        if: hashFiles('frontend/package.json') != ''
-        working-directory: ./frontend
+        working-directory: ./Client
         run: npm ci
 
       - name: 🏗️ Build frontend
-        if: hashFiles('frontend/package.json') != ''
-        working-directory: ./frontend
+        working-directory: ./Client
         run: npm run build --if-present
 
       - name: 🧪 Run frontend tests
-        if: hashFiles('frontend/package.json') != ''
-        working-directory: ./frontend
+        working-directory: ./Client
         run: npm test -- --ci --watchAll=false
 
       # ---------- Backend ----------
+      - name: 🔧 Setup Node.js ${{ matrix.node-version }} (backend)
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: ./server/package-lock.json
+
       - name: 🛠 Install backend dependencies
-        if: hashFiles('backend/package.json') != ''
-        working-directory: ./backend
+        working-directory: ./server
         run: npm ci
 
       - name: 🧪 Run backend tests
-        if: hashFiles('backend/package.json') != ''
-        working-directory: ./backend
+        working-directory: ./server
         run: npm test -- --ci
