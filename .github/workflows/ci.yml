@@ -1,4 +1,4 @@
-name: CI
+name: ⚡ CI Pipeline
 
 on:
   push:
@@ -15,24 +15,62 @@ on:
       - bugfix/*
 
 jobs:
-  build:
-    runs-on: windows-latest  # Change this to run the workflow on Windows
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x] # Test against multiple Node LTS versions
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v3
+      - name: 🔧 Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
         with:
-          dotnet-version: '8.x'  # Adjust the .NET version as needed
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
 
-      - name: Restore dependencies
-        run: dotnet restore
+      - name: 📦 Install root dependencies
+        run: |
+          if [ -f package.json ]; then
+            npm ci
+          fi
 
-      - name: Build
-        run: dotnet build --no-restore
+      # ---------- Frontend ----------
+      - name: 🎨 Install frontend dependencies
+        if: hashFiles('frontend/package.json') != ''
+        working-directory: ./frontend
+        run: npm ci
 
-      - name: Test
-        run: dotnet test --no-build --verbosity normal
-        
+      - name: 🧹 Lint frontend code
+        if: hashFiles('frontend/package.json') != ''
+        working-directory: ./frontend
+        run: npm run lint --if-present
+
+      - name: 🏗️ Build frontend
+        if: hashFiles('frontend/package.json') != ''
+        working-directory: ./frontend
+        run: npm run build --if-present
+
+      - name: 🧪 Run frontend tests
+        if: hashFiles('frontend/package.json') != ''
+        working-directory: ./frontend
+        run: npm test -- --ci --watchAll=false
+
+      # ---------- Backend ----------
+      - name: 🛠 Install backend dependencies
+        if: hashFiles('backend/package.json') != ''
+        working-directory: ./backend
+        run: npm ci
+
+      - name: 🧹 Lint backend code
+        if: hashFiles('backend/package.json') != ''
+        working-directory: ./backend
+        run: npm run lint --if-present
+
+      - name: 🧪 Run backend tests
+        if: hashFiles('backend/package.json') != ''
+        working-directory: ./backend
+        run: npm test -- --ci
