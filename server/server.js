@@ -16,7 +16,7 @@ app.get("/", (req, res) => {
 
 // Add /api route for client proxy
 app.get("/api", (req, res) => {
-	res.send("Hello from the /api endpoint!");
+	res.send("Hello from the /api endpoint");
 });
 
 const PORT = process.env.PORT || 5000;
