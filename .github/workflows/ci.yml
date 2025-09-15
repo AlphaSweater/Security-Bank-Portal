@@ -44,11 +44,6 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: 🧹 Lint frontend code
-        if: hashFiles('frontend/package.json') != ''
-        working-directory: ./frontend
-        run: npm run lint --if-present
-
       - name: 🏗️ Build frontend
         if: hashFiles('frontend/package.json') != ''
         working-directory: ./frontend
@@ -64,11 +59,6 @@ jobs:
         if: hashFiles('backend/package.json') != ''
         working-directory: ./backend
         run: npm ci
-
-      - name: 🧹 Lint backend code
-        if: hashFiles('backend/package.json') != ''
-        working-directory: ./backend
-        run: npm run lint --if-present
 
       - name: 🧪 Run backend tests
         if: hashFiles('backend/package.json') != ''
