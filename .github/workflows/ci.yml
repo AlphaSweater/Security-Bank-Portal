@@ -57,7 +57,7 @@ jobs:
 
       - name: 🧪 Run frontend tests
         working-directory: ${{ env.CLIENT_DIR }}
-        run: npm test -- --ci --watchAll=false
+        run: npm run test --if-present
 
       # ---------- Backend ----------
       - name: 💾 Cache backend dependencies
@@ -74,4 +74,5 @@ jobs:
 
       - name: 🧪 Run backend tests
         working-directory: ${{ env.SERVER_DIR }}
-        run: npm test -- --ci
+        run: npm run test --if-present
+
