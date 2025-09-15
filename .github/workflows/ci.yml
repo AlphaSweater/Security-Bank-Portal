@@ -20,19 +20,25 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x] # Test against multiple Node LTS versions
+        node-version: [18.x, 20.x]
 
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      # ---------- Frontend ----------
-      - name: 🔧 Setup Node.js ${{ matrix.node-version }} (frontend)
+      - name: 🔧 Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          cache-dependency-path: ./Client/package-lock.json
+
+      # ---------- Frontend ----------
+      - name: 💾 Cache frontend dependencies
+        uses: actions/cache@v3
+        with:
+          path: Client/node_modules
+          key: frontend-${{ runner.os }}-node-${{ hashFiles('Client/package-lock.json') }}
+          restore-keys: |
+            frontend-${{ runner.os }}-node-
 
       - name: 🎨 Install frontend dependencies
         working-directory: ./Client
@@ -47,12 +53,13 @@ jobs:
         run: npm test -- --ci --watchAll=false
 
       # ---------- Backend ----------
-      - name: 🔧 Setup Node.js ${{ matrix.node-version }} (backend)
-        uses: actions/setup-node@v4
+      - name: 💾 Cache backend dependencies
+        uses: actions/cache@v3
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          cache-dependency-path: ./server/package-lock.json
+          path: server/node_modules
+          key: backend-${{ runner.os }}-node-${{ hashFiles('server/package-lock.json') }}
+          restore-keys: |
+            backend-${{ runner.os }}-node-
 
       - name: 🛠 Install backend dependencies
         working-directory: ./server
