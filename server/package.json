@@ -2,10 +2,10 @@
   "type": "module",
   "name": "server",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "node src/server.js",
+    "dev": "concurrently \"nodemon src/server.js\" \"npm run dev --prefix ../client > NUL 2>&1\"",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [],
@@ -20,6 +20,7 @@
     "pino": "^9.9.5"
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "nodemon": "^3.1.10",
     "pino-pretty": "^13.1.1"
   }

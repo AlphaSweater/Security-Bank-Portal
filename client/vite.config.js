@@ -11,7 +11,7 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'https://localhost:3443', // match backend HTTPS port
+        target: 'https://localhost:5000', // match backend HTTPS port
         changeOrigin: true,
         secure: false, // allow self-signed certs in dev
       },
