@@ -6,6 +6,7 @@ import https from "https";
 import http from "http";
 import errorHandler from "./middleware/errorHandler.js";
 import config from "./config/config.js";
+import logger from "./logger.js";
 
 
 // --- App Initialization ---
@@ -30,9 +31,12 @@ app.use(cors({
   credentials: true,
 }));
 
-// --- Logging Middleware (Future) ---
-// e.g., morgan, winston, or custom logger
-// app.use(logger);
+
+// --- Logging Middleware (Pino) ---
+app.use((req, res, next) => {
+  logger.info({ method: req.method, url: req.url, ip: req.ip }, 'Incoming request');
+  next();
+});
 
 // --- Authentication Middleware (Future) ---
 // e.g., passport, JWT, OAuth
@@ -42,13 +46,17 @@ app.use(cors({
 //  ROUTES SECTION
 // =============================
 
+
 // --- Health Check / Root ---
 app.get("/", (req, res) => {
+  logger.info("Health check endpoint hit");
   res.send("Secure API is running 🚀");
 });
 
+
 // --- API Routes ---
 app.get("/api", (req, res) => {
+  logger.info("/api endpoint hit");
   res.send("Hello from the /api endpoint");
 });
 
@@ -73,9 +81,10 @@ const sslOptions = {
   cert: fs.readFileSync(`${config.certPath}/${config.certCrt}`),
 };
 
+
 // --- Start HTTPS Server ---
 https.createServer(sslOptions, app).listen(config.httpsPort, () => {
-  console.log(`HTTPS Server running on port ${config.httpsPort}`);
+  logger.info(`HTTPS Server running on port ${config.httpsPort}`);
 });
 
 // --- Start HTTP Server (redirects to HTTPS) ---
@@ -84,6 +93,6 @@ http.createServer((req, res) => {
   res.writeHead(301, { "Location": `https://${host}${req.url}` });
   res.end();
 }).listen(config.httpPort, () => {
-  console.log(`HTTP Server running on port ${config.httpPort} (redirects to HTTPS)`);
+  logger.info(`HTTP Server running on port ${config.httpPort} (redirects to HTTPS)`);
 });
 
