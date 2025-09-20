@@ -1,0 +1,17 @@
+{
+  "name": "security-bank-portal",
+  "private": true,
+  "scripts": {
+    "start:server": "nodemon server/src/server.js",
+    "start:client": "npm run dev --prefix client",
+    "start:both": "concurrently -n \"server,client\" -c green,cyan \"npm run start:server\" \"npm run start:client\"",
+    "build:client": "npm run build --prefix client",
+    "build:server": "echo 'No server build step yet' && exit 0",
+    "build:both": "npm run build:client && npm run build:server",
+    "preview:client": "npm run preview --prefix client"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0",
+    "nodemon": "^3.0.0"
+  }
+}
