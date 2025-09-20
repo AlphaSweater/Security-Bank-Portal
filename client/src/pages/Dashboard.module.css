@@ -1,0 +1,52 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.heading {
+  color: #eebbc3;
+  font-size: 2rem;
+  margin-bottom: 18px;
+}
+
+.card {
+  background: #232946;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(34, 34, 59, 0.12);
+  padding: 2rem 2.5rem;
+  min-width: 280px;
+  text-align: center;
+}
+
+.balance {
+  font-size: 32px;
+  font-weight: 700;
+  color: #eebbc3;
+  margin-bottom: 8px;
+}
+
+.label {
+  color: #b8c1ec;
+  font-size: 15px;
+  margin-bottom: 18px;
+}
+
+.button {
+  background: #eebbc3;
+  color: #232946;
+  border: none;
+  border-radius: 6px;
+  padding: 0.7rem 1.5rem;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s;
+}
+
+.welcome {
+  font-size: 18px;
+  color: #b8c1ec;
+  margin-bottom: 12px;
+}

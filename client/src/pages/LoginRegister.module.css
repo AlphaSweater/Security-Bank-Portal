@@ -1,0 +1,53 @@
+.container {
+  text-align: center;
+}
+
+.heading {
+  color: #eebbc3;
+  font-size: 2rem;
+  margin-bottom: 18px;
+}
+
+.formStack {
+  position: relative;
+  min-height: 320px;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+.formFade {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  transition: opacity 0.4s cubic-bezier(0.77, 0, 0.18, 1),
+    transform 0.4s cubic-bezier(0.77, 0, 0.18, 1);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.formFade.activeLeft {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+  z-index: 2;
+}
+.formFade.inactiveLeft {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-40px);
+  z-index: 1;
+}
+.formFade.activeRight {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+  z-index: 2;
+}
+.formFade.inactiveRight {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(40px);
+  z-index: 1;
+}
