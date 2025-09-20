@@ -1,0 +1,35 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Server",
+      "type": "npm",
+      "script": "start:server",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Client",
+      "type": "npm",
+      "script": "start:client",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Both",
+      "type": "npm",
+      "script": "start:both",
+      "problemMatcher": []
+    },
+    {
+      "label": "Build Client",
+      "type": "npm",
+      "script": "build:client",
+      "problemMatcher": []
+    },
+    {
+      "label": "Build Both",
+      "type": "npm",
+      "script": "build:both",
+      "problemMatcher": []
+    }
+  ]
+}
