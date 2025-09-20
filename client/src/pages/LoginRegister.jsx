@@ -1,66 +1,71 @@
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import styles from "./LoginRegister.module.css";
 import LoginForm from "../components/Auth/LoginForm";
 import RegisterForm from "../components/Auth/RegisterForm";
 
+const slideVariants = {
+  initial: (direction) => ({
+    x: direction > 0 ? 150 : -150,
+    opacity: 0,
+    position: "absolute",
+  }),
+  animate: {
+    x: 0,
+    opacity: 1,
+    position: "relative",
+    transition: { duration: 0.18, ease: "easeInOut" },
+  },
+  exit: (direction) => ({
+    x: direction < 0 ? 150 : -150,
+    opacity: 0,
+    position: "absolute",
+    transition: { duration: 0.18, ease: "easeInOut" },
+  }),
+};
+
 function LoginRegister() {
   const [isLogin, setIsLogin] = useState(true);
-  const [direction, setDirection] = useState("left"); // 'left' or 'right'
+  const [direction, setDirection] = useState(1); // 1 → right, -1 → left
 
   const handleSwap = () => {
-    setDirection(isLogin ? "left" : "right");
+    setDirection(isLogin ? 1 : -1);
     setIsLogin((v) => !v);
   };
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.heading}>{isLogin ? "🔑 Login" : "📝 Register"}</h1>
-      <div className={styles.formStack}>
-        <div
-          className={`${styles.formFade} ${
-            isLogin
-              ? direction === "left"
-                ? styles.activeLeft
-                : styles.activeRight
-              : direction === "left"
-              ? styles.inactiveLeft
-              : styles.inactiveRight
-          }`}
-        >
-          <LoginForm />
-        </div>
-        <div
-          className={`${styles.formFade} ${
-            !isLogin
-              ? direction === "left"
-                ? styles.activeLeft
-                : styles.activeRight
-              : direction === "left"
-              ? styles.inactiveLeft
-              : styles.inactiveRight
-          }`}
-        >
-          <RegisterForm />
-        </div>
-      </div>
-      <div style={{ marginTop: 18 }}>
-        <button
-          type="button"
-          onClick={handleSwap}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#b8c1ec",
-            cursor: "pointer",
-            textDecoration: "underline",
-            fontSize: 15,
-            marginTop: 8,
-          }}
-        >
-          {isLogin
-            ? "Don't have an account? Register"
-            : "Already have an account? Login"}
-        </button>
+      <div
+        className={styles.formStack}
+        style={{ position: "relative", minHeight: 320 }}
+      >
+        <AnimatePresence custom={direction} mode="wait">
+          {isLogin ? (
+            <motion.div
+              key="login"
+              variants={slideVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              custom={direction}
+              style={{ width: "100%" }}
+            >
+              <LoginForm onSwap={handleSwap} isLogin={isLogin} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="register"
+              variants={slideVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              custom={direction}
+              style={{ width: "100%" }}
+            >
+              <RegisterForm onSwap={handleSwap} isLogin={isLogin} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
