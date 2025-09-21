@@ -39,6 +39,11 @@
   ],
   "folderTemplates.fileTemplates": {
     "CustomPageJSX": [
+      "// External Dependencies",
+      "",
+      "// Assets",
+      "",
+      "// Styles",
       "import styles from './<FTName | pascalcase>.module.css';",
       "",
       "export default function <FTName | pascalcase>() {",
@@ -59,7 +64,12 @@
     ],
     "CustomPageIndex": ["export { default } from './<FTName | pascalcase>';"],
     "CustomComponentJSX": [
+      "// External Dependencies",
       "import React from 'react';",
+      "",
+      "// Assets",
+      "",
+      "// Styles",
       "import styles from './<FTName | pascalcase>.module.css';",
       "",
       "export default function <FTName | pascalcase>() {",
