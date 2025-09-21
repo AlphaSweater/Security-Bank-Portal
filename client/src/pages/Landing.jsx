@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 function Landing() {
   const navigate = useNavigate();
   return (
-    <div className={styles.container}>
+    <section className={styles.page}>
       <img src={reactLogo} alt="React logo" className={styles.heroLogo} />
       <h1 className={styles.heading}>Security Bank Portal</h1>
       <button
@@ -14,7 +14,7 @@ function Landing() {
       >
         Get Started
       </button>
-    </div>
+    </section>
   );
 }
 

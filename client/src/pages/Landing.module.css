@@ -1,4 +1,12 @@
 /* Landing page styles */
+
+/* Page component root styles - this MUST expand inside contentContainer */
+.page {
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
 .heroLogo {
   width: 100px;
   margin: 0 auto 1.5rem auto;
@@ -25,67 +33,8 @@
   transform: translateY(-2px) scale(1.03);
 }
 
-.container {
-  text-align: center;
-  height: 100%;
-}
-
 .heading {
   font-size: 2.5rem;
   color: #eebbc3;
   margin-bottom: 8px;
-}
-
-.subtext {
-  color: #b8c1ec;
-  font-size: 1.15rem;
-  margin-bottom: 32px;
-}
-
-.logoRow {
-  display: flex;
-  justify-content: center;
-  gap: 32px;
-  margin-bottom: 24px;
-}
-
-.demoCard {
-  background: #232946;
-  border-radius: 10px;
-  box-shadow: 0 2px 12px rgba(34, 34, 59, 0.12);
-  padding: 1.5rem 1rem 1.2rem 1rem;
-  margin: 0 auto 24px auto;
-  max-width: 340px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.demoButton {
-  background: #eebbc3;
-  color: #232946;
-  border: none;
-  border-radius: 6px;
-  padding: 0.7rem 1.5rem;
-  font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-  margin-bottom: 6px;
-  transition: background 0.2s;
-}
-.demoButton.secondary {
-  background: #b8c1ec;
-  color: #232946;
-}
-
-.apiMessage {
-  color: #eebbc3;
-  margin: 0;
-  font-size: 15px;
-}
-
-.demoNote {
-  color: #b8c1ec;
-  font-size: 15px;
 }
