@@ -1,16 +1,20 @@
-import express from 'express';
-import requireAuth from '../middlewares/auth.js';
-import { requireRole } from '../middlewares/roles';
+import express from "express";
+import requireAuth from "../middlewares/auth.js";
+import { requireRole } from "../middlewares/roles";
+import {
+  getMe,
+  getDashboard,
+  getAdminData,
+} from "../controllers/userController.js";
 
 const router = express.Router();
 
-router.get('/me', requireAuth, (req, res) => {
-  res.json({ userId: req.session.userId, roles: req.session.roles });
-});
+router.get("/me", requireAuth, getMe);
+
+// Protected dashboard route
+router.get("/dashboard", requireAuth, getDashboard);
 
 // Example: only admin can access
-router.get('/admin-data', requireAuth, requireRole('admin'), (req, res) => {
-  res.json({ secret: 'This is admin-only data' });
-});
+router.get("/admin-data", requireAuth, requireRole("admin"), getAdminData);
 
 export default router;
