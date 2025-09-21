@@ -1,0 +1,48 @@
+/* Animation for swap */
+.formContainer {
+  transition: opacity 0.35s;
+}
+.fade {
+  opacity: 0.3;
+}
+
+/* Auth form styles */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 260px;
+  margin: 0 auto;
+  background: #232946;
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(34, 34, 59, 0.12);
+}
+
+.heading {
+  color: #eebbc3;
+  font-size: 2rem;
+  margin-bottom: 18px;
+}
+
+.input {
+  margin-bottom: 12px;
+  padding: 0.7rem 1rem;
+  border: 1px solid #393e5c;
+  border-radius: 6px;
+  font-size: 16px;
+  background: #181926;
+  color: #eebbc3;
+}
+
+.button {
+  background: #eebbc3;
+  color: #232946;
+  border: none;
+  border-radius: 6px;
+  padding: 0.7rem 0;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
