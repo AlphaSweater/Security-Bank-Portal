@@ -69,7 +69,6 @@
     "CustomPageIndex": ["export { default } from './<FTName | pascalcase>';"],
     "CustomComponentJSX": [
       "// External Dependencies",
-      "import React from 'react';",
       "",
       "// Assets",
       "",
