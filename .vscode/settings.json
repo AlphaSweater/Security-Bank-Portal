@@ -43,17 +43,21 @@
       "",
       "// Assets",
       "",
+      "// UI Components",
+      "",
       "// Styles",
       "import styles from './<FTName | pascalcase>.module.css';",
       "",
-      "export default function <FTName | pascalcase>() {",
+      "function <FTName | pascalcase>() {",
       "  return (",
       "    <section className={styles.page}>",
       "      <h1>Welcome to the New Page</h1>",
       "      <p>This is a newly created page in the application.</p>",
       "    </section>",
       "  );",
-      "}"
+      "}",
+      "",
+      "export default <FTName | pascalcase>;"
     ],
     "CustomPageCSS": [
       ".page {",
@@ -72,13 +76,15 @@
       "// Styles",
       "import styles from './<FTName | pascalcase>.module.css';",
       "",
-      "export default function <FTName | pascalcase>() {",
+      "function <FTName | pascalcase>() {",
       "  return (",
       "    <div className={styles.<FTName | camelcase>}>",
       "      This is the <FTName | pascalcase> component.",
       "    </div>",
       "  );",
-      "}"
+      "}",
+      "",
+      "export default <FTName | pascalcase>;"
     ],
     "CustomComponentCSS": [
       ".<FTName | camelcase> {",
