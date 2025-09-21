@@ -1,7 +1,7 @@
 import express from "express";
 import security from "#config/security.js";
 import errorHandler from "#middlewares/errorHandler.js";
-import buildSessionMiddleware from "#middlewares/session.js";
+import sessionMiddleware from "#middlewares/sessionMiddleware.js";
 import authRoutes from "#routes/authRoutes.js";
 import userRoutes from "#routes/userRoutes.js";
 import { getLogger } from "#utils/logger.js";
@@ -25,7 +25,7 @@ app.use((req, res, next) => {
 security(app);
 
 // Session middleware
-app.use(buildSessionMiddleware());
+app.use(sessionMiddleware());
 
 // Routes
 app.use("/auth", authRoutes);
