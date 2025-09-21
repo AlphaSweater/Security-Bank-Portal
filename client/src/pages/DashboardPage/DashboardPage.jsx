@@ -1,8 +1,15 @@
-import styles from "./Dashboard.module.css";
+// External Dependencies
 
-function Dashboard() {
+// Assets
+
+// UI Components
+
+// Styles
+import styles from "./DashboardPage.module.css";
+
+function DashboardPage() {
   return (
-    <div className={styles.container}>
+    <section className={styles.page}>
       <h1 className={styles.heading}>📊 Dashboard</h1>
       <div className={styles.card}>
         <div className={styles.welcome}>Welcome back, Demo User!</div>
@@ -10,8 +17,8 @@ function Dashboard() {
         <div className={styles.label}>Current Balance</div>
         <button className={styles.button}>View Transactions</button>
       </div>
-    </div>
+    </section>
   );
 }
 
-export default Dashboard;
+export default DashboardPage;

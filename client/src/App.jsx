@@ -2,12 +2,12 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // Page Components (Routes)
-import Landing from "./pages/Landing";
-import Login from "./pages/LoginRegister";
-import Dashboard from "./pages/Dashboard";
+import LandingPage from "pages/LandingPage";
+import AuthPage from "pages/AuthPage";
+import DashboardPage from "pages/DashboardPage";
 
 // UI Components
-import Navbar from "./components/Navigation/Navbar";
+import Navbar from "components/Navbar";
 
 // Styles
 import styles from "./App.module.css";
@@ -24,9 +24,9 @@ function App() {
         {/* ===== Main Content (Routes) ===== */}
         <main className={styles.contentContainer}>
           <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
           </Routes>
         </main>
 

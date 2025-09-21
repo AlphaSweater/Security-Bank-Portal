@@ -2,8 +2,8 @@
 
 /* Page component root styles - this MUST expand inside contentContainer */
 .page {
-  align-items: center;
   justify-content: center;
+  align-items: center;
   width: 100%;
 }
 

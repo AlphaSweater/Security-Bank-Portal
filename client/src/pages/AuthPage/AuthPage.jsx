@@ -1,9 +1,16 @@
+// External Dependencies
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import styles from "./LoginRegister.module.css";
-import LoginForm from "../components/Auth/LoginForm";
-import RegisterForm from "../components/Auth/RegisterForm";
 
+// Assets
+
+// UI Components
+import AuthForms from "components/AuthForms";
+
+// Styles
+import styles from "./AuthPage.module.css";
+
+// Animation Variants
 const slideVariants = {
   initial: (direction) => ({
     x: direction > 0 ? 150 : -150,
@@ -24,7 +31,8 @@ const slideVariants = {
   }),
 };
 
-function LoginRegister() {
+// Default Function Export
+function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [direction, setDirection] = useState(1); // 1 → right, -1 → left
 
@@ -40,35 +48,21 @@ function LoginRegister() {
         style={{ position: "relative", minHeight: 320 }}
       >
         <AnimatePresence custom={direction} mode="wait">
-          {isLogin ? (
-            <motion.div
-              key="login"
-              variants={slideVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              custom={direction}
-              style={{ width: "100%" }}
-            >
-              <LoginForm onSwap={handleSwap} isLogin={isLogin} />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="register"
-              variants={slideVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              custom={direction}
-              style={{ width: "100%" }}
-            >
-              <RegisterForm onSwap={handleSwap} isLogin={isLogin} />
-            </motion.div>
-          )}
+          <motion.div
+            key={isLogin ? "login" : "register"}
+            variants={slideVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            custom={direction}
+            style={{ width: "100%" }}
+          >
+            <AuthForms isLogin={isLogin} onSwap={handleSwap} />
+          </motion.div>
         </AnimatePresence>
       </div>
     </section>
   );
 }
 
-export default LoginRegister;
+export default AuthPage;

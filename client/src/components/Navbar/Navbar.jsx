@@ -1,4 +1,9 @@
+// External Dependencies
 import { Link } from "react-router-dom";
+
+// Assets
+
+// Styles
 import styles from "./Navbar.module.css";
 
 function Navbar() {
@@ -16,7 +21,7 @@ function Navbar() {
           </Link>
         </li>
         <li>
-          <Link to="/login" className={styles.link}>
+          <Link to="/auth" className={styles.link}>
             Login/Register
           </Link>
         </li>

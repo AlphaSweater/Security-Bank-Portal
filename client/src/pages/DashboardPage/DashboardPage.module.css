@@ -1,8 +1,7 @@
-/* Dashboard page styles */
-.container {
-  display: flex;
-  flex-direction: column;
+.page {
+  justify-content: start;
   align-items: center;
+  width: 100%;
 }
 
 .heading {
