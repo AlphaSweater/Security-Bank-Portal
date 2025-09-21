@@ -16,12 +16,10 @@ function App() {
   return (
     <Router>
       <div className={styles.appRoot}>
-        {/* ===== Header (Navigation) ===== */}
         <header>
           <Navbar />
         </header>
 
-        {/* ===== Main Content (Routes) ===== */}
         <main className={styles.contentContainer}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
@@ -30,7 +28,6 @@ function App() {
           </Routes>
         </main>
 
-        {/* ===== Footer ===== */}
         <footer className={styles.footer}>
           <small>
             &copy; {new Date().getFullYear()} Security Bank Portal &mdash; All
