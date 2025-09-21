@@ -34,7 +34,7 @@ function LoginRegister() {
   };
 
   return (
-    <div className={styles.container}>
+    <div className={styles.page}>
       <div
         className={styles.formStack}
         style={{ position: "relative", minHeight: 320 }}

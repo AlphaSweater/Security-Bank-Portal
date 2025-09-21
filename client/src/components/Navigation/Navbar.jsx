@@ -3,11 +3,12 @@ import styles from "./Navbar.module.css";
 
 function Navbar() {
   return (
-    <nav className={styles.navbar}>
-      <div className={styles.logo}>
-        {/* Replace with your logo if available */}
-        <span>🏦 Bank Portal</span>
-      </div>
+    <nav className={styles.navbar} aria-label="Main navigation">
+      <h1 className={styles.logo}>
+        <Link to="/" className={styles.link}>
+          🏦 Bank Portal
+        </Link>
+      </h1>
       <ul className={styles.navLinks}>
         <li>
           <Link to="/" className={styles.link}>

@@ -1,0 +1,14 @@
+/* Page component root styles - this MUST expand inside contentContainer */
+.page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.heroLogo {
+  width: 100px;
+  margin: 0 auto 1.5rem auto;
+  display: block;
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}

@@ -1,65 +1,33 @@
 /* App root container */
 .appRoot {
-  min-height: 100vh;
-  background: #181926;
-}
-
-/* Navigation bar */
-.nav {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 2rem;
-  padding: 1.5rem 2rem;
-  background: #232946;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-}
-
-/* Navigation links */
-.navLink {
-  color: #eebbc3;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.2s;
-}
-.navLink:hover {
-  color: #ffd6e0;
+  flex-direction: column;
+  height: 100%;
+  background: #181926;
 }
 
 /* Main content area */
-.content {
-  width: 100%;
-  min-height: 95vh;
-  background: #181926;
+.contentContainer {
+  flex: 1 1 auto; /* fill remaining space */
+  min-height: 0; /* allows children to shrink properly */
+  display: flex;
+  flex-direction: column;
   padding: 2.5rem 2rem;
-  color: #eebbc3;
-  box-sizing: border-box;
 }
 
-/* Logo styles */
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logoReact:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.contentContainer > * {
+  flex: 1 1 auto; /* expand to fill contentContainer */
+  min-height: 0;
 }
 
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .logoSpin {
-    animation: spin infinite 20s linear;
-  }
+.footer {
+  width: 100%;
+  text-align: center;
+  padding: 1rem 0 0.5rem 0;
+  color: #88888880;
+  font-size: 0.95rem;
+  background: transparent;
+  letter-spacing: 0.02em;
+  border-top: 1px solid #eeeeee80;
+  margin-top: 2rem;
 }

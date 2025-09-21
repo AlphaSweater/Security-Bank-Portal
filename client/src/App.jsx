@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Page from "./pages/Page";
 import Landing from "./pages/Landing";
 import Login from "./pages/LoginRegister";
 import Dashboard from "./pages/Dashboard";
@@ -9,14 +10,23 @@ function App() {
   return (
     <Router>
       <div className={styles.appRoot}>
-        <Navbar />
-        <div className={styles.content}>
+        <header>
+          <Navbar />
+        </header>
+        <main className={styles.contentContainer}>
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/page" element={<Page />} />
           </Routes>
-        </div>
+        </main>
+        <footer className={styles.footer}>
+          <small>
+            &copy; {new Date().getFullYear()} Security Bank Portal &mdash; All
+            rights reserved.
+          </small>
+        </footer>
       </div>
     </Router>
   );
