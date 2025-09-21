@@ -1,43 +1,63 @@
 {
   "folderTemplates.structures": [
     {
-      "name": "Custom Component",
-      "omitParentDirectory": false,
+      "name": "Custom Page",
+      "omitParentDirectory": true,
       "structure": [
         {
-          "fileName": "<FTName | pascalcase>.jsx",
-          "template": "CustomComponentJSX"
+          "fileName": "<FTName | pascalcase>/<FTName | pascalcase>.jsx",
+          "template": "CustomPageJSX"
         },
         {
-          "fileName": "<FTName | pascalcase>.module.css",
-          "template": "CustomComponentCSS"
+          "fileName": "<FTName | pascalcase>/<FTName | pascalcase>.module.css",
+          "template": "CustomPageCSS"
         },
         {
-          "fileName": "index.js",
-          "template": "CustomComponentIndex"
+          "fileName": "<FTName | pascalcase>/index.js",
+          "template": "CustomPageIndex"
         }
       ]
     },
     {
-      "name": "Custom Page",
-      "omitParentDirectory": false,
+      "name": "Custom Component",
+      "omitParentDirectory": true,
       "structure": [
         {
-          "fileName": "<FTName | pascalcase>.jsx",
-          "template": "CustomPageJSX"
+          "fileName": "<FTName | pascalcase>/<FTName | pascalcase>.jsx",
+          "template": "CustomComponentJSX"
         },
         {
-          "fileName": "<FTName | pascalcase>.module.css",
-          "template": "CustomPageCSS"
+          "fileName": "<FTName | pascalcase>/<FTName | pascalcase>.module.css",
+          "template": "CustomComponentCSS"
         },
         {
-          "fileName": "index.js",
-          "template": "CustomPageIndex"
+          "fileName": "<FTName | pascalcase>/index.js",
+          "template": "CustomComponentIndex"
         }
       ]
     }
   ],
   "folderTemplates.fileTemplates": {
+    "CustomPageJSX": [
+      "import styles from './<FTName | pascalcase>.module.css';",
+      "",
+      "export default function <FTName | pascalcase>() {",
+      "  return (",
+      "    <section className={styles.page}>",
+      "      <h1>Welcome to the New Page</h1>",
+      "      <p>This is a newly created page in the application.</p>",
+      "    </section>",
+      "  );",
+      "}"
+    ],
+    "CustomPageCSS": [
+      ".page {",
+      "  align-items: center;",
+      "  justify-content: center;",
+      "  width: 100%;",
+      "}"
+    ],
+    "CustomPageIndex": ["export { default } from './<FTName | pascalcase>';"],
     "CustomComponentJSX": [
       "import React from 'react';",
       "import styles from './<FTName | pascalcase>.module.css';",
@@ -58,31 +78,7 @@
     ],
     "CustomComponentIndex": [
       "export { default } from './<FTName | pascalcase>';"
-    ],
-    "CustomPageJSX": [
-      "import React from 'react';",
-      "import styles from './<FTName | pascalcase>.module.css';",
-      "",
-      "export default function <FTName | pascalcase>() {",
-      "  return (",
-      "    <main className={styles.<FTName | camelcase>}>",
-      "      <h1><FTName | pascalcase> Page</h1>",
-      "      <p>This is a full-page component intended for routing.</p>",
-      "    </main>",
-      "  );",
-      "}"
-    ],
-    "CustomPageCSS": [
-      ".<FTName | camelcase> {",
-      "  display: flex;",
-      "  flex-direction: column;",
-      "  justify-content: center;",
-      "  align-items: center;",
-      "  height: 100vh;",
-      "  width: 100%;",
-      "}"
-    ],
-    "CustomPageIndex": ["export { default } from './<FTName | pascalcase>';"]
+    ]
   },
   "folderTemplates.templateNotation": {
     "start": ["<", "["],
