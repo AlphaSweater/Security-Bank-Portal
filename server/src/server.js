@@ -1,22 +1,22 @@
+import "#config/loadEnv.js";
 import fs from "fs";
-import https from "https";
-import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
-import dotenv from "dotenv";
+import https from "https";
+import http from "http";
 import app from "./app.js";
-import logger from "./logger.js";
-
-dotenv.config();
+import { getLogger } from "#utils/logger.js";
+const logger = getLogger(import.meta.url);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const certPath = path.resolve(
-  process.env.SSL_PATH || path.join(__dirname, "../certs")
-);
+
+const rootDir = path.resolve(__dirname, "..");
+const certsDir = path.join(rootDir, "certs");
+
 const options = {
-  key: fs.readFileSync(path.join(certPath, "server.key")),
-  cert: fs.readFileSync(path.join(certPath, "server.crt")),
+  key: fs.readFileSync(path.join(certsDir, "server.key")),
+  cert: fs.readFileSync(path.join(certsDir, "server.crt")),
 };
 
 const HTTPS_PORT = process.env.HTTPS_PORT || 5000;

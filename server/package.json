@@ -3,6 +3,17 @@
   "name": "server",
   "version": "1.0.0",
   "main": "src/server.js",
+  "imports": {
+    "#config/*": "./src/config/*",
+    "#controllers/*": "./src/controllers/*",
+    "#middlewares/*": "./src/middlewares/*",
+    "#models/*": "./src/models/*",
+    "#routes/*": "./src/routes/*",
+    "#services/*": "./src/services/*",
+    "#utils/*": "./src/utils/*",
+    "#certs/*": "./certs/*",
+    "#env": "./.env"
+  },
   "scripts": {
     "start": "node src/server.js",
     "dev": "concurrently -n server,client -c green,cyan \"nodemon src/server.js\" \"npm run dev --prefix ../client\"",

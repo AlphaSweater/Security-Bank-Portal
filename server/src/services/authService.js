@@ -1,3 +1,6 @@
+import { getLogger } from "#utils/logger.js";
+const logger = getLogger(import.meta.url);
+
 // Business logic (stub)
 async function login(email, password) {
   // later: lookup user in DB, compare password hashes, return JWT
