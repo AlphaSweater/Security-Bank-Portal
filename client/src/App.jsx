@@ -1,56 +1,42 @@
-import { useState } from 'react'
-import LoginForm from './components/LoginForm.jsx'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// External Dependencies
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+// Page Components (Routes)
+import LandingPage from "pages/LandingPage";
+import AuthPage from "pages/AuthPage";
+import DashboardPage from "pages/DashboardPage";
+
+// UI Components
+import Navbar from "components/Navbar";
+
+// Styles
+import styles from "./App.module.css";
 
 function App() {
-  const [count, setCount] = useState(0);
-  const [apiMessage, setApiMessage] = useState('');
-
-  const fetchApi = async () => {
-    try {
-      const res = await fetch('/api');
-      const text = await res.text();
-      setApiMessage(text);
-    } catch {
-      setApiMessage('Error connecting to server');
-    }
-  };
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <Router>
+      <div className={styles.appRoot}>
+        <header>
+          <Navbar />
+        </header>
+
+        <main className={styles.contentContainer}>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+          </Routes>
+        </main>
+
+        <footer className={styles.footer}>
+          <small>
+            &copy; {new Date().getFullYear()} Security Bank Portal &mdash; All
+            rights reserved.
+          </small>
+        </footer>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card" style={{display: 'flex', gap: '2rem', alignItems: 'flex-start'}}>
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <button onClick={fetchApi} style={{marginLeft: '1rem'}}>
-          Fetch Server Message
-        </button>
-        {apiMessage && (
-          <p style={{marginTop: '1rem'}}>
-            Server says: {apiMessage}
-          </p>
-        )}
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-        <LoginForm />
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    </Router>
   );
 }
 
-export default App
+export default App;
