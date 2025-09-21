@@ -34,7 +34,7 @@ function LoginRegister() {
   };
 
   return (
-    <div className={styles.page}>
+    <section className={styles.page}>
       <div
         className={styles.formStack}
         style={{ position: "relative", minHeight: 320 }}
@@ -67,7 +67,7 @@ function LoginRegister() {
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </section>
   );
 }
 
