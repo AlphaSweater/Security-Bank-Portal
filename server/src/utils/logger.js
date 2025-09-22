@@ -10,7 +10,6 @@ const baseLogger = pino({
         target: "pino-pretty",
         options: {
           colorize: true,
-          translateTime: "SYS:standard",
           ignore: "pid,hostname",
         },
       }
@@ -20,9 +19,7 @@ const baseLogger = pino({
 function getLogger(moduleUrlOrName) {
   let label = "";
   if (typeof moduleUrlOrName === "string") {
-    // If it's a file URL (import.meta.url), extract the filename
     try {
-      // Remove file:// if present
       let filePath = moduleUrlOrName.replace("file://", "");
       label = path.basename(filePath, path.extname(filePath));
     } catch {
@@ -32,25 +29,59 @@ function getLogger(moduleUrlOrName) {
     label = "unknown";
   }
 
-  // Return a logger with methods that prefix messages with [label]
-  const wrap =
-    (level) =>
-    (msg, ...args) => {
-      if (typeof msg === "string") {
-        baseLogger[level](`[${label}] ${msg}`, ...args);
-      } else {
-        // If first arg is an object, pass as is
-        baseLogger[level](msg, ...args);
+  const COLOR_YELLOW = "\x1b[33m";
+  const COLOR_BLUE = "\x1b[34m";
+  const COLOR_RESET = "\x1b[0m";
+
+  const logWithLabel = (labelPrefix, level, msg, ...args) => {
+    let displayLabel = labelPrefix;
+    if (isDev) {
+      if (labelPrefix.endsWith(": Async")) {
+        displayLabel = labelPrefix.replace(
+          /: Async$/,
+          `: ${COLOR_BLUE}Async${COLOR_RESET}`
+        );
+      } else if (labelPrefix.endsWith(": Sync")) {
+        displayLabel = labelPrefix.replace(
+          /: Sync$/,
+          `: ${COLOR_YELLOW}Sync${COLOR_RESET}`
+        );
       }
-    };
+    }
+    if (typeof msg === "string") {
+      baseLogger[level](`[${displayLabel}] ${msg}`, ...args);
+    } else {
+      baseLogger[level](msg, ...args);
+    }
+  };
 
   return {
-    info: wrap("info"),
-    warn: wrap("warn"),
-    error: wrap("error"),
-    debug: wrap("debug"),
-    fatal: wrap("fatal"),
-    trace: wrap("trace"),
+    // Sync logs
+    info: (msg, ...args) =>
+      logWithLabel(`${label}: Sync`, "info", msg, ...args),
+    warn: (msg, ...args) =>
+      logWithLabel(`${label}: Sync`, "warn", msg, ...args),
+    error: (msg, ...args) =>
+      logWithLabel(`${label}: Sync`, "error", msg, ...args),
+    debug: (msg, ...args) =>
+      logWithLabel(`${label}: Sync`, "debug", msg, ...args),
+    fatal: (msg, ...args) =>
+      logWithLabel(`${label}: Sync`, "fatal", msg, ...args),
+    trace: (msg, ...args) =>
+      logWithLabel(`${label}: Sync`, "trace", msg, ...args),
+    // Async logs
+    infoAsync: (msg, ...args) =>
+      logWithLabel(`${label}: Async`, "info", msg, ...args),
+    warnAsync: (msg, ...args) =>
+      logWithLabel(`${label}: Async`, "warn", msg, ...args),
+    errorAsync: (msg, ...args) =>
+      logWithLabel(`${label}: Async`, "error", msg, ...args),
+    debugAsync: (msg, ...args) =>
+      logWithLabel(`${label}: Async`, "debug", msg, ...args),
+    fatalAsync: (msg, ...args) =>
+      logWithLabel(`${label}: Async`, "fatal", msg, ...args),
+    traceAsync: (msg, ...args) =>
+      logWithLabel(`${label}: Async`, "trace", msg, ...args),
   };
 }
 
