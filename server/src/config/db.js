@@ -25,6 +25,9 @@ async function connectDB() {
     await client.connect();
     db = client.db(dbName);
     logger.info(`✅ Connected to MongoDB: ${dbName}`);
+    logger.info("🌐 Attempting to ping DB ...");
+    await db.command({ ping: 1 });
+    logger.info("🏓 Ping to DB successful!");
     return db;
   } catch (mongoError) {
     logger.error(`❌ MongoDB connection error: ${mongoError.message}`);
