@@ -8,11 +8,16 @@ import { getLogger } from "#utils/logger.js";
 const logger = getLogger(import.meta.url);
 
 // --- App Initialization ---
+logger.info("Express app initialization");
 const app = express();
 
+// --- Middleware Registration ---
+logger.info("Registering core middleware");
+
+// Body parsing
 app.use(express.json());
 
-// Logging middleware
+// Request logging
 app.use((req, res, next) => {
   logger.info(
     { method: req.method, url: req.url, ip: req.ip },
@@ -21,17 +26,18 @@ app.use((req, res, next) => {
   next();
 });
 
-// Security middleware (Helmet + CORS)
+// Security headers and other protections
 security(app);
 
-// Session middleware
+// Session management
 app.use(sessionMiddleware());
 
 // Routes
+logger.info("Registering routes");
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 
-// Error handler
+// Error handling (should be last)
 app.use(errorHandler);
 
 export default app;

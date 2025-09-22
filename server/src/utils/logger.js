@@ -19,9 +19,7 @@ const baseLogger = pino({
 function getLogger(moduleUrlOrName) {
   let label = "";
   if (typeof moduleUrlOrName === "string") {
-    // If it's a file URL (import.meta.url), extract the filename
     try {
-      // Remove file:// if present
       let filePath = moduleUrlOrName.replace("file://", "");
       label = path.basename(filePath, path.extname(filePath));
     } catch {
@@ -31,25 +29,22 @@ function getLogger(moduleUrlOrName) {
     label = "unknown";
   }
 
-  // ANSI color codes
   const COLOR_YELLOW = "\x1b[33m";
   const COLOR_BLUE = "\x1b[34m";
   const COLOR_RESET = "\x1b[0m";
 
-  // Helper to format log prefix: [label] or [Async-label] message, with colored Async/Sync in dev
   const logWithLabel = (labelPrefix, level, msg, ...args) => {
     let displayLabel = labelPrefix;
     if (isDev) {
-      // Color Async/Sync
       if (labelPrefix.endsWith(": Async")) {
         displayLabel = labelPrefix.replace(
           /: Async$/,
-          `: ${COLOR_YELLOW}Async${COLOR_RESET}`
+          `: ${COLOR_BLUE}Async${COLOR_RESET}`
         );
       } else if (labelPrefix.endsWith(": Sync")) {
         displayLabel = labelPrefix.replace(
           /: Sync$/,
-          `: ${COLOR_BLUE}Sync${COLOR_RESET}`
+          `: ${COLOR_YELLOW}Sync${COLOR_RESET}`
         );
       }
     }
