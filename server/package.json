@@ -3,6 +3,17 @@
   "name": "server",
   "version": "1.0.0",
   "main": "src/server.js",
+  "imports": {
+    "#config/*": "./src/config/*",
+    "#controllers/*": "./src/controllers/*",
+    "#middlewares/*": "./src/middlewares/*",
+    "#models/*": "./src/models/*",
+    "#routes/*": "./src/routes/*",
+    "#services/*": "./src/services/*",
+    "#utils/*": "./src/utils/*",
+    "#certs/*": "./certs/*",
+    "#env": "./.env"
+  },
   "scripts": {
     "start": "node src/server.js",
     "dev": "concurrently -n server,client -c green,cyan \"nodemon src/server.js\" \"npm run dev --prefix ../client\"",
@@ -13,11 +24,16 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "connect-redis": "^9.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "express-session": "^1.18.2",
     "helmet": "^8.1.0",
-    "pino": "^9.9.5"
+    "ioredis": "^4.30.1",
+    "ioredis-mock": "^4.21.8",
+    "pino": "^9.9.5",
+    "redis": "^5.8.2"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
