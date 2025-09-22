@@ -16,7 +16,8 @@
   },
   "scripts": {
     "start": "node src/server.js",
-    "dev": "concurrently -n server,client -c green,cyan \"nodemon src/server.js\" \"npm run dev --prefix ../client\"",
+    "dev": "concurrently -n server -c green \"nodemon src/server.js\"",
+    "bothDev": "concurrently -n server,client -c green,cyan \"nodemon src/server.js\" \"npm run dev --prefix ../client\"",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [],
