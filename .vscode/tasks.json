@@ -3,32 +3,29 @@
   "tasks": [
     {
       "label": "Run Server",
-      "type": "npm",
-      "script": "start:server",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder}/server"
+      },
       "problemMatcher": []
     },
     {
       "label": "Run Client",
-      "type": "npm",
-      "script": "start:client",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder}/client"
+      },
       "problemMatcher": []
     },
     {
       "label": "Run Both",
-      "type": "npm",
-      "script": "start:both",
-      "problemMatcher": []
-    },
-    {
-      "label": "Build Client",
-      "type": "npm",
-      "script": "build:client",
-      "problemMatcher": []
-    },
-    {
-      "label": "Build Both",
-      "type": "npm",
-      "script": "build:both",
+      "type": "shell",
+      "command": "npm run bothDev",
+      "options": {
+        "cwd": "${workspaceFolder}/server"
+      },
       "problemMatcher": []
     }
   ]
