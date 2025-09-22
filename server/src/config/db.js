@@ -32,4 +32,14 @@ async function connectDB() {
   }
 }
 
-export { client, connectDB };
+async function closeDB() {
+  try {
+    await client.close();
+    logger.info("🛑 MongoDB connection closed.");
+  } catch (closeError) {
+    logger.error(`❌ Error closing MongoDB connection: ${closeError.message}`);
+    throw closeError;
+  }
+}
+
+export { client, connectDB, closeDB };
