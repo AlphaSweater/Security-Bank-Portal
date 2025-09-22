@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import util from "util";
 import { validateData } from "#middlewares/validationMiddleware.js";
 import {
   loginUserSchema,
@@ -33,15 +34,24 @@ describe("validateData middleware", () => {
   });
 
   afterEach(() => {
-    // Optional: print captured logs for debugging
+    // Print captured logs for debugging, always showing full object/array contents
     if (infoSpy.mock.calls.length > 0) {
-      console.log("[logger.info calls]", infoSpy.mock.calls);
+      console.log(
+        "[logger.info calls]",
+        util.inspect(infoSpy.mock.calls, { depth: null, colors: true })
+      );
     }
     if (errorSpy.mock.calls.length > 0) {
-      console.log("[logger.error calls]", errorSpy.mock.calls);
+      console.log(
+        "[logger.error calls]",
+        util.inspect(errorSpy.mock.calls, { depth: null, colors: true })
+      );
     }
     if (debugSpy.mock.calls.length > 0) {
-      console.log("[logger.debug calls]", debugSpy.mock.calls);
+      console.log(
+        "[logger.debug calls]",
+        util.inspect(debugSpy.mock.calls, { depth: null, colors: true })
+      );
     }
     infoSpy.mockRestore();
     errorSpy.mockRestore();
@@ -52,7 +62,7 @@ describe("validateData middleware", () => {
   // Registration schema tests
   // ---------------------------------------------------------------------------
   describe("registerUserSchema", () => {
-    it("✅ passes validation and sanitizes req.body", () => {
+    it("passes validation and sanitizes req.body", () => {
       // Arrange
       const validBody = {
         firstName: "John",
@@ -84,7 +94,7 @@ describe("validateData middleware", () => {
       });
     });
 
-    it("❌ fails validation and returns 400 with error messages", () => {
+    it("fails validation and returns 400 with error messages", () => {
       // Arrange
       const invalidBody = {
         firstName: "J",
@@ -137,7 +147,7 @@ describe("validateData middleware", () => {
   // Login schema tests
   // ---------------------------------------------------------------------------
   describe("loginUserSchema", () => {
-    it("✅ passes validation and strips unknown fields", () => {
+    it("passes validation and strips unknown fields", () => {
       // Arrange
       const validBody = {
         email: "user@example.com",
@@ -161,7 +171,7 @@ describe("validateData middleware", () => {
       });
     });
 
-    it("❌ fails validation with bad email", () => {
+    it("fails validation with bad email", () => {
       // Arrange
       const invalidBody = { email: "bademail", password: "pass" };
       const { req, res, next } = mockExpressObjects(invalidBody);
@@ -187,7 +197,7 @@ describe("validateData middleware", () => {
       );
     });
 
-    it("❌ fails validation when password is missing", () => {
+    it("fails validation when password is missing", () => {
       // Arrange
       const invalidBody = { email: "user@example.com" };
       const { req, res, next } = mockExpressObjects(invalidBody);
