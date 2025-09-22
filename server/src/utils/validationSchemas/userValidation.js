@@ -34,9 +34,17 @@ const safeString = ({
         errors.push(regexMsg || "a valid format");
       }
 
-      // If any errors are found, return a custom Joi error
+      // If any errors are found, join for a readable message
       if (errors.length > 0) {
-        return helpers.error("string.customInvalid", { errors });
+        let errorMsg =
+          errors.length === 1
+            ? errors[0]
+            : errors.length === 2
+            ? errors.join(" and ")
+            : errors.slice(0, -1).join(", ") +
+              ", and " +
+              errors[errors.length - 1];
+        return helpers.error("string.customInvalid", { errors: errorMsg });
       }
 
       return value;
@@ -44,9 +52,9 @@ const safeString = ({
     .messages({
       "string.base": `${label} must be a string`,
       "string.empty": `${label} is required`,
-      "string.min": `${label} must be at least ${minLength} characters`,
-      "string.max": `${label} must be at most ${maxLength} characters`,
-      "string.customInvalid": `${label} must be {#errors}`, // will join multiple
+      "string.min": `${label} must be at least ${minLength} characters long`,
+      "string.max": `${label} must be at most ${maxLength} characters long`,
+      "string.customInvalid": `${label} must be {#errors}`,
     });
 
 // --- Safe Password helper ---
@@ -56,6 +64,7 @@ const safePassword = ({ minLength = 8, maxLength = 128 } = {}) =>
     .trim()
     .min(minLength)
     .max(maxLength)
+    .required()
     .custom((value, helpers) => {
       const errors = [];
 
@@ -65,17 +74,26 @@ const safePassword = ({ minLength = 8, maxLength = 128 } = {}) =>
       if (!/[0-9]/.test(value)) errors.push("one digit");
       if (!/[^A-Za-z0-9]/.test(value)) errors.push("one special character");
 
-      // If any complexity requirements are missing, return a custom Joi error
+      // If any complexity requirements are missing, join for a readable message
       if (errors.length > 0) {
-        return helpers.error("string.passwordComplexity", { errors });
+        let errorMsg =
+          errors.length === 1
+            ? errors[0]
+            : errors.length === 2
+            ? errors.join(" and ")
+            : errors.slice(0, -1).join(", ") +
+              ", and " +
+              errors[errors.length - 1];
+        return helpers.error("string.passwordComplexity", { errors: errorMsg });
       }
 
       return value;
     })
     .messages({
-      "string.min": `Password must be at least ${minLength} characters`,
-      "string.max": `Password must be at most ${maxLength} characters`,
-      "string.passwordComplexity": "Password must include at least {#errors}", // Insert errors array
+      "string.empty": "Password is required",
+      "string.min": `Password must be at least ${minLength} characters long`,
+      "string.max": `Password must be at most ${maxLength} characters long`,
+      "string.passwordComplexity": "Password must include at least {#errors}",
     });
 
 // =========================
@@ -89,11 +107,13 @@ const safePassword = ({ minLength = 8, maxLength = 128 } = {}) =>
 export const registerUserSchema = Joi.object({
   // First name must be a valid string, trimmed, and within length limits
   firstName: safeString({
+    label: "First name",
     minLength: 2,
     maxLength: 100,
   }).required(),
   // Last name must be a valid string, trimmed, and within length limits
   lastName: safeString({
+    label: "Last name",
     minLength: 2,
     maxLength: 100,
   }).required(),
@@ -103,17 +123,17 @@ export const registerUserSchema = Joi.object({
     minLength: 13,
     maxLength: 13,
     regex: /^\d{13}$/,
-    regexMsg: "must be a valid SA ID number",
+    regexMsg: "a valid ID number",
   }).required(),
   // Email must be a valid email, trimmed, and within length limits
   email: safeString({
+    label: "Email",
     minLength: 5,
     maxLength: 254,
-    label: "Email",
     isEmail: true,
   }).required(),
   // Password must meet complexity requirements
-  password: safePassword().required(),
+  password: safePassword(),
   // Confirm password must match password exactly
   confirmPassword: Joi.string()
     .trim()
@@ -143,6 +163,8 @@ export const loginUserSchema = Joi.object({
   // Password: only checks presence and max length, generic errors
   password: Joi.string().trim().min(1).max(128).required().messages({
     "string.empty": "Password is required",
+    "any.required": "Password is required",
+    "string.min": "Password is required",
     "string.max": "Invalid email or password",
   }),
 }).options({ stripUnknown: true });
