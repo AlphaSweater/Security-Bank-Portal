@@ -10,8 +10,6 @@ const baseLogger = pino({
         target: "pino-pretty",
         options: {
           colorize: true,
-          // Show only time in 24h format with seconds in dev, full date+time in prod
-          translateTime: "HH:MM:ss", // 24h:minutes:seconds
           ignore: "pid,hostname",
         },
       }
@@ -42,6 +40,7 @@ function getLogger(moduleUrlOrName) {
   const logWithLabel = (labelPrefix, level, msg, ...args) => {
     let displayLabel = labelPrefix;
     if (isDev) {
+      // Color Async/Sync
       if (labelPrefix.endsWith(": Async")) {
         displayLabel = labelPrefix.replace(
           /: Async$/,
