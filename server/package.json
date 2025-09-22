@@ -18,7 +18,8 @@
     "start": "node src/server.js",
     "dev": "concurrently -n server -c green \"nodemon src/server.js\"",
     "bothDev": "concurrently -n server,client -c green,cyan \"nodemon src/server.js\" \"npm run dev --prefix ../client\"",
-    "test": "echo \"Error: no test specified\" && exit 0"
+    "test": "vitest",
+    "test:ui": "vitest --ui"
   },
   "keywords": [],
   "author": "",
@@ -33,12 +34,17 @@
     "helmet": "^8.1.0",
     "ioredis": "^4.30.1",
     "ioredis-mock": "^4.21.8",
+    "joi": "^18.0.1",
+    "mongodb": "^6.20.0",
     "pino": "^9.9.5",
     "redis": "^5.8.2"
   },
   "devDependencies": {
+    "@vitest/ui": "^3.2.4",
     "concurrently": "^9.2.1",
     "nodemon": "^3.1.10",
-    "pino-pretty": "^13.1.1"
+    "pino-pretty": "^13.1.1",
+    "supertest": "^7.1.4",
+    "vitest": "^3.2.4"
   }
 }

@@ -1,51 +1,93 @@
-import { getLogger } from "#utils/logger.js";
 import { createSession, destroySession } from "#services/sessionService.js";
+import { registerNewUser, validateUser } from "#services/authService.js";
+import { getLogger } from "#utils/logger.js";
 const logger = getLogger(import.meta.url);
 
-// Login controller with hardcoded user for testing
-export async function login(req, res, next) {
+// Auth controller
+
+// Register controller action
+// POST /auth/register
+export async function register(req, res, next) {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password required" });
-    }
+    // All fields are already validated and stripped by middleware
 
-    // Hardcoded user for testing
-    const user = {
-      id: "testguy-123",
-      name: "Test Guy",
-      email: "testguy@example.com",
-      roles: ["user"],
-    };
+    // Destructure the validated fields
+    const { firstName, lastName, saIdNumber, email, password } = req.body;
 
-    if (email !== user.email || password !== "password123") {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    logger.debug("Attempting to register user with email:", email);
 
-    // Use sessionService to handle session creation
+    // Call the registration service and pass the validated fields
+    logger.debug("Calling registration service");
     try {
-      const sessionId = await createSession(req, user);
-      res.json({
-        message: "Logged in",
-        userId: user.id,
-        roles: user.roles,
-        name: user.name,
-        sessionCookie: sessionId,
+      const userId = await registerNewUser({
+        firstName,
+        lastName,
+        saIdNumber,
+        email,
+        password,
       });
-    } catch (err) {
-      return res.status(500).json({ message: "Session error" });
+
+      logger.debug("User registered successfully with ID:", userId);
+
+      // Registration successful response
+      res.status(201).json({ message: "Registration successful", userId });
+    } catch (registrationError) {
+      // Duplicate email or other registration error response
+      res
+        .status(400)
+        .json({ message: registrationError.message || "Registration failed" });
     }
-  } catch (err) {
-    next(err);
+  } catch (unexpectedError) {
+    next(unexpectedError);
   }
 }
 
-// Logout controller
+// Login controller action
+// POST /auth/login
+export async function login(req, res, next) {
+  try {
+    // All fields are already validated and stripped by middleware
+
+    // Destructure the validated fields
+    const { email, password } = req.body;
+
+    logger.debug("Attempting to log in user with email:", email);
+
+    // Call the validation service method
+    logger.debug("Calling validation service");
+    try {
+      const user = await validateUser({ email, password });
+
+      logger.debug("User validated successfully!");
+      // Create a session for the user
+      const sessionId = await createSession(req, user);
+      res.json({
+        message: "Logged in",
+        userId: user._id,
+        roles: user.role ? [user.role] : [],
+        name: user.firstName ? user.firstName : user.email,
+        sessionCookie: sessionId,
+      });
+    } catch (loginError) {
+      // Invalid credentials or session error
+      res
+        .status(401)
+        .json({ message: loginError.message || "Invalid credentials" });
+    }
+  } catch (unexpectedError) {
+    next(unexpectedError);
+  }
+}
+
+// Logout controller action
+// POST /auth/logout
 export async function logout(req, res) {
   try {
+    // Destroy the user's session
+    logger.debug("Destroying user session");
     await destroySession(req, res);
     res.json({ message: "Logged out" });
-  } catch (err) {
+  } catch (logoutError) {
     res.status(500).json({ message: "Logout failed" });
   }
 }

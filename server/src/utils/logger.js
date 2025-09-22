@@ -29,27 +29,17 @@ function getLogger(moduleUrlOrName) {
     label = "unknown";
   }
 
-  const COLOR_YELLOW = "\x1b[33m";
-  const COLOR_BLUE = "\x1b[34m";
   const COLOR_RESET = "\x1b[0m";
-
   const logWithLabel = (labelPrefix, level, msg, ...args) => {
     let displayLabel = labelPrefix;
-    if (isDev) {
-      if (labelPrefix.endsWith(": Async")) {
-        displayLabel = labelPrefix.replace(
-          /: Async$/,
-          `: ${COLOR_BLUE}Async${COLOR_RESET}`
-        );
-      } else if (labelPrefix.endsWith(": Sync")) {
-        displayLabel = labelPrefix.replace(
-          /: Sync$/,
-          `: ${COLOR_YELLOW}Sync${COLOR_RESET}`
-        );
-      }
-    }
+
     if (typeof msg === "string") {
-      baseLogger[level](`[${displayLabel}] ${msg}`, ...args);
+      if (level === "info") {
+        // Reset color after label for info logs only
+        baseLogger[level](`[${displayLabel}]${COLOR_RESET} ${msg}`, ...args);
+      } else {
+        baseLogger[level](`[${displayLabel}] ${msg}`, ...args);
+      }
     } else {
       baseLogger[level](msg, ...args);
     }

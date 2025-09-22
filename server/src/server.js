@@ -4,6 +4,7 @@ import http from "http";
 import app from "./app.js";
 import { loadCerts } from "#config/loadCerts.js";
 import { getLogger } from "#utils/logger.js";
+import { closeDB } from "#config/db.js";
 const logger = getLogger(import.meta.url);
 
 const HTTPS_PORT = process.env.HTTPS_PORT;
@@ -39,3 +40,23 @@ async function startServer() {
 }
 
 startServer();
+
+// Graceful shutdown
+const shutdown = async () => {
+  try {
+    logger.infoAsync("Shutting down server...");
+    await closeDB();
+    logger.infoAsync("Shutdown complete.");
+  } catch (e) {
+    logger.errorAsync(`Error during shutdown: ${e.message}`);
+  } finally {
+    process.exit(0);
+  }
+};
+
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);
+
+process.on("beforeExit", async () => {
+  await shutdown();
+});
