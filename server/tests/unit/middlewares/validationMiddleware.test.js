@@ -6,7 +6,9 @@ import {
 } from "#utils/validationSchemas/userValidation.js";
 import logger from "#utils/logger.js";
 
-// --- Helper: mock Express req/res/next ---
+// -----------------------------------------------------------------------------
+// Helper: mock Express req/res/next objects
+// -----------------------------------------------------------------------------
 function mockExpressObjects(body = {}) {
   const req = { body };
   const res = {
@@ -17,9 +19,13 @@ function mockExpressObjects(body = {}) {
   return { req, res, next };
 }
 
+// -----------------------------------------------------------------------------
+// Test Suite: validateData middleware
+// -----------------------------------------------------------------------------
 describe("validateData middleware", () => {
   let infoSpy, errorSpy, debugSpy;
 
+  // Setup & teardown logger spies
   beforeEach(() => {
     infoSpy = vi.spyOn(logger, "info").mockImplementation(() => {});
     errorSpy = vi.spyOn(logger, "error").mockImplementation(() => {});
@@ -27,28 +33,27 @@ describe("validateData middleware", () => {
   });
 
   afterEach(() => {
-    // Print logs for review (not for assertions)
+    // Optional: print captured logs for debugging
     if (infoSpy.mock.calls.length > 0) {
-      // eslint-disable-next-line no-console
       console.log("[logger.info calls]", infoSpy.mock.calls);
     }
     if (errorSpy.mock.calls.length > 0) {
-      // eslint-disable-next-line no-console
       console.log("[logger.error calls]", errorSpy.mock.calls);
     }
     if (debugSpy.mock.calls.length > 0) {
-      // eslint-disable-next-line no-console
       console.log("[logger.debug calls]", debugSpy.mock.calls);
     }
     infoSpy.mockRestore();
     errorSpy.mockRestore();
     debugSpy.mockRestore();
   });
-  // ------------------------
-  // Registration tests
-  // ------------------------
+
+  // ---------------------------------------------------------------------------
+  // Registration schema tests
+  // ---------------------------------------------------------------------------
   describe("registerUserSchema", () => {
     it("✅ passes validation and sanitizes req.body", () => {
+      // Arrange
       const validBody = {
         firstName: "John",
         lastName: "Doe",
@@ -58,19 +63,14 @@ describe("validateData middleware", () => {
         confirmPassword: "Password1!",
         extraField: "should be stripped",
       };
-
       const { req, res, next } = mockExpressObjects(validBody);
-      // Act
-      logger.info(
-        "[TEST] BEFORE validation (register):",
-        JSON.stringify(req.body)
-      );
-      validateData(registerUserSchema)(req, res, next);
-      logger.info(
-        "[TEST] AFTER validation (register):",
-        JSON.stringify(req.body)
-      );
 
+      // Act
+      logger.info("[TEST] BEFORE validation (register):", req.body);
+      validateData(registerUserSchema)(req, res, next);
+      logger.info("[TEST] AFTER validation (register):", req.body);
+
+      // Assert
       expect(next).toHaveBeenCalledOnce();
       expect(res.status).not.toHaveBeenCalled();
       expect(req.body).not.toHaveProperty("extraField");
@@ -82,10 +82,10 @@ describe("validateData middleware", () => {
         password: "Password1!",
         confirmPassword: "Password1!",
       });
-      logger.info("[TEST] Registration validation PASSED");
     });
 
     it("❌ fails validation and returns 400 with error messages", () => {
+      // Arrange
       const invalidBody = {
         firstName: "J",
         lastName: "",
@@ -94,30 +94,23 @@ describe("validateData middleware", () => {
         password: "short",
         confirmPassword: "different",
       };
-
       const { req, res, next } = mockExpressObjects(invalidBody);
 
-      logger.info(
-        "[TEST] BEFORE validation (register, invalid):",
-        JSON.stringify(req.body)
-      );
+      // Act
+      logger.info("[TEST] BEFORE validation (register, invalid):", req.body);
       validateData(registerUserSchema)(req, res, next);
       logger.info(
-        "[TEST] AFTER validation (register, invalid): status=%s",
-        res.status.mock.calls[0]?.[0]
-      );
-      logger.info(
-        "[TEST] AFTER validation (register, invalid): response=",
-        JSON.stringify(res.json.mock.calls[0]?.[0])
+        "[TEST] AFTER validation (register, invalid):",
+        res.json.mock.calls[0]?.[0]
       );
 
+      // Assert
       expect(res.status).toHaveBeenCalledWith(400);
       expect(next).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
           message: "Validation error",
           errors: expect.arrayContaining([
-            // These match the new, natural error message style
             expect.stringContaining(
               "First name must be at least 2 characters long"
             ),
@@ -137,30 +130,28 @@ describe("validateData middleware", () => {
           ]),
         })
       );
-      logger.info("[TEST] Registration validation FAILED as expected");
     });
   });
 
-  // ------------------------
-  // Login tests
-  // ------------------------
+  // ---------------------------------------------------------------------------
+  // Login schema tests
+  // ---------------------------------------------------------------------------
   describe("loginUserSchema", () => {
     it("✅ passes validation and strips unknown fields", () => {
+      // Arrange
       const validBody = {
         email: "user@example.com",
         password: "anyPassword",
         extra: "strip me",
       };
-
       const { req, res, next } = mockExpressObjects(validBody);
 
-      logger.info(
-        "[TEST] BEFORE validation (login):",
-        JSON.stringify(req.body)
-      );
+      // Act
+      logger.info("[TEST] BEFORE validation (login):", req.body);
       validateData(loginUserSchema)(req, res, next);
-      logger.info("[TEST] AFTER validation (login):", JSON.stringify(req.body));
+      logger.info("[TEST] AFTER validation (login):", req.body);
 
+      // Assert
       expect(next).toHaveBeenCalledOnce();
       expect(res.status).not.toHaveBeenCalled();
       expect(req.body).not.toHaveProperty("extra");
@@ -168,31 +159,22 @@ describe("validateData middleware", () => {
         email: "user@example.com",
         password: "anyPassword",
       });
-      logger.info("[TEST] Login validation PASSED");
     });
 
     it("❌ fails validation with bad email", () => {
-      const invalidBody = {
-        email: "bademail",
-        password: "pass",
-      };
-
+      // Arrange
+      const invalidBody = { email: "bademail", password: "pass" };
       const { req, res, next } = mockExpressObjects(invalidBody);
 
-      logger.info(
-        "[TEST] BEFORE validation (login, bad email):",
-        JSON.stringify(req.body)
-      );
+      // Act
+      logger.info("[TEST] BEFORE validation (login, bad email):", req.body);
       validateData(loginUserSchema)(req, res, next);
       logger.info(
-        "[TEST] AFTER validation (login, bad email): status=%s",
-        res.status.mock.calls[0]?.[0]
-      );
-      logger.info(
-        "[TEST] AFTER validation (login, bad email): response=",
-        JSON.stringify(res.json.mock.calls[0]?.[0])
+        "[TEST] AFTER validation (login, bad email):",
+        res.json.mock.calls[0]?.[0]
       );
 
+      // Assert
       expect(res.status).toHaveBeenCalledWith(400);
       expect(next).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(
@@ -203,28 +185,25 @@ describe("validateData middleware", () => {
           ]),
         })
       );
-      logger.info("[TEST] Login validation FAILED as expected (bad email)");
     });
 
     it("❌ fails validation when password is missing", () => {
+      // Arrange
       const invalidBody = { email: "user@example.com" };
-
       const { req, res, next } = mockExpressObjects(invalidBody);
 
+      // Act
       logger.info(
         "[TEST] BEFORE validation (login, missing password):",
-        JSON.stringify(req.body)
+        req.body
       );
       validateData(loginUserSchema)(req, res, next);
       logger.info(
-        "[TEST] AFTER validation (login, missing password): status=%s",
-        res.status.mock.calls[0]?.[0]
-      );
-      logger.info(
-        "[TEST] AFTER validation (login, missing password): response=",
-        JSON.stringify(res.json.mock.calls[0]?.[0])
+        "[TEST] AFTER validation (login, missing password):",
+        res.json.mock.calls[0]?.[0]
       );
 
+      // Assert
       expect(res.status).toHaveBeenCalledWith(400);
       expect(next).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(
@@ -235,8 +214,82 @@ describe("validateData middleware", () => {
           ]),
         })
       );
+    });
+  });
+
+  // ------------------------
+  // Security tests
+  // ------------------------
+  describe("Security: NoSQL Injection & XSS", () => {
+    it("blocks NoSQL injection attempts in login", () => {
+      // Arrange
+      const maliciousBody = {
+        email: { $ne: null }, // typical NoSQL injection attempt
+        password: { $gt: "" },
+      };
+
+      const { req, res, next } = mockExpressObjects(maliciousBody);
+
+      // Act
+      logger.info("[TEST] BEFORE validation (security, NoSQL):", req.body);
+      validateData(loginUserSchema)(req, res, next);
       logger.info(
-        "[TEST] Login validation FAILED as expected (missing password)"
+        "[TEST] AFTER validation (security, NoSQL):",
+        res.json.mock.calls[0]?.[0]
+      );
+
+      // Assert
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(next).not.toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Validation error",
+        })
+      );
+    });
+
+    it("blocks XSS attempts in registration", () => {
+      // Arrange
+      const maliciousBody = {
+        firstName: "<script>alert('XSS')</script>",
+        lastName: "Doe",
+        saIdNumber: "9001015009087",
+        email: "xss@example.com",
+        password: "Password1!",
+        confirmPassword: "Password1!",
+      };
+
+      const { req, res, next } = mockExpressObjects(maliciousBody);
+
+      // Act
+      logger.info("[TEST] BEFORE validation (security, XSS):", req.body);
+      validateData(registerUserSchema)(req, res, next);
+      logger.info(
+        "[TEST] AFTER validation (security, XSS):",
+        res.json.mock.calls[0]?.[0]
+      );
+
+      // Debug: If status was not called, log the calls
+      if (!res.status.mock.calls.length) {
+        logger.error(
+          "[TEST][XSS] res.status was not called! Calls:",
+          res.status.mock.calls
+        );
+        logger.error("[TEST][XSS] res.json calls:", res.json.mock.calls);
+      }
+
+      // Assert
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(next).not.toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Validation error",
+          errors: expect.arrayContaining([
+            expect.stringContaining(
+              "letters, spaces, apostrophes, or hyphens only"
+            ),
+          ]),
+        })
       );
     });
   });

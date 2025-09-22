@@ -110,12 +110,16 @@ export const registerUserSchema = Joi.object({
     label: "First name",
     minLength: 2,
     maxLength: 100,
+    regex: /^[A-Za-z\s'-]+$/,
+    regexMsg: "letters, spaces, apostrophes, or hyphens only",
   }).required(),
   // Last name must be a valid string, trimmed, and within length limits
   lastName: safeString({
     label: "Last name",
     minLength: 2,
     maxLength: 100,
+    regex: /^[A-Za-z\s'-]+$/,
+    regexMsg: "letters, spaces, apostrophes, or hyphens only",
   }).required(),
   // South African ID number: 13 digits, valid format
   saIdNumber: safeString({
