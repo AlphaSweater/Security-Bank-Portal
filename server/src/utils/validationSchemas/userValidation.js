@@ -1,9 +1,81 @@
 import Joi from "joi";
 
-// Helper for safe string validation
+// =========================
+//  User Validation Schemas
+// =========================
+
+// --- Registration schema ---
+// Validates new user registration input: first & last names, SA ID number, email and password and confirms password
+// All fields have strict validation rules and custom error messages
+// Unknown fields are stripped to prevent extra data being added
+export const registerUserSchema = Joi.object({
+  // First name must be a valid string, trimmed, and within length limits
+  firstName: safeString({
+    minLength: 2,
+    maxLength: 100,
+  }).required(),
+  // Last name must be a valid string, trimmed, and within length limits
+  lastName: safeString({
+    minLength: 2,
+    maxLength: 100,
+  }).required(),
+  // South African ID number: 13 digits, valid format
+  saIdNumber: safeString({
+    label: "SA ID number",
+    minLength: 13,
+    maxLength: 13,
+    regex: /^\d{13}$/,
+    regexMsg: "must be a valid SA ID number",
+  }).required(),
+  // Email must be a valid email, trimmed, and within length limits
+  email: safeString({
+    minLength: 5,
+    maxLength: 254,
+    label: "Email",
+    isEmail: true,
+  }).required(),
+  // Password must meet complexity requirements
+  password: safePassword().required(),
+  // Confirm password must match password exactly
+  confirmPassword: Joi.string()
+    .trim()
+    .valid(Joi.ref("password"))
+    .required()
+    .messages({
+      "any.only": "Passwords must match",
+    }),
+}).options({ stripUnknown: true });
+
+// --- Login schema ---
+// Validates login input. Uses generic error messages to avoid leaking info
+export const loginUserSchema = Joi.object({
+  // Email: must be a valid email, but error messages are generic
+  email: Joi.string()
+    .trim()
+    .min(5)
+    .max(254)
+    .email({ tlds: { allow: false } })
+    .required()
+    .messages({
+      "string.empty": "Email is required",
+      "string.email": "Invalid email or password",
+      "string.min": "Invalid email or password",
+      "string.max": "Invalid email or password",
+    }),
+  // Password: only checks presence and max length, generic errors
+  password: Joi.string().trim().min(1).max(128).required().messages({
+    "string.empty": "Password is required",
+    "string.max": "Invalid email or password",
+  }),
+}).options({ stripUnknown: true });
+
+// =========================
+//  Validation Helpers
+// =========================
 
 // --- Safe String helper ---
-export const safeString = ({
+// Returns a Joi string validator with optional min/max, regex + message, label, and email check
+const safeString = ({
   minLength = 1,
   maxLength = 128,
   regex,
@@ -19,16 +91,19 @@ export const safeString = ({
       const errors = [];
 
       if (isEmail) {
-        // Joi has built-in email check, but we can still catch it manually
-        const emailSchema = Joi.string().email({ tlds: { allow: false } });
-        const { error } = emailSchema.validate(value);
+        // Enforce valid email format if specified
+        const { error } = Joi.string()
+          .email({ tlds: { allow: false } })
+          .validate(value);
         if (error) errors.push("a valid email address");
       }
 
+      // Enforce custom regex and message if provided
       if (regex && !regex.test(value)) {
         errors.push(regexMsg || "a valid format");
       }
 
+      // If any errors are found, return a custom Joi error
       if (errors.length > 0) {
         return helpers.error("string.customInvalid", { errors });
       }
@@ -44,7 +119,8 @@ export const safeString = ({
     });
 
 // --- Safe Password helper ---
-export const safePassword = ({ minLength = 8, maxLength = 128 } = {}) =>
+// Returns a Joi string validator that enforces password complexity
+const safePassword = ({ minLength = 8, maxLength = 128 } = {}) =>
   Joi.string()
     .trim()
     .min(minLength)
@@ -52,11 +128,13 @@ export const safePassword = ({ minLength = 8, maxLength = 128 } = {}) =>
     .custom((value, helpers) => {
       const errors = [];
 
+      // Require at least one uppercase, lowercase, digit, and special character
       if (!/[A-Z]/.test(value)) errors.push("one uppercase letter");
       if (!/[a-z]/.test(value)) errors.push("one lowercase letter");
       if (!/[0-9]/.test(value)) errors.push("one digit");
       if (!/[^A-Za-z0-9]/.test(value)) errors.push("one special character");
 
+      // If any complexity requirements are missing, return a custom Joi error
       if (errors.length > 0) {
         return helpers.error("string.passwordComplexity", { errors });
       }
@@ -66,39 +144,5 @@ export const safePassword = ({ minLength = 8, maxLength = 128 } = {}) =>
     .messages({
       "string.min": `Password must be at least ${minLength} characters`,
       "string.max": `Password must be at most ${maxLength} characters`,
-      "string.passwordComplexity": "Password must include at least {#errors}", // Joi inserts errors array
+      "string.passwordComplexity": "Password must include at least {#errors}", // Insert errors array
     });
-
-// --- Validation Schemas ---
-
-// Registration schema
-export const registerUserSchema = Joi.object({
-  email: safeString({
-    minLength: 5,
-    maxLength: 254,
-    label: "Email",
-    isEmail: true,
-  }).required(),
-  password: safePassword().required(),
-}).options({ stripUnknown: true });
-
-// Login schema
-export const loginUserSchema = Joi.object({
-  // Use regular JOI string with neutral messages for login to avoid info leaks
-  email: Joi.string()
-    .trim()
-    .min(5)
-    .max(254)
-    .email({ tlds: { allow: false } })
-    .required()
-    .messages({
-      "string.empty": "Email is required",
-      "string.email": "Invalid email or password",
-      "string.min": "Invalid email or password",
-      "string.max": "Invalid email or password",
-    }),
-  password: Joi.string().trim().min(1).max(128).required().messages({
-    "string.empty": "Password is required",
-    "string.max": "Invalid email or password",
-  }),
-}).options({ stripUnknown: true });
