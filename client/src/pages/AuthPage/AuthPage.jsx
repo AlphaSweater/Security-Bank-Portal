@@ -70,7 +70,7 @@ function AuthPage() {
               animate="animate"
               exit="exit"
               custom={direction}
-              style={{ width: "100%" }} // Remove position: absolute, top, left
+              style={{ width: "100%", height: "100%" }}
             >
               <AuthForms isLogin={isLogin} onSwap={handleSwap} />
             </motion.div>

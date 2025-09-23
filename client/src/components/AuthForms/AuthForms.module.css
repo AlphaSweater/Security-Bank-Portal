@@ -1,8 +1,7 @@
 /* Auth form styles */
 .authForms {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 100%; /* Full width to fill form area */
+  height: 100%; /* Full height to fill form area */
   box-sizing: border-box;
   padding: 2.5rem 2rem;
 }
@@ -14,12 +13,14 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  justify-content: space-around; /* pushes inputArea up, buttonArea down */
+  height: 100%;
+  gap: 0; /* remove gap so space is only between input/button areas */
   margin: 0 auto;
 }
 
 .active {
-  display: block;
+  display: flex;
 }
 
 .heading {
@@ -98,7 +99,6 @@
 
 .textCenter {
   text-align: center;
-  margin-top: 1.2rem;
 }
 
 .switchLink {
@@ -113,4 +113,16 @@
 }
 .switchLink:hover {
   color: #f3a683;
+}
+
+.inputArea {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem; /* fixed gap between inputs */
+}
+
+.buttonArea {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem; /* gap between button and swap link */
 }
