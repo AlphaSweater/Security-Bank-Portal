@@ -43,10 +43,7 @@ function AuthPage() {
 
   return (
     <section className={styles.page}>
-      <div
-        className={styles.formStack}
-        style={{ position: "relative", minHeight: 320 }}
-      >
+      <div className={styles.formStack}>
         <AnimatePresence custom={direction} mode="wait">
           <motion.div
             key={isLogin ? "login" : "register"}
