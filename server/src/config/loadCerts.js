@@ -11,15 +11,13 @@ const certsDir = path.resolve(__dirname, "..", "..", "certs");
 export async function loadCerts() {
   const certKeyFile = process.env.CERT_KEY || "server.key";
   const certCrtFile = process.env.CERT_CRT || "server.crt";
-  logger.infoAsync(`Looking for certs in: ${certsDir}`);
-  logger.infoAsync(`Using key file: ${certKeyFile}, cert file: ${certCrtFile}`);
+
   try {
-    logger.infoAsync("Loading SSL certificate and key...");
     const [key, cert] = await Promise.all([
       fs.readFile(path.join(certsDir, certKeyFile)),
       fs.readFile(path.join(certsDir, certCrtFile)),
     ]);
-    logger.infoAsync("SSL certificate and key loaded successfully.");
+
     return { key, cert };
   } catch (e) {
     logger.errorAsync(

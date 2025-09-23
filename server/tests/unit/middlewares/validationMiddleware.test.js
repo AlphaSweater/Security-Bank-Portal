@@ -302,5 +302,89 @@ describe("validateData middleware", () => {
         })
       );
     });
+
+    it("blocks comprehensive XSS attempts across all registration fields", () => {
+      // Arrange - test various XSS payloads in every field
+      const maliciousBody = {
+        firstName: "<img src=x onerror=alert('XSS')>",
+        lastName: "<svg onload=alert('XSS')>",
+        saIdNumber: "javascript:alert('XSS')",
+        email: "<script>alert('XSS')</script>@evil.com",
+        password: "<iframe src=javascript:alert('XSS')>1",
+        confirmPassword: "<iframe src=javascript:alert('XSS')>1",
+      };
+
+      const { req, res, next } = mockExpressObjects(maliciousBody);
+
+      // Act
+      logger.info("[TEST] BEFORE validation (comprehensive XSS):", req.body);
+      validateData(registerUserSchema)(req, res, next);
+      logger.info(
+        "[TEST] AFTER validation (comprehensive XSS):",
+        res.json.mock.calls[0]?.[0]
+      );
+
+      // Assert - should fail validation on multiple fields
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(next).not.toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Validation error",
+          errors: expect.arrayContaining([
+            expect.stringContaining(
+              "letters, spaces, apostrophes, or hyphens only"
+            ), // firstName
+            expect.stringContaining(
+              "letters, spaces, apostrophes, or hyphens only"
+            ), // lastName
+            expect.stringContaining("SA ID number must be a valid ID number"), // saIdNumber
+            expect.stringContaining("Email must be a valid email address"), // email
+          ]),
+        })
+      );
+    });
+
+    it("blocks comprehensive injection attempts across all registration fields", () => {
+      // Arrange - test various injection payloads in every field
+      const maliciousBody = {
+        firstName: { $ne: null }, // NoSQL injection object
+        lastName: "'; DROP TABLE users; --", // SQL injection
+        saIdNumber: { $regex: ".*" }, // NoSQL regex injection
+        email: { $where: "this.password.length > 0" }, // NoSQL where injection
+        password: { $gt: "" }, // NoSQL comparison injection
+        confirmPassword: "1' OR '1'='1", // SQL injection
+        extraMaliciousField: { $eval: "db.users.drop()" }, // Should be stripped
+      };
+
+      const { req, res, next } = mockExpressObjects(maliciousBody);
+
+      // Act
+      logger.info(
+        "[TEST] BEFORE validation (comprehensive injection):",
+        req.body
+      );
+      validateData(registerUserSchema)(req, res, next);
+      logger.info(
+        "[TEST] AFTER validation (comprehensive injection):",
+        res.json.mock.calls[0]?.[0]
+      );
+
+      // Assert - should fail validation due to non-string types
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(next).not.toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Validation error",
+          errors: expect.arrayContaining([
+            expect.stringContaining("First name must be a string"),
+            expect.stringContaining("Last name must be"), // Could be string validation
+            expect.stringContaining("SA ID number must be a string"),
+            expect.stringContaining("Email must be a string"),
+            expect.stringContaining("Password must be a string"),
+            expect.stringContaining("must be a string"), // confirmPassword
+          ]),
+        })
+      );
+    });
   });
 });

@@ -98,5 +98,6 @@
   "folderTemplates.templateNotation": {
     "start": ["<", "["],
     "end": [">", "]"]
-  }
+  },
+  "github-actions.workflows.pinned.workflows": [".github/workflows/ci.yml"]
 }

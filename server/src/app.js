@@ -12,7 +12,7 @@ logger.info("Express app initialization");
 const app = express();
 
 // --- Middleware Registration ---
-logger.info("Registering core middleware");
+logger.info("Registering core middleware...");
 
 // Body parsing
 app.use(express.json());
@@ -33,11 +33,14 @@ security(app);
 app.use(sessionMiddleware());
 
 // Routes
-logger.info("Registering routes");
+logger.info("Registering routes...");
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 
 // Error handling (should be last)
 app.use(errorHandler);
+
+// Export the configured app
+logger.info("App initialization complete!");
 
 export default app;

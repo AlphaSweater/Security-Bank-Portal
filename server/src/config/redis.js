@@ -7,7 +7,6 @@ const USE_REDIS_MOCK = true;
 
 let redisClient;
 if (USE_REDIS_MOCK) {
-  logger.info("⚡Using ioredis-mock for Redis");
   redisClient = new RedisMock();
 } else {
   const redisOptions = {

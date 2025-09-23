@@ -4,7 +4,7 @@ import http from "http";
 import app from "./app.js";
 import { loadCerts } from "#config/loadCerts.js";
 import { getLogger } from "#utils/logger.js";
-import { closeDB } from "#config/db.js";
+import { connectDB, closeDB } from "#config/mongoDB.js";
 const logger = getLogger(import.meta.url);
 
 const HTTPS_PORT = process.env.HTTPS_PORT;
@@ -12,7 +12,23 @@ const HTTP_PORT = process.env.HTTP_PORT;
 
 async function startServer() {
   try {
+    // Connect to database first
+    logger.infoAsync("🔌 Connecting to MongoDB...");
+    try {
+      await connectDB();
+      logger.infoAsync("🔌 MongoDB connection established successfully!");
+    } catch (dbError) {
+      logger.errorAsync(`❌ Failed to connect to MongoDB: ${dbError.message}`);
+      logger.errorAsync(
+        "🛑 Server startup aborted due to database connection failure"
+      );
+      process.exit(1);
+    }
+
     const options = await loadCerts();
+
+    // Start HTTPS server
+    logger.infoAsync("🚀 Starting HTTPS server...");
 
     const httpsServer = https.createServer(options, app);
     httpsServer.listen(HTTPS_PORT, () => {
