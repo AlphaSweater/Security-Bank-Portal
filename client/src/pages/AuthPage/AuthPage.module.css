@@ -7,10 +7,13 @@
   width: 100%;
 }
 
-.formStack {
-  width: 100%;
+.formArea {
+  width: 100%; /* Fixed width to prevent horizontal growth */
+  min-height: 100%; /* Optional: set a min-height for stability */
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
+  overflow: hidden; /* Prevent overflow during animation */
 }

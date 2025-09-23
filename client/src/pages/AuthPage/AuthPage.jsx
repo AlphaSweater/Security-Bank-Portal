@@ -16,17 +16,26 @@ const slideVariants = {
     x: direction > 0 ? 150 : -150,
     opacity: 0,
     position: "absolute",
+    width: "100%",
+    top: 0,
+    left: 0,
   }),
   animate: {
     x: 0,
     opacity: 1,
-    position: "relative",
+    position: "absolute",
+    width: "100%",
+    top: 0,
+    left: 0,
     transition: { duration: 0.18, ease: "easeInOut" },
   },
   exit: (direction) => ({
     x: direction < 0 ? 150 : -150,
     opacity: 0,
     position: "absolute",
+    width: "100%",
+    top: 0,
+    left: 0,
     transition: { duration: 0.18, ease: "easeInOut" },
   }),
 };
@@ -43,7 +52,7 @@ function AuthPage() {
 
   return (
     <section className={styles.page}>
-      <div className={styles.formStack}>
+      <div className={styles.formArea}>
         <AnimatePresence custom={direction} mode="wait">
           <motion.div
             key={isLogin ? "login" : "register"}
@@ -52,7 +61,7 @@ function AuthPage() {
             animate="animate"
             exit="exit"
             custom={direction}
-            style={{ width: "100%" }}
+            style={{ width: "100%", position: "absolute", top: 0, left: 0 }}
           >
             <AuthForms isLogin={isLogin} onSwap={handleSwap} />
           </motion.div>
