@@ -24,8 +24,7 @@ async function connectDB() {
   try {
     await client.connect();
     db = client.db(dbName);
-    logger.info(`✅ Connected to MongoDB: ${dbName}`);
-    logger.info("🌐 Attempting to ping DB ...");
+    logger.info(`🌐 Attempting to ping ${dbName} ...`);
     await db.command({ ping: 1 });
     logger.info("🏓 Ping to DB successful!");
     return db;
@@ -33,6 +32,13 @@ async function connectDB() {
     logger.error(`❌ MongoDB connection error: ${mongoError.message}`);
     throw mongoError;
   }
+}
+
+function getDB() {
+  if (!db) {
+    throw new Error("Database not connected. Call connectDB() first.");
+  }
+  return db;
 }
 
 async function closeDB() {
@@ -45,4 +51,4 @@ async function closeDB() {
   }
 }
 
-export { client, connectDB, closeDB };
+export { client, connectDB, closeDB, getDB };

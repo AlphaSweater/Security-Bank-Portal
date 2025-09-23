@@ -1,7 +1,7 @@
-import { connectDB } from "#config/db.js";
+import { getDB } from "#config/db.js";
 import { ObjectId } from "mongodb";
 
-const collection = () => connectDB().collection("users");
+const collection = () => getDB().collection("users");
 
 export async function insertUser(doc) {
   return await collection().insertOne(doc);

@@ -1,5 +1,5 @@
 import { createSession, destroySession } from "#services/sessionService.js";
-import { registerNewUser, validateUser } from "#services/authService.js";
+import { registerNewUser, verifyUser } from "#services/authService.js";
 import { getLogger } from "#utils/logger.js";
 const logger = getLogger(import.meta.url);
 
@@ -14,10 +14,6 @@ export async function register(req, res, next) {
     // Destructure the validated fields
     const { firstName, lastName, saIdNumber, email, password } = req.body;
 
-    logger.debug("Attempting to register user with email:", email);
-
-    // Call the registration service and pass the validated fields
-    logger.debug("Calling registration service");
     try {
       const userId = await registerNewUser({
         firstName,
@@ -27,10 +23,8 @@ export async function register(req, res, next) {
         password,
       });
 
-      logger.debug("User registered successfully with ID:", userId);
-
       // Registration successful response
-      res.status(201).json({ message: "Registration successful", userId });
+      res.status(201).json({ message: "Registration successful" });
     } catch (registrationError) {
       // Duplicate email or other registration error response
       res
@@ -51,12 +45,12 @@ export async function login(req, res, next) {
     // Destructure the validated fields
     const { email, password } = req.body;
 
-    logger.debug("Attempting to log in user with email:", email);
+    logger.debug(`Attempting to log in user with email: ${email}`);
 
     // Call the validation service method
     logger.debug("Calling validation service");
     try {
-      const user = await validateUser({ email, password });
+      const user = await verifyUser({ email, password });
 
       logger.debug("User validated successfully!");
       // Create a session for the user
