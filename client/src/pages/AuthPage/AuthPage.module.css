@@ -14,10 +14,10 @@
   justify-content: center;
   gap: 0;
   width: 800px;
-  min-height: 420px;
+  min-height: 455px;
   box-shadow: 0 4px 32px 0 rgba(0, 0, 0, 0.08);
   border-radius: 18px;
-  background: #fff;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   overflow: hidden;
 }
 
@@ -60,6 +60,5 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   transition: box-shadow 0.3s, opacity 0.35s;
 }

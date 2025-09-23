@@ -3,7 +3,7 @@
   width: 100%; /* Full width to fill form area */
   height: 100%; /* Full height to fill form area */
   box-sizing: border-box;
-  padding: 2.5rem 2rem;
+  padding: 1.5rem 2rem;
 }
 
 .fade {
@@ -13,10 +13,11 @@
 .form {
   display: flex;
   flex-direction: column;
-  justify-content: space-around; /* pushes inputArea up, buttonArea down */
+  justify-content: space-between; /* pushes inputArea up, buttonArea down */
   height: 100%;
   gap: 0; /* remove gap so space is only between input/button areas */
   margin: 0 auto;
+  text-align: center;
 }
 
 .active {
@@ -27,7 +28,6 @@
   color: #232946;
   font-size: 2.2rem;
   font-weight: 700;
-  margin-bottom: 18px;
 }
 
 .title {
@@ -115,7 +115,12 @@
   color: #f3a683;
 }
 
-.inputArea {
+.spacerArea {
+  display: flex;
+  background: red;
+}
+
+.loginInputArea {
   display: flex;
   flex-direction: column;
   gap: 1.1rem; /* fixed gap between inputs */
@@ -125,4 +130,14 @@
   display: flex;
   flex-direction: column;
   gap: 0.7rem; /* gap between button and swap link */
+}
+
+.loginZone {
+  max-width: 340px;
+  margin: 0 auto;
+  width: 100%;
+}
+.loginZone .formControl {
+  width: 100%;
+  min-width: 0;
 }

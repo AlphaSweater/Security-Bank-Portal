@@ -30,8 +30,12 @@ function LoginForm({ onSwap }) {
   };
 
   return (
-    <form className={`${styles.form} ${styles.active}`} onSubmit={handleSubmit}>
-      <div className={styles.inputArea}>
+    <form
+      className={`${styles.form} ${styles.loginZone} ${styles.active}`}
+      onSubmit={handleSubmit}
+    >
+      <h2 className={styles.heading}>Log In</h2>
+      <div className={`${styles.loginInputArea} `}>
         <input
           type="email"
           placeholder="Email"
@@ -84,6 +88,7 @@ function RegisterForm({ onSwap }) {
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
+      <h2 className={styles.heading}>Sign Up</h2>
       <div className={styles.inputArea}>
         <div className={styles.row}>
           <input
