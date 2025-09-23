@@ -9,7 +9,7 @@ import styles from "./AuthForms.module.css";
 // Default Function Export
 export default function AuthForms({ isLogin, onSwap }) {
   return (
-    <div className={styles.authForms}>
+    <div className={styles.authFormsContainer}>
       {isLogin ? (
         <LoginForm onSwap={onSwap} />
       ) : (
@@ -30,16 +30,13 @@ function LoginForm({ onSwap }) {
   };
 
   return (
-    <form
-      className={`${styles.form} ${styles.loginZone} ${styles.active}`}
-      onSubmit={handleSubmit}
-    >
+    <form className={styles.formBox} onSubmit={handleSubmit}>
       <h2 className={styles.heading}>Log In</h2>
-      <div className={`${styles.loginInputArea} `}>
+      <div className={styles.inputGroup}>
         <input
           type="email"
           placeholder="Email"
-          className={styles.formControl}
+          className={styles.inputField}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -47,23 +44,19 @@ function LoginForm({ onSwap }) {
         <input
           type="password"
           placeholder="Password"
-          className={styles.formControl}
+          className={styles.inputField}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
       </div>
-      <div className={styles.buttonArea}>
-        <button type="submit" className={styles.btn}>
+      <div className={styles.spacer} />
+      <div className={styles.buttonGroup}>
+        <button type="submit" className={styles.primaryButton}>
           Log In
         </button>
         <p className={styles.textCenter}>
-          <button
-            type="button"
-            onClick={onSwap}
-            className={styles.switchLink}
-            style={{ background: "none", border: "none", padding: 0 }}
-          >
+          <button type="button" onClick={onSwap} className={styles.switchLink}>
             Need an account? Sign Up Here!
           </button>
         </p>
@@ -87,14 +80,14 @@ function RegisterForm({ onSwap }) {
   };
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
+    <form className={styles.formBox} onSubmit={handleSubmit}>
       <h2 className={styles.heading}>Sign Up</h2>
-      <div className={styles.inputArea}>
-        <div className={styles.row}>
+      <div className={styles.inputGroup}>
+        <div className={styles.inputRow}>
           <input
             type="text"
             placeholder="First Name"
-            className={styles.formControl}
+            className={styles.inputField}
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
             required
@@ -102,7 +95,7 @@ function RegisterForm({ onSwap }) {
           <input
             type="text"
             placeholder="Last Name"
-            className={styles.formControl}
+            className={styles.inputField}
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
             required
@@ -111,7 +104,7 @@ function RegisterForm({ onSwap }) {
         <input
           type="email"
           placeholder="Email"
-          className={styles.formControl}
+          className={styles.inputField}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -119,16 +112,16 @@ function RegisterForm({ onSwap }) {
         <input
           type="number"
           placeholder="SA ID Number"
-          className={styles.formControl}
+          className={styles.inputField}
           value={saIdNumber}
           onChange={(e) => setSaIdNumber(e.target.value)}
           required
         />
-        <div className={styles.row}>
+        <div className={styles.inputRow}>
           <input
             type="password"
             placeholder="Password"
-            className={styles.formControl}
+            className={styles.inputField}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -136,24 +129,19 @@ function RegisterForm({ onSwap }) {
           <input
             type="password"
             placeholder="Confirm Password"
-            className={styles.formControl}
+            className={styles.inputField}
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             required
           />
         </div>
       </div>
-      <div className={styles.buttonArea}>
-        <button type="submit" className={styles.btn}>
+      <div className={styles.buttonGroup}>
+        <button type="submit" className={styles.primaryButton}>
           Sign Up
         </button>
         <p className={styles.textCenter}>
-          <button
-            type="button"
-            onClick={onSwap}
-            className={styles.switchLink}
-            style={{ background: "none", border: "none", padding: 0 }}
-          >
+          <button type="button" onClick={onSwap} className={styles.switchLink}>
             Already have an account? Log In
           </button>
         </p>

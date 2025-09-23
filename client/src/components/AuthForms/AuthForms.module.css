@@ -1,65 +1,69 @@
 /* AuthForms.module.css */
 
 /* ======= COLOR VARIABLES ======= */
+
 :root {
-  --color-bg-form: #f7f8fa;
-  --color-bg-btn-primary: linear-gradient(90deg, #eebbc3 0%, #f3a683 100%);
-  --color-bg-btn-secondary: linear-gradient(90deg, #232946 0%, #393e5c 100%);
-  --color-bg-btn-hover: linear-gradient(90deg, #f3a683 0%, #eebbc3 100%);
-  --color-bg-input-hover: #eebbc3;
+  /* ======= FORMS ======= */
+  --color-bg-form: transparent;
+
+  /* ======= INPUTS ======= */
   --color-bg-input: #f7f8fa;
-
+  --color-bg-input-hover: #a3a8f0;
   --color-border-input: #e0e0e0;
-  --color-border-btn: #eebbc3;
 
+  /* ======= BUTTON ======= */
+  --color-bg-btn-primary: linear-gradient(90deg, #3a457c 0%, #5f6caf 100%);
+  --color-bg-btn-primary-hover: linear-gradient(
+    90deg,
+    #7b8edc 0%,
+    #a3a8f0 100%
+  );
+  --color-border-btn: #7b8edc;
+  --color-text-btn-primary: #fff;
+  --color-text-btn-primary-hover: #232946;
+
+  /* ======= LINK ======= */
+  --color-link: #5f6caf;
+  --color-link-hover: #2973b8;
+
+  /* ======= TEXT ======= */
   --color-text-heading: #232946;
   --color-text-title: #232946;
   --color-text-subtitle: #6d6d6d;
-  --color-text-btn-primary: #232946;
-  --color-text-btn-secondary: #fff;
-  --color-text-btn-hover: #232946;
-  --color-link: #0066ff;
-  --color-link-hover: #f3a683;
 }
 
 /* ======= LAYOUT ======= */
-.authForms {
+.authFormsContainer {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
   padding: 1.5rem 2rem;
+  background: var(--color-bg-form);
 }
 
-.form {
+.formBox {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
-  gap: 0;
   margin: 0 auto;
   text-align: center;
+  max-width: 350px;
+  width: 100%;
 }
 
-.active {
-  display: flex;
-}
-
-.textCenter {
-  text-align: center;
-}
-
-/* ======= HEADINGS ======= */
+/* ======= TYPOGRAPHY ======= */
 .heading {
   color: var(--color-text-heading);
   font-size: 2.2rem;
   font-weight: 700;
+  margin-bottom: 1rem;
 }
 
-.title {
+.subheading {
   font-size: 1.35rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
-  text-align: center;
   color: var(--color-text-title);
 }
 
@@ -69,58 +73,69 @@
   color: var(--color-text-subtitle);
 }
 
-/* ======= FORM CONTROLS ======= */
-.formControl {
-  width: 100%;
-  padding: 0.85rem 1rem;
-  margin-bottom: 0.5rem;
-  border-radius: 10px;
-  border: 1.5px solid var(--color-border-input);
-  font-size: 1.05rem;
-  box-sizing: border-box;
-  background: var(--color-bg-input);
-  color: var(--color-text-heading);
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.formControl:hover {
-  border-color: var(--color-bg-input-hover);
+.textCenter {
+  text-align: center;
 }
 
-.row {
+/* ======= FORM CONTROLS ======= */
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  margin-bottom: 1.2rem;
+}
+
+.inputRow {
   display: flex;
   gap: 0.5rem;
 }
-.row .formControl {
+
+.inputField {
   flex: 1;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  border: 1.5px solid var(--color-border-input);
+  font-size: 1.05rem;
+  background: var(--color-bg-input);
+  color: var(--color-text-heading);
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  margin-bottom: 0;
+}
+.inputField:hover {
+  border-color: var(--color-bg-input-hover);
 }
 
 /* ======= BUTTONS ======= */
-.button,
-.btn {
+.buttonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.primaryButton {
   width: 100%;
-  background: var(--color-bg-btn-primary);
-  color: var(--color-text-btn-primary);
-  border: none;
   border-radius: 8px;
-  padding: 0.85rem 0;
   font-weight: 600;
   font-size: 1.08rem;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(34, 34, 59, 0.1);
   border: 1.5px solid var(--color-border-btn);
   letter-spacing: 0.03em;
   transition: background 0.2s, box-shadow 0.2s, color 0.2s, transform 0.1s;
+  box-shadow: 0 2px 8px rgba(34, 34, 59, 0.1);
+  padding: 0.85rem 0;
+  border: none;
 }
-.btn {
-  background: var(--color-bg-btn-secondary);
-  color: var(--color-text-btn-secondary);
-  padding: 0.85rem;
-  margin-top: 0.5rem;
+
+.primaryButton {
+  background: var(--color-bg-btn-primary);
+  color: var(--color-text-btn-primary);
 }
-.btn:hover,
-.button:hover {
-  background: var(--color-bg-btn-hover);
-  color: var(--color-text-btn-hover);
+
+.primaryButton:hover {
+  background: var(--color-bg-btn-primary-hover);
+  color: var(--color-text-btn-primary-hover);
   box-shadow: 0 4px 16px rgba(34, 34, 59, 0.15);
   transform: translateY(-2px) scale(1.03);
 }
@@ -140,36 +155,11 @@
   color: var(--color-link-hover);
 }
 
-/* ======= ZONES & AREAS ======= */
-.loginZone {
-  max-width: 340px;
-  margin: 0 auto;
-  width: 100%;
-}
-.loginZone .formControl {
-  width: 100%;
-  min-width: 0;
-}
-
-.loginInputArea {
-  display: flex;
-  flex-direction: column;
-  gap: 1.1rem;
-}
-
-.buttonArea {
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-}
-
 /* ======= UTILITY ======= */
 .fade {
   opacity: 0.3;
 }
 
-/* ======= REMOVE/REVIEW ======= */
-.spacerArea {
+.spacer {
   display: flex;
-  /* background: red; */ /* Remove hard-coded color, add variable if needed */
 }
