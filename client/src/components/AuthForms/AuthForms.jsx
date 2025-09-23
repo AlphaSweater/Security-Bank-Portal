@@ -23,7 +23,7 @@ export default function AuthForms({ isLogin, onSwap }) {
 
 // Login Form Component
 function LoginForm({ onSwap }) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = (e) => {
@@ -32,51 +32,50 @@ function LoginForm({ onSwap }) {
   };
 
   return (
-    <>
-      <h1 className={styles.heading}>🔑 Login</h1>
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Username"
-          className={styles.input}
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className={styles.input}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button type="submit" className={styles.button}>
-          Login
-        </button>
-      </form>
-      <div style={{ marginTop: 18 }}>
+    <form className={`${styles.form} ${styles.active}`} onSubmit={handleSubmit}>
+      <div className={styles.title}>
+        Welcome,
+        <br />
+        <span className={styles.subtitle}>login to continue</span>
+      </div>
+      <input
+        type="email"
+        placeholder="Email"
+        className={styles.formControl}
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        className={styles.formControl}
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+      />
+      <button type="submit" className={styles.btn}>
+        Log In
+      </button>
+      <p className={styles.textCenter}>
         <button
           type="button"
           onClick={onSwap}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#b8c1ec",
-            cursor: "pointer",
-            textDecoration: "underline",
-            fontSize: 15,
-            marginTop: 8,
-          }}
+          className={styles.switchLink}
+          style={{ background: "none", border: "none", padding: 0 }}
         >
-          {"Don't have an account? Register"}
+          Need an account? Sign Up Here!
         </button>
-      </div>
-    </>
+      </p>
+    </form>
   );
 }
 
 // Register Form Component
 function RegisterForm({ onSwap }) {
-  const [username, setUsername] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
 
@@ -86,51 +85,69 @@ function RegisterForm({ onSwap }) {
   };
 
   return (
-    <>
-      <h1 className={styles.heading}>📝 Register</h1>
-      <form className={styles.form} onSubmit={handleSubmit}>
+    <form className={styles.form} onSubmit={handleSubmit}>
+      <div className={styles.title}>
+        Welcome,
+        <br />
+        <span className={styles.subtitle}>create an account</span>
+      </div>
+      <div className={styles.row}>
         <input
           type="text"
-          placeholder="Username"
-          className={styles.input}
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          placeholder="First Name"
+          className={styles.formControl}
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+          required
         />
+        <input
+          type="text"
+          placeholder="Last Name"
+          className={styles.formControl}
+          value={lastName}
+          onChange={(e) => setLastName(e.target.value)}
+          required
+        />
+      </div>
+      <input
+        type="email"
+        placeholder="Email"
+        className={styles.formControl}
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
+      <div className={styles.row}>
         <input
           type="password"
           placeholder="Password"
-          className={styles.input}
+          className={styles.formControl}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
         <input
           type="password"
           placeholder="Confirm Password"
-          className={styles.input}
+          className={styles.formControl}
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
+          required
         />
-        <button type="submit" className={styles.button}>
-          Register
-        </button>
-      </form>
-      <div style={{ marginTop: 18 }}>
+      </div>
+      <button type="submit" className={styles.btn}>
+        Sign Up
+      </button>
+      <p className={styles.textCenter}>
         <button
           type="button"
           onClick={onSwap}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#b8c1ec",
-            cursor: "pointer",
-            textDecoration: "underline",
-            fontSize: 15,
-            marginTop: 8,
-          }}
+          className={styles.switchLink}
+          style={{ background: "none", border: "none", padding: 0 }}
         >
-          {"Already have an account? Login"}
+          Already have an account? Log In
         </button>
-      </div>
-    </>
+      </p>
+    </form>
   );
 }
