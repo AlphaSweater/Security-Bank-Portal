@@ -27,6 +27,15 @@
         "cwd": "${workspaceFolder}/server"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "Test Server",
+      "type": "shell",
+      "command": "npm run test:ui",
+      "options": {
+        "cwd": "${workspaceFolder}/server"
+      },
+      "problemMatcher": []
     }
   ]
 }
