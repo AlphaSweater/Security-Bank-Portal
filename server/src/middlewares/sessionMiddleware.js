@@ -4,13 +4,7 @@ import redisClient from "#config/redis.js";
 import { getLogger } from "#utils/logger.js";
 const logger = getLogger(import.meta.url);
 
-/**
- * Session middleware.
- * @returns {function} Express session middleware
- */
 export default function sessionMiddleware() {
-  logger.info("Setting up session middleware");
-
   // The secret is used to sign the session ID cookie, making it tamper-proof
   const sessionSecret = process.env.SESSION_SECRET;
   if (!sessionSecret) {

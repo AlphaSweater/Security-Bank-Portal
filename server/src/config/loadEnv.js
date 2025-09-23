@@ -11,11 +11,8 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "..", "..");
 const envPath = path.join(rootDir, ".env");
 
-logger.info(`Loading environment variables from: ${envPath}`);
 const result = dotenv.config({ path: envPath });
 
 if (result.error) {
   logger.warn(`dotenv failed to load .env file: ${result.error.message}`);
-} else {
-  logger.info(`Loaded .env file successfully.`);
 }

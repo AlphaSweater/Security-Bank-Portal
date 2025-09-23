@@ -45,14 +45,10 @@ export async function login(req, res, next) {
     // Destructure the validated fields
     const { email, password } = req.body;
 
-    logger.debug(`Attempting to log in user with email: ${email}`);
-
     // Call the validation service method
-    logger.debug("Calling validation service");
     try {
       const user = await verifyUser({ email, password });
 
-      logger.debug("User validated successfully!");
       // Create a session for the user
       const sessionId = await createSession(req, user);
       res.json({
@@ -78,7 +74,6 @@ export async function login(req, res, next) {
 export async function logout(req, res) {
   try {
     // Destroy the user's session
-    logger.debug("Destroying user session");
     await destroySession(req, res);
     res.json({ message: "Logged out" });
   } catch (logoutError) {

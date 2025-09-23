@@ -12,10 +12,7 @@ if (!uri || !dbName) {
   throw new Error("MongoDB configuration missing");
 }
 
-const client = new MongoClient(uri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+const client = new MongoClient(uri);
 
 let db;
 
@@ -26,7 +23,7 @@ async function connectDB() {
     db = client.db(dbName);
     logger.info(`🌐 Attempting to ping ${dbName} ...`);
     await db.command({ ping: 1 });
-    logger.info("🏓 Ping to DB successful!");
+    logger.info(`🏓 Ping to ${dbName} successful!`);
     return db;
   } catch (mongoError) {
     logger.error(`❌ MongoDB connection error: ${mongoError.message}`);
