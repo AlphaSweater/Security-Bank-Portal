@@ -3,6 +3,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 // Assets
+import reactLogo from "../../assets/react.svg";
 
 // UI Components
 import AuthForms from "components/AuthForms";
@@ -15,27 +16,18 @@ const slideVariants = {
   initial: (direction) => ({
     x: direction > 0 ? 150 : -150,
     opacity: 0,
-    position: "absolute",
     width: "100%",
-    top: 0,
-    left: 0,
   }),
   animate: {
     x: 0,
     opacity: 1,
-    position: "absolute",
     width: "100%",
-    top: 0,
-    left: 0,
     transition: { duration: 0.18, ease: "easeInOut" },
   },
   exit: (direction) => ({
     x: direction < 0 ? 150 : -150,
     opacity: 0,
-    position: "absolute",
     width: "100%",
-    top: 0,
-    left: 0,
     transition: { duration: 0.18, ease: "easeInOut" },
   }),
 };
@@ -52,20 +44,38 @@ function AuthPage() {
 
   return (
     <section className={styles.page}>
-      <div className={styles.formArea}>
-        <AnimatePresence custom={direction} mode="wait">
-          <motion.div
-            key={isLogin ? "login" : "register"}
-            variants={slideVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            custom={direction}
-            style={{ width: "100%", position: "absolute", top: 0, left: 0 }}
-          >
-            <AuthForms isLogin={isLogin} onSwap={handleSwap} />
-          </motion.div>
-        </AnimatePresence>
+      <div className={styles.contentRow}>
+        {/* Hero Area */}
+        <div className={styles.heroArea}>
+          <img src={reactLogo} alt="React logo" className={styles.heroLogo} />
+
+          <h1 className={styles.heroTitle}>
+            {isLogin ? "Welcome Back!" : "Join Us Today!"}
+          </h1>
+
+          <p className={styles.heroSubtitle}>
+            {isLogin
+              ? "Log in to access your account \n and manage your finances."
+              : "Create an account to start managing your finances with us."}
+          </p>
+        </div>
+
+        {/* Forms Area */}
+        <div className={styles.formArea}>
+          <AnimatePresence custom={direction} mode="wait">
+            <motion.div
+              key={isLogin ? "login" : "register"}
+              variants={slideVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              custom={direction}
+              style={{ width: "100%" }} // Remove position: absolute, top, left
+            >
+              <AuthForms isLogin={isLogin} onSwap={handleSwap} />
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
     </section>
   );

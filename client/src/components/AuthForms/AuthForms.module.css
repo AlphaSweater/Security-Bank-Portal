@@ -1,25 +1,17 @@
 /* Auth form styles */
-
 .authForms {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 80vh;
-  width: 100%;
-
   box-sizing: border-box;
 }
-
-/* Animation for swap */
 
 .formContainer {
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   border-radius: 18px;
   box-shadow: 0 4px 32px rgba(34, 34, 59, 0.15);
   padding: 2.5rem 2rem;
-  min-width: 340px;
-  max-width: 400px;
-  width: 100%;
+  max-width: 420px;
   transition: box-shadow 0.3s, opacity 0.35s;
 }
 
@@ -30,7 +22,7 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 1rem;
   margin: 0 auto;
 }
 
@@ -81,7 +73,7 @@
 
 .row {
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 .row .formControl {
   flex: 1;
