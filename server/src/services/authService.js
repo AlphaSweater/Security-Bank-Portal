@@ -1,5 +1,5 @@
 import argon2 from "argon2";
-import { insertUser, findUserByEmail } from "#/models/User.js";
+import { insertUser, findUserByEmail } from "#models/User.js";
 import { getLogger } from "#utils/logger.js";
 const logger = getLogger(import.meta.url);
 
