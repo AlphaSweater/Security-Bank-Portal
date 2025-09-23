@@ -10,13 +10,11 @@ import styles from "./AuthForms.module.css";
 export default function AuthForms({ isLogin, onSwap }) {
   return (
     <div className={styles.authForms}>
-      <div className={styles.formContainer}>
-        {isLogin ? (
-          <LoginForm onSwap={onSwap} />
-        ) : (
-          <RegisterForm onSwap={onSwap} />
-        )}
-      </div>
+      {isLogin ? (
+        <LoginForm onSwap={onSwap} />
+      ) : (
+        <RegisterForm onSwap={onSwap} />
+      )}
     </div>
   );
 }
@@ -33,11 +31,6 @@ function LoginForm({ onSwap }) {
 
   return (
     <form className={`${styles.form} ${styles.active}`} onSubmit={handleSubmit}>
-      <div className={styles.title}>
-        Welcome,
-        <br />
-        <span className={styles.subtitle}>login to continue</span>
-      </div>
       <input
         type="email"
         placeholder="Email"
@@ -86,11 +79,6 @@ function RegisterForm({ onSwap }) {
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
-      <div className={styles.title}>
-        Welcome,
-        <br />
-        <span className={styles.subtitle}>create an account</span>
-      </div>
       <div className={styles.row}>
         <input
           type="text"

@@ -1,18 +1,10 @@
 /* Auth form styles */
 .authForms {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   box-sizing: border-box;
-}
-
-.formContainer {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  border-radius: 18px;
-  box-shadow: 0 4px 32px rgba(34, 34, 59, 0.15);
   padding: 2.5rem 2rem;
-  max-width: 420px;
-  transition: box-shadow 0.3s, opacity 0.35s;
 }
 
 .fade {
@@ -50,8 +42,6 @@
   font-weight: 400;
   color: #6d6d6d;
 }
-
-/* Unused .input class removed for clarity */
 
 .formControl {
   width: 100%;

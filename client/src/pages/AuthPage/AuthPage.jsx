@@ -61,7 +61,7 @@ function AuthPage() {
         </div>
 
         {/* Forms Area */}
-        <div className={styles.formArea}>
+        <div className={styles.formsArea}>
           <AnimatePresence custom={direction} mode="wait">
             <motion.div
               key={isLogin ? "login" : "register"}
