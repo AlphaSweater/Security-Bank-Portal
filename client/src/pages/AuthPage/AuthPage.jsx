@@ -34,7 +34,7 @@ const slideVariants = {
 
 // Slide-in for the whole forms area (from right)
 const formsAreaSlideIn = {
-  initial: { x: -220, opacity: 0 },
+  initial: { x: -600, opacity: 0 },
   animate: {
     x: 0,
     opacity: 1,
@@ -48,7 +48,7 @@ const zoomInVariants = {
   animate: {
     scale: 1,
     opacity: 1,
-    transition: { duration: 0.38, ease: "easeOut" },
+    transition: { duration: 0.6, ease: "easeOut" },
   },
 };
 
