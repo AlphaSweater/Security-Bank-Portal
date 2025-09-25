@@ -1,6 +1,5 @@
 // External Dependencies
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 
 // Assets
 import reactLogo from "../../assets/react.svg";
@@ -10,17 +9,12 @@ import styles from "./LandingPage.module.css";
 
 function LandingPage() {
   const navigate = useNavigate();
-  const [fadeOut, setFadeOut] = useState(false);
-
   const handleGetStarted = () => {
-    setFadeOut(true);
-    setTimeout(() => {
-      navigate("/auth");
-    }, 350); // match CSS transition duration
+    navigate("/auth");
   };
 
   return (
-    <section className={`${styles.page} ${fadeOut ? styles.fadeOut : ""}`}>
+    <section className={styles.page}>
       <img src={reactLogo} alt="React logo" className={styles.heroLogo} />
 
       <h1 className={styles.heading}>Security Bank Portal</h1>
@@ -28,7 +22,6 @@ function LandingPage() {
       <button
         className={`btn ${styles.getStartedBtn}`}
         onClick={handleGetStarted}
-        disabled={fadeOut}
       >
         Get Started
       </button>

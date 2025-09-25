@@ -6,6 +6,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import routes from "./routing/routes.jsx";
+import PageTransition from "components/PageTransition/PageTransition";
 
 // ...existing code...
 
@@ -23,13 +24,21 @@ function AppContent() {
   return (
     <div className={styles.appRoot}>
       <header>{showNavbar && <Navbar />}</header>
-      <main className={styles.contentContainer}>
-        <Routes>
-          {routes.map((route) => (
-            <Route key={route.path} path={route.path} element={route.element} />
-          ))}
-        </Routes>
-      </main>
+
+      <PageTransition locationKey={location.key}>
+        <main className={styles.contentContainer}>
+          <Routes location={location}>
+            {routes.map((route) => (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={route.element}
+              />
+            ))}
+          </Routes>
+        </main>
+      </PageTransition>
+
       <footer className={styles.footer}>
         <small>
           &copy; {new Date().getFullYear()} Security Bank Portal &mdash; All
