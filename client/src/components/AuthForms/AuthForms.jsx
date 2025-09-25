@@ -27,6 +27,12 @@ function LoginForm({ onSwap }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear only the error for the field being changed
+    setErrors((prev) => {
+      if (!prev[name]) return prev;
+      const { [name]: _removed, ...rest } = prev;
+      return rest;
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -140,6 +146,12 @@ function RegisterForm({ onSwap }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear only the error for the field being changed
+    setErrors((prev) => {
+      if (!prev[name]) return prev;
+      const { [name]: _removed, ...rest } = prev;
+      return rest;
+    });
   };
 
   const handleSubmit = async (e) => {
