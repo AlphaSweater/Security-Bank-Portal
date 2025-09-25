@@ -178,3 +178,30 @@ export const loginUserSchema = Joi.object({
     "string.max": "Invalid password",
   }),
 }).options({ stripUnknown: true });
+
+// =========================
+//  Joi Error Formatting Helper
+// =========================
+// Helper to format Joi errors for frontend
+export function formatValidationErrors(error) {
+  if (!error || !Array.isArray(error.details)) return {};
+  const formatted = {};
+  const passwordErrors = [];
+
+  error.details.forEach((err) => {
+    const field = err.path[0];
+    if (field === "password" || field === "passwordConfirm") {
+      passwordErrors.push(err.message);
+    } else if (field) {
+      if (!formatted[field]) formatted[field] = [];
+      formatted[field].push(err.message);
+    }
+  });
+
+  if (passwordErrors.length > 0) {
+    // Remove duplicates
+    formatted["password"] = [...new Set(passwordErrors)];
+  }
+
+  return formatted;
+}
