@@ -1,7 +1,8 @@
-/* Navbar container */
+/* Container */
 .navbar {
   position: sticky;
   top: 0;
+  height: 2.5rem;
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -14,7 +15,7 @@
   box-shadow: var(--shadow-card);
 }
 
-/* Brand / Logo */
+/* Brand */
 .brand {
   font-size: 1.25rem;
   font-weight: 700;
@@ -39,46 +40,69 @@
   color: var(--color-primary-end);
 }
 
-/* Actions (Login + Sign Up buttons) */
-.actions {
-  display: flex;
-  gap: 0.75rem;
+/* Profile section */
+.profile {
+  position: relative;
 }
 
-.loginBtn {
-  background: transparent;
+.avatarBtn {
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   color: var(--color-text-primary);
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-md);
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: border var(--transition-fast);
 }
 
-.loginBtn:hover {
+.avatarBtn:hover {
   border-color: var(--color-primary-end);
-  color: var(--color-primary-end);
 }
 
-.signupBtn {
-  background: linear-gradient(
-    to right,
-    var(--color-primary-start),
-    var(--color-primary-end)
-  );
-  border: none;
-  color: white;
-  padding: 0.5rem 1rem;
+/* Dropdown */
+.dropdown {
+  position: absolute;
+  right: 0;
+  left: auto;
+  top: 100%;
+  margin-top: 1rem;
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  cursor: pointer;
-  font-weight: 600;
-  transition: transform var(--transition-fast),
-    box-shadow var(--transition-base);
+  box-shadow: var(--shadow-card);
+  display: none;
+  flex-direction: column;
+  min-width: 160px;
+  max-width: 90vw;
+  padding: 0.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  z-index: 10;
+  overflow-x: auto;
+  box-sizing: border-box;
 }
 
-.signupBtn:hover {
-  transform: scale(1.03);
-  box-shadow: var(--shadow-hover);
+.dropdownOpen {
+  display: flex;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dropdown a {
+  text-decoration: none;
+  color: var(--color-text-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+}
+
+.dropdown a:hover {
+  background: var(--color-surface);
 }
 
 /* Mobile toggle */
@@ -109,13 +133,5 @@
 
   .navLinks.open {
     display: flex;
-  }
-
-  .actions {
-    display: none;
-  }
-
-  .mobileToggle {
-    display: block;
   }
 }

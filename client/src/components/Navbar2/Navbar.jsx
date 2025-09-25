@@ -1,7 +1,7 @@
 // External Dependencies
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { FiMenu, FiX, FiUser } from "react-icons/fi";
 import { Link } from "react-router-dom";
-import { FiMenu, FiX } from "react-icons/fi";
 
 // Assets
 
@@ -10,6 +10,25 @@ import styles from "./Navbar.module.css";
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    }
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownOpen]);
 
   return (
     <nav className={styles.navbar}>
@@ -25,22 +44,46 @@ function Navbar() {
 
       <ul className={`${styles.navLinks} ${menuOpen ? styles.open : ""}`}>
         <li>
-          <a href="#">Home</a>
+          <a href="#">Dashboard</a>
         </li>
         <li>
-          <a href="#">Features</a>
+          <a href="#">Projects</a>
         </li>
         <li>
-          <a href="#">Pricing</a>
+          <a href="#">Teams</a>
         </li>
         <li>
-          <a href="#">About</a>
+          <a href="#">Settings</a>
         </li>
       </ul>
 
-      <div className={styles.actions}>
-        <button className={styles.loginBtn}>Login</button>
-        <button className={styles.signupBtn}>Sign Up</button>
+      <div
+        className={styles.profile}
+        ref={dropdownRef}
+        tabIndex={-1}
+        onBlur={() => setDropdownOpen(false)}
+      >
+        <button
+          className={styles.avatarBtn}
+          onClick={() => setDropdownOpen((open) => !open)}
+          aria-haspopup="true"
+          aria-expanded={dropdownOpen}
+        >
+          <FiUser />
+        </button>
+        <div
+          className={
+            dropdownOpen
+              ? `${styles.dropdown} ${styles.dropdownOpen}`
+              : styles.dropdown
+          }
+          onMouseEnter={() => setDropdownOpen(true)}
+          onMouseLeave={() => setDropdownOpen(false)}
+        >
+          <a href="#">Profile</a>
+          <a href="#">Preferences</a>
+          <a href="#">Logout</a>
+        </div>
       </div>
     </nav>
   );
