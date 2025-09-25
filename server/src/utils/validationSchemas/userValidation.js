@@ -143,13 +143,8 @@ export const registerUserSchema = Joi.object({
   confirmPassword: Joi.string()
     .trim()
     .valid(Joi.ref("password"))
-    .custom((value) => {
-      return value;
-    })
     .required()
     .messages({
-      "string.base": "Confirm Password must be a string",
-      "string.empty": "Confirm Password is required",
       "any.only": "Passwords must match",
     }),
 }).options({ stripUnknown: true });
