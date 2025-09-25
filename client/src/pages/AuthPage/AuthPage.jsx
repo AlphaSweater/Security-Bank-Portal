@@ -36,10 +36,10 @@ const slideVariants = {
 // Default Function Export
 function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
-  const [direction, setDirection] = useState(1); // 1 → right, -1 → left
+  const [direction, setDirection] = useState(-1); // 1 → right, -1 → left
 
   const handleSwap = () => {
-    setDirection(isLogin ? 1 : -1);
+    setDirection(isLogin ? -1 : 1);
     setIsLogin((v) => !v);
   };
 
