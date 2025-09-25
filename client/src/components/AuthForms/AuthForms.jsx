@@ -1,5 +1,5 @@
 // External Imports
-import { useState, useEffect } from "react";
+import { useForm } from "./useForm";
 
 // Internal Imports
 import { apiRequest } from "../../utils/api";
@@ -27,40 +27,79 @@ export default function AuthForms({ isLogin, onSwap }) {
 // Login Form
 // -------------------
 
-function LoginForm({ onSwap }) {
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [errors, setErrors] = useState({});
-  const [touched, setTouched] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [submitAttempted, setSubmitAttempted] = useState(false);
+import { useState } from "react";
 
-  // Reusable validator
-  function validate(values) {
+function ResponseBox({ type, message }) {
+  if (!message) return null;
+  let color;
+  if (type === "success") color = "#10b981";
+  else if (type === "error") color = "#e63946";
+  else color = "#2563eb";
+  return (
+    <div
+      style={{
+        border: `1.5px solid ${color}`,
+        background: `${
+          type === "success"
+            ? "#e6f9f0"
+            : type === "error"
+            ? "#fde8e8"
+            : "#e7f0fd"
+        }`,
+        color,
+        borderRadius: 6,
+        padding: "0.75em 1em",
+        marginBottom: 16,
+        fontWeight: 500,
+        fontSize: "1em",
+        textAlign: "center",
+      }}
+    >
+      {message}
+    </div>
+  );
+}
+
+function LoginForm({ onSwap }) {
+  const [response, setResponse] = useState({ type: null, message: "" });
+  // Custom hook usage
+  const {
+    form,
+    setForm,
+    errors,
+    setErrors,
+    loading,
+    setLoading,
+    submitAttempted,
+    setSubmitAttempted,
+    currentErrors,
+    handleChange,
+    handleBlur,
+    shouldShowError,
+  } = useForm({ email: "", password: "" }, (values) => {
     const { error } = loginUserSchema.validate(values, { abortEarly: false });
     if (!error) return {};
     return error.details.reduce(
       (acc, d) => ({ ...acc, [d.path[0]]: d.message }),
       {}
     );
-  }
-
-  const currentErrors = validate(form);
-
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
-  }
-
-  function handleBlur(e) {
-    setTouched((t) => ({ ...t, [e.target.name]: true }));
-  }
+  });
 
   async function handleSubmit(e) {
     e.preventDefault();
     setSubmitAttempted(true);
+    setResponse({ type: null, message: "" });
 
-    if (Object.keys(currentErrors).length > 0) {
-      setErrors(currentErrors);
+    // Run validation on submit to ensure all errors are caught
+    const { error } = loginUserSchema.validate(form, { abortEarly: false });
+    const submitErrors = error
+      ? error.details.reduce(
+          (acc, d) => ({ ...acc, [d.path[0]]: d.message }),
+          {}
+        )
+      : {};
+    setErrors(submitErrors);
+    if (Object.keys(submitErrors).length > 0) {
       return;
     }
 
@@ -70,21 +109,34 @@ function LoginForm({ onSwap }) {
         method: "POST",
         body: JSON.stringify(form),
       });
-      // ✅ handle success (redirect, toast, etc.)
+      // If the API returns a message, show it as success
+      setResponse({
+        type: "success",
+        message: data?.message || "Login successful!",
+      });
+      // Optionally, redirect or do something else here
     } catch (err) {
-      setErrors({ global: err.message });
+      // If error has a response and message, show as error, else as 'weird' (blue)
+      if (err?.response && err.response.message) {
+        setResponse({ type: "error", message: err.response.message });
+      } else if (err?.message) {
+        setResponse({ type: "error", message: err.message });
+      } else {
+        setResponse({
+          type: "other",
+          message: "An unexpected error occurred.",
+        });
+      }
     } finally {
       setLoading(false);
     }
   }
 
-  function shouldShowError(field) {
-    return currentErrors[field] && (touched[field] || submitAttempted);
-  }
-
   return (
     <form className={styles.formBox} onSubmit={handleSubmit} noValidate>
       <h2 className={styles.heading}>Log In</h2>
+
+      <ResponseBox type={response.type} message={response.message} />
 
       <div className={styles.inputGroup}>
         <div className={styles.inputWrapper}>
@@ -92,6 +144,7 @@ function LoginForm({ onSwap }) {
             <input
               type="email"
               name="email"
+              id="login-email"
               placeholder=" "
               value={form.email}
               onChange={handleChange}
@@ -106,7 +159,7 @@ function LoginForm({ onSwap }) {
             <label
               className={styles.floatingLabel}
               aria-required="true"
-              htmlFor={undefined}
+              htmlFor="login-email"
             >
               Email
             </label>
@@ -121,6 +174,7 @@ function LoginForm({ onSwap }) {
             <input
               type="password"
               name="password"
+              id="login-password"
               placeholder=" "
               value={form.password}
               onChange={handleChange}
@@ -135,7 +189,7 @@ function LoginForm({ onSwap }) {
             <label
               className={styles.floatingLabel}
               aria-required="true"
-              htmlFor={undefined}
+              htmlFor="login-password"
             >
               Password
             </label>
@@ -145,12 +199,6 @@ function LoginForm({ onSwap }) {
           )}
         </div>
       </div>
-
-      {errors.global && (
-        <div className={styles.errorBox}>
-          <p>{errors.global}</p>
-        </div>
-      )}
 
       <div className={styles.buttonGroup}>
         <button
@@ -174,41 +222,40 @@ function LoginForm({ onSwap }) {
 // Register Form
 // -------------------
 function RegisterForm({ onSwap }) {
-  const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    saIdNumber: "",
-    password: "",
-    passwordConfirm: "",
-  });
-  const [errors, setErrors] = useState({});
-  const [touched, setTouched] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [submitAttempted, setSubmitAttempted] = useState(false);
-
-  // ✅ Validation helper
-  function validate(values) {
-    const { error } = registerUserSchema.validate(values, {
-      abortEarly: false,
-    });
-    if (!error) return {};
-    return error.details.reduce(
-      (acc, d) => ({ ...acc, [d.path[0]]: d.message }),
-      {}
-    );
-  }
-
-  const currentErrors = validate(form);
-
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
-  }
-
-  function handleBlur(e) {
-    setTouched((t) => ({ ...t, [e.target.name]: true }));
-  }
+  const [response, setResponse] = useState({ type: null, message: "" });
+  const {
+    form,
+    setForm,
+    errors,
+    setErrors,
+    loading,
+    setLoading,
+    submitAttempted,
+    setSubmitAttempted,
+    currentErrors,
+    handleChange,
+    handleBlur,
+    shouldShowError,
+  } = useForm(
+    {
+      firstName: "",
+      lastName: "",
+      email: "",
+      saIdNumber: "",
+      password: "",
+      passwordConfirm: "",
+    },
+    (values) => {
+      const { error } = registerUserSchema.validate(values, {
+        abortEarly: false,
+      });
+      if (!error) return {};
+      return error.details.reduce(
+        (acc, d) => ({ ...acc, [d.path[0]]: d.message }),
+        {}
+      );
+    }
+  );
 
   function calculatePasswordStrength(pw) {
     if (!pw) return 0;
@@ -225,9 +272,18 @@ function RegisterForm({ onSwap }) {
   async function handleSubmit(e) {
     e.preventDefault();
     setSubmitAttempted(true);
+    setResponse({ type: null, message: "" });
 
-    if (Object.keys(currentErrors).length > 0) {
-      setErrors(currentErrors);
+    // Run validation on submit to ensure all errors are caught
+    const { error } = registerUserSchema.validate(form, { abortEarly: false });
+    const submitErrors = error
+      ? error.details.reduce(
+          (acc, d) => ({ ...acc, [d.path[0]]: d.message }),
+          {}
+        )
+      : {};
+    setErrors(submitErrors);
+    if (Object.keys(submitErrors).length > 0) {
       return;
     }
 
@@ -237,21 +293,32 @@ function RegisterForm({ onSwap }) {
         method: "POST",
         body: JSON.stringify(form),
       });
-      // ✅ Handle success (toast, redirect, etc.)
+      setResponse({
+        type: "success",
+        message: data?.message || "Registration successful!",
+      });
+      // Optionally, redirect or do something else here
     } catch (err) {
-      setErrors({ global: err.message });
+      if (err?.response && err.response.message) {
+        setResponse({ type: "error", message: err.response.message });
+      } else if (err?.message) {
+        setResponse({ type: "error", message: err.message });
+      } else {
+        setResponse({
+          type: "other",
+          message: "An unexpected error occurred.",
+        });
+      }
     } finally {
       setLoading(false);
     }
   }
 
-  function shouldShowError(field) {
-    return currentErrors[field] && (touched[field] || submitAttempted);
-  }
-
   return (
     <form className={styles.formBox} onSubmit={handleSubmit} noValidate>
       <h2 className={styles.heading}>Sign Up</h2>
+
+      <ResponseBox type={response.type} message={response.message} />
 
       <div className={styles.inputGroup}>
         <div className={styles.inputRow}>
@@ -260,6 +327,7 @@ function RegisterForm({ onSwap }) {
               <input
                 type="text"
                 name="firstName"
+                id="register-firstName"
                 placeholder=" "
                 value={form.firstName}
                 onChange={handleChange}
@@ -274,7 +342,7 @@ function RegisterForm({ onSwap }) {
               <label
                 className={styles.floatingLabel}
                 aria-required="true"
-                htmlFor={undefined}
+                htmlFor="register-firstName"
               >
                 First Name
               </label>
@@ -289,6 +357,7 @@ function RegisterForm({ onSwap }) {
               <input
                 type="text"
                 name="lastName"
+                id="register-lastName"
                 placeholder=" "
                 value={form.lastName}
                 onChange={handleChange}
@@ -303,7 +372,7 @@ function RegisterForm({ onSwap }) {
               <label
                 className={styles.floatingLabel}
                 aria-required="true"
-                htmlFor={undefined}
+                htmlFor="register-lastName"
               >
                 Last Name
               </label>
@@ -319,6 +388,7 @@ function RegisterForm({ onSwap }) {
             <input
               type="email"
               name="email"
+              id="register-email"
               placeholder=" "
               value={form.email}
               onChange={handleChange}
@@ -333,7 +403,7 @@ function RegisterForm({ onSwap }) {
             <label
               className={styles.floatingLabel}
               aria-required="true"
-              htmlFor={undefined}
+              htmlFor="register-email"
             >
               Email
             </label>
@@ -348,6 +418,7 @@ function RegisterForm({ onSwap }) {
             <input
               type="text"
               name="saIdNumber"
+              id="register-saIdNumber"
               placeholder=" "
               value={form.saIdNumber}
               onChange={handleChange}
@@ -361,7 +432,7 @@ function RegisterForm({ onSwap }) {
             <label
               className={styles.floatingLabel}
               aria-required="true"
-              htmlFor={undefined}
+              htmlFor="register-saIdNumber"
             >
               SA ID Number
             </label>
@@ -377,6 +448,7 @@ function RegisterForm({ onSwap }) {
               <input
                 type="password"
                 name="password"
+                id="register-password"
                 placeholder=" "
                 value={form.password}
                 onChange={handleChange}
@@ -391,7 +463,7 @@ function RegisterForm({ onSwap }) {
               <label
                 className={styles.floatingLabel}
                 aria-required="true"
-                htmlFor={undefined}
+                htmlFor="register-password"
               >
                 Password
               </label>
@@ -406,6 +478,7 @@ function RegisterForm({ onSwap }) {
               <input
                 type="password"
                 name="passwordConfirm"
+                id="register-passwordConfirm"
                 placeholder=" "
                 value={form.passwordConfirm}
                 onChange={handleChange}
@@ -420,7 +493,7 @@ function RegisterForm({ onSwap }) {
               <label
                 className={styles.floatingLabel}
                 aria-required="true"
-                htmlFor={undefined}
+                htmlFor="register-passwordConfirm"
               >
                 Confirm Password
               </label>
@@ -458,12 +531,6 @@ function RegisterForm({ onSwap }) {
           )}
         </div>
       </div>
-
-      {errors.global && (
-        <div className={styles.errorBox}>
-          <p>{errors.global}</p>
-        </div>
-      )}
 
       <div className={styles.buttonGroup}>
         <button
