@@ -63,7 +63,7 @@
   left: 1rem;
   font-size: 0.85rem;
   color: var(--color-primary-end, #0ea5e9);
-  background: var(--color-surface-solid-light, #fff);
+  background: transparent;
   padding: 0 0.3em;
   transform: none;
   line-height: 1.1;
