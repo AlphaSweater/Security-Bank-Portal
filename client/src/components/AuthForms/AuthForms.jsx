@@ -21,6 +21,7 @@ export default function AuthForms({ isLogin, onSwap }) {
 // -------------------
 function LoginForm({ onSwap }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -31,6 +32,7 @@ function LoginForm({ onSwap }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setErrors({}); // clear errors
 
     try {
       const res = await fetch("/api/auth/login", {
@@ -40,17 +42,21 @@ function LoginForm({ onSwap }) {
         body: JSON.stringify(formData),
       });
 
-      if (!res.ok) {
-        throw new Error("Login failed");
-      }
+      const data = await res.json();
 
-      // For testing – log payload & response
-      console.log("Payload sent:", formData);
-      console.log("Response:", await res.json());
+      if (!res.ok) {
+        if (data.message === "Validation error") {
+          setErrors(data.errors || {});
+        } else {
+          setErrors({ global: data.message || "Login failed" });
+        }
+        return;
+      }
 
       window.location.reload();
     } catch (err) {
       console.error(err);
+      setErrors({ global: "Network error. Please try again." });
     } finally {
       setLoading(false);
     }
@@ -59,30 +65,44 @@ function LoginForm({ onSwap }) {
   return (
     <form className={styles.formBox} onSubmit={handleSubmit} noValidate>
       <h2 className={styles.heading}>Log In</h2>
+
       <div className={styles.inputGroup}>
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          className={styles.inputField}
-          value={formData.email}
-          onChange={handleChange}
-          required
-          autoComplete="email"
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          className={styles.inputField}
-          value={formData.password}
-          onChange={handleChange}
-          required
-          autoComplete="current-password"
-        />
+        <div className={styles.inputWrapper}>
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            className={styles.inputField}
+            value={formData.email}
+            onChange={handleChange}
+            required
+            autoComplete="email"
+          />
+          {errors.email && <p className={styles.errorText}>{errors.email}</p>}
+        </div>
+
+        <div className={styles.inputWrapper}>
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            className={`${styles.inputField} ${
+              errors.password ? styles.inputError : ""
+            }`}
+            value={formData.password}
+            onChange={handleChange}
+            required
+            autoComplete="current-password"
+          />
+          {errors.password && (
+            <p className={styles.errorText}>{errors.password}</p>
+          )}
+        </div>
       </div>
+
       <div className={styles.spacer} />
       <div className={styles.buttonGroup}>
+        {errors.global && <p className={styles.errorText}>{errors.global}</p>}
         <button
           type="submit"
           className={styles.primaryButton}
@@ -112,6 +132,7 @@ function RegisterForm({ onSwap }) {
     password: "",
     confirmPassword: "",
   });
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -121,6 +142,7 @@ function RegisterForm({ onSwap }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors({}); // reset errors
     setLoading(true);
 
     try {
@@ -131,13 +153,21 @@ function RegisterForm({ onSwap }) {
         body: JSON.stringify(formData),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        throw new Error("Registration failed");
+        if (data.message === "Validation error") {
+          setErrors(data.errors || {});
+        } else {
+          setErrors({ global: data.message || "Registration failed" });
+        }
+        return;
       }
 
       window.location.reload();
     } catch (err) {
       console.error(err);
+      setErrors({ global: "Network error. Please try again." });
     } finally {
       setLoading(false);
     }
@@ -146,72 +176,122 @@ function RegisterForm({ onSwap }) {
   return (
     <form className={styles.formBox} onSubmit={handleSubmit} noValidate>
       <h2 className={styles.heading}>Sign Up</h2>
+
       <div className={styles.inputGroup}>
         <div className={styles.inputRow}>
-          <input
-            type="text"
-            name="firstName"
-            placeholder="First Name"
-            className={styles.inputField}
-            value={formData.firstName}
-            onChange={handleChange}
-            required
-            autoComplete="given-name"
-          />
-          <input
-            type="text"
-            name="lastName"
-            placeholder="Last Name"
-            className={styles.inputField}
-            value={formData.lastName}
-            onChange={handleChange}
-            required
-            autoComplete="family-name"
-          />
+          <div className={styles.inputWrapper}>
+            <input
+              type="text"
+              name="firstName"
+              placeholder="First Name"
+              className={`${styles.inputField} ${
+                errors.firstName ? styles.inputError : ""
+              }`}
+              value={formData.firstName}
+              onChange={handleChange}
+              required
+              autoComplete="given-name"
+            />
+            {errors.firstName && (
+              <p className={styles.errorText}>{errors.firstName}</p>
+            )}
+          </div>
+
+          <div className={styles.inputWrapper}>
+            <input
+              type="text"
+              name="lastName"
+              placeholder="Last Name"
+              className={`${styles.inputField} ${
+                errors.lastName ? styles.inputError : ""
+              }`}
+              value={formData.lastName}
+              onChange={handleChange}
+              required
+              autoComplete="family-name"
+            />
+            {errors.lastName && (
+              <p className={styles.errorText}>{errors.lastName}</p>
+            )}
+          </div>
         </div>
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          className={styles.inputField}
-          value={formData.email}
-          onChange={handleChange}
-          required
-          autoComplete="email"
-        />
-        <input
-          type="text"
-          name="saIdNumber"
-          placeholder="SA ID Number"
-          className={styles.inputField}
-          value={formData.saIdNumber}
-          onChange={handleChange}
-          required
-        />
+
+        <div className={styles.inputWrapper}>
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            className={`${styles.inputField} ${
+              errors.email ? styles.inputError : ""
+            }`}
+            value={formData.email}
+            onChange={handleChange}
+            required
+            autoComplete="email"
+          />
+          {errors.email && <p className={styles.errorText}>{errors.email}</p>}
+        </div>
+
+        <div className={styles.inputWrapper}>
+          <input
+            type="text"
+            name="saIdNumber"
+            placeholder="SA ID Number"
+            className={`${styles.inputField} ${
+              errors.saIdNumber ? styles.inputError : ""
+            }`}
+            value={formData.saIdNumber}
+            onChange={handleChange}
+            required
+          />
+          {errors.saIdNumber && (
+            <p className={styles.errorText}>{errors.saIdNumber}</p>
+          )}
+        </div>
+
         <div className={styles.inputRow}>
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            className={styles.inputField}
-            value={formData.password}
-            onChange={handleChange}
-            required
-            autoComplete="new-password"
-          />
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Confirm Password"
-            className={styles.inputField}
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-            autoComplete="new-password"
-          />
+          <div className={styles.inputWrapper}>
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              className={`${styles.inputField} ${
+                errors.password ? styles.inputError : ""
+              }`}
+              value={formData.password}
+              onChange={handleChange}
+              required
+              autoComplete="new-password"
+            />
+            {errors.password && (
+              <p className={styles.errorText}>{errors.password}</p>
+            )}
+          </div>
+
+          <div className={styles.inputWrapper}>
+            <input
+              type="password"
+              name="confirmPassword"
+              placeholder="Confirm Password"
+              className={`${styles.inputField} ${
+                errors.confirmPassword ? styles.inputError : ""
+              }`}
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              autoComplete="new-password"
+            />
+            {errors.confirmPassword && (
+              <p className={styles.errorText}>{errors.confirmPassword}</p>
+            )}
+          </div>
         </div>
       </div>
+
       <div className={styles.buttonGroup}>
+        {errors.global && (
+          <div className={styles.globalError}>{errors.global}</div>
+        )}
         <button
           type="submit"
           className={styles.primaryButton}

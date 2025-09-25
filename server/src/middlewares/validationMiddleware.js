@@ -1,6 +1,18 @@
 import { getLogger } from "#utils/logger.js";
-import { formatValidationErrors } from "../utils/formatValidationErrors.js";
 const logger = getLogger(import.meta.url);
+
+// Helper to format Joi errors for frontend
+function formatValidationErrors(error) {
+  if (!error || !Array.isArray(error.details)) return {};
+  const formatted = {};
+  error.details.forEach((err) => {
+    const field = err.path[0];
+    if (field && !formatted[field]) {
+      formatted[field] = err.message;
+    }
+  });
+  return formatted;
+}
 
 // Generic Joi validation middleware for Express
 export function validateData(schema) {
@@ -10,11 +22,7 @@ export function validateData(schema) {
     const { value, error } = schema.validate(req.body, { abortEarly: false });
     if (error) {
       const formattedErrors = formatValidationErrors(error);
-      logger.warn(
-        `Validation error: ${formattedErrors
-          .map((e) => `[${e.field}] ${e.message}`)
-          .join(", ")}`
-      );
+      logger.debug(`Validation errors: ${JSON.stringify(formattedErrors)}`);
       return res
         .status(400)
         .json({ message: "Validation error", errors: formattedErrors });
