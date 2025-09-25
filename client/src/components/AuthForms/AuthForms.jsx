@@ -1,10 +1,5 @@
 // External Dependencies
 import { useState } from "react";
-import {
-  registerUserSchema,
-  loginUserSchema,
-} from "utils/validation/userValidation";
-import Joi from "joi";
 
 // Styles
 import styles from "./AuthForms.module.css";
