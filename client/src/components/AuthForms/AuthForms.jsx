@@ -27,18 +27,23 @@ export default function AuthForms({ isLogin, onSwap }) {
 function LoginForm({ onSwap }) {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
+  const [errorTypes, setErrorTypes] = useState({});
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
   useEffect(() => {
     const { error } = loginUserSchema.validate(form, { abortEarly: false });
     const nextErrors = {};
+    const nextTypes = {};
     if (error && error.details) {
       for (const d of error.details) {
         nextErrors[d.path[0]] = d.message;
+        nextTypes[d.path[0]] = d.type;
       }
     }
     setErrors(nextErrors);
+    setErrorTypes(nextTypes);
   }, [form]);
 
   function handleChange(e) {
@@ -52,6 +57,7 @@ function LoginForm({ onSwap }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitAttempted(true);
     const { error } = loginUserSchema.validate(form, { abortEarly: false });
     if (error) {
       const nextErrors = {};
@@ -74,6 +80,18 @@ function LoginForm({ onSwap }) {
     }
   };
 
+  // Helper: should show error for a field?
+  function shouldShowError(field) {
+    if (!errors[field]) return false;
+    const type = errorTypes[field];
+    if (type === "string.empty" || type === "any.required") {
+      // Only show required errors after submit
+      return submitAttempted;
+    }
+    // Show all other errors live (on blur or after submit)
+    return touched[field] || submitAttempted;
+  }
+
   return (
     <form className={styles.formBox} onSubmit={handleSubmit} noValidate>
       <h2 className={styles.heading}>Log In</h2>
@@ -84,7 +102,7 @@ function LoginForm({ onSwap }) {
             name="email"
             placeholder="Email"
             className={`${styles.inputField} ${
-              touched.email && errors.email ? styles.inputError : ""
+              shouldShowError("email") ? styles.inputError : ""
             }`}
             value={form.email}
             onChange={handleChange}
@@ -92,7 +110,7 @@ function LoginForm({ onSwap }) {
             required
             autoComplete="email"
           />
-          {touched.email && errors.email && (
+          {shouldShowError("email") && (
             <p className={styles.errorText}>{errors.email}</p>
           )}
         </div>
@@ -102,7 +120,7 @@ function LoginForm({ onSwap }) {
             name="password"
             placeholder="Password"
             className={`${styles.inputField} ${
-              touched.password && errors.password ? styles.inputError : ""
+              shouldShowError("password") ? styles.inputError : ""
             }`}
             value={form.password}
             onChange={handleChange}
@@ -110,7 +128,7 @@ function LoginForm({ onSwap }) {
             required
             autoComplete="current-password"
           />
-          {touched.password && errors.password && (
+          {shouldShowError("password") && (
             <p className={styles.errorText}>{errors.password}</p>
           )}
         </div>
@@ -151,19 +169,24 @@ function RegisterForm({ onSwap }) {
     passwordConfirm: "",
   });
   const [errors, setErrors] = useState({});
+  const [errorTypes, setErrorTypes] = useState({});
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
   useEffect(() => {
     const { error } = registerUserSchema.validate(form, { abortEarly: false });
     const nextErrors = {};
+    const nextTypes = {};
     if (error && error.details) {
       for (const d of error.details) {
         nextErrors[d.path[0]] = d.message;
+        nextTypes[d.path[0]] = d.type;
       }
     }
     setErrors(nextErrors);
+    setErrorTypes(nextTypes);
     setPasswordStrength(calculatePasswordStrength(form.password));
   }, [form]);
 
@@ -189,6 +212,7 @@ function RegisterForm({ onSwap }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitAttempted(true);
     const { error } = registerUserSchema.validate(form, { abortEarly: false });
     if (error) {
       const nextErrors = {};
@@ -218,6 +242,18 @@ function RegisterForm({ onSwap }) {
     }
   };
 
+  // Helper: should show error for a field?
+  function shouldShowError(field) {
+    if (!errors[field]) return false;
+    const type = errorTypes[field];
+    if (type === "string.empty" || type === "any.required") {
+      // Only show required errors after submit
+      return submitAttempted;
+    }
+    // Show all other errors live (on blur or after submit)
+    return touched[field] || submitAttempted;
+  }
+
   return (
     <form className={styles.formBox} onSubmit={handleSubmit} noValidate>
       <h2 className={styles.heading}>Sign Up</h2>
@@ -229,7 +265,7 @@ function RegisterForm({ onSwap }) {
               name="firstName"
               placeholder="First Name"
               className={`${styles.inputField} ${
-                touched.firstName && errors.firstName ? styles.inputError : ""
+                shouldShowError("firstName") ? styles.inputError : ""
               }`}
               value={form.firstName}
               onChange={handleChange}
@@ -237,7 +273,7 @@ function RegisterForm({ onSwap }) {
               required
               autoComplete="given-name"
             />
-            {touched.firstName && errors.firstName && (
+            {shouldShowError("firstName") && (
               <p className={styles.errorText}>{errors.firstName}</p>
             )}
           </div>
@@ -247,7 +283,7 @@ function RegisterForm({ onSwap }) {
               name="lastName"
               placeholder="Last Name"
               className={`${styles.inputField} ${
-                touched.lastName && errors.lastName ? styles.inputError : ""
+                shouldShowError("lastName") ? styles.inputError : ""
               }`}
               value={form.lastName}
               onChange={handleChange}
@@ -255,7 +291,7 @@ function RegisterForm({ onSwap }) {
               required
               autoComplete="family-name"
             />
-            {touched.lastName && errors.lastName && (
+            {shouldShowError("lastName") && (
               <p className={styles.errorText}>{errors.lastName}</p>
             )}
           </div>
@@ -266,7 +302,7 @@ function RegisterForm({ onSwap }) {
             name="email"
             placeholder="Email"
             className={`${styles.inputField} ${
-              touched.email && errors.email ? styles.inputError : ""
+              shouldShowError("email") ? styles.inputError : ""
             }`}
             value={form.email}
             onChange={handleChange}
@@ -274,7 +310,7 @@ function RegisterForm({ onSwap }) {
             required
             autoComplete="email"
           />
-          {touched.email && errors.email && (
+          {shouldShowError("email") && (
             <p className={styles.errorText}>{errors.email}</p>
           )}
         </div>
@@ -284,14 +320,14 @@ function RegisterForm({ onSwap }) {
             name="saIdNumber"
             placeholder="SA ID Number"
             className={`${styles.inputField} ${
-              touched.saIdNumber && errors.saIdNumber ? styles.inputError : ""
+              shouldShowError("saIdNumber") ? styles.inputError : ""
             }`}
             value={form.saIdNumber}
             onChange={handleChange}
             onBlur={handleBlur}
             required
           />
-          {touched.saIdNumber && errors.saIdNumber && (
+          {shouldShowError("saIdNumber") && (
             <p className={styles.errorText}>{errors.saIdNumber}</p>
           )}
         </div>
@@ -302,7 +338,7 @@ function RegisterForm({ onSwap }) {
               name="password"
               placeholder="Password"
               className={`${styles.inputField} ${
-                touched.password && errors.password ? styles.inputError : ""
+                shouldShowError("password") ? styles.inputError : ""
               }`}
               value={form.password}
               onChange={handleChange}
@@ -315,12 +351,8 @@ function RegisterForm({ onSwap }) {
               name="passwordConfirm"
               placeholder="Confirm Password"
               className={`${styles.inputField} ${
-                touched.passwordConfirm && errors.passwordConfirm
-                  ? styles.inputError
-                  : ""
-              } ${
-                touched.password && errors.password ? styles.inputError : ""
-              }`}
+                shouldShowError("passwordConfirm") ? styles.inputError : ""
+              } ${shouldShowError("password") ? styles.inputError : ""}`}
               value={form.passwordConfirm}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -328,10 +360,10 @@ function RegisterForm({ onSwap }) {
               autoComplete="new-password"
             />
           </div>
-          {touched.password && errors.password && (
+          {shouldShowError("password") && (
             <p className={styles.errorText}>{errors.password}</p>
           )}
-          {touched.passwordConfirm && errors.passwordConfirm && (
+          {shouldShowError("passwordConfirm") && (
             <p className={styles.errorText}>{errors.passwordConfirm}</p>
           )}
           {/* Password strength meter */}
