@@ -1,41 +1,49 @@
 // External Dependencies
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
+import routes from "./routes.jsx";
 
-// Page Components (Routes)
-import LandingPage from "pages/LandingPage";
-import AuthPage from "pages/AuthPage";
-import DashboardPage from "pages/DashboardPage";
+// ...existing code...
 
 // UI Components
 import Navbar from "components/Navbar";
-import Navbar2 from "components/Navbar2";
 
 // Styles
 import styles from "./App.module.css";
 
+function AppContent() {
+  const location = useLocation();
+  // Find the first matching route (exact match)
+  const currentRoute = routes.find((r) => r.path === location.pathname);
+  const showNavbar = currentRoute ? currentRoute.showNavbar !== false : true;
+  return (
+    <div className={styles.appRoot}>
+      <header>{showNavbar && <Navbar />}</header>
+      <main className={styles.contentContainer}>
+        <Routes>
+          {routes.map((route) => (
+            <Route key={route.path} path={route.path} element={route.element} />
+          ))}
+        </Routes>
+      </main>
+      <footer className={styles.footer}>
+        <small>
+          &copy; {new Date().getFullYear()} Security Bank Portal &mdash; All
+          rights reserved.
+        </small>
+      </footer>
+    </div>
+  );
+}
+
 function App() {
   return (
     <Router>
-      <div className={styles.appRoot}>
-        <header>
-          <Navbar2 />
-        </header>
-
-        <main className={styles.contentContainer}>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-          </Routes>
-        </main>
-
-        <footer className={styles.footer}>
-          <small>
-            &copy; {new Date().getFullYear()} Security Bank Portal &mdash; All
-            rights reserved.
-          </small>
-        </footer>
-      </div>
+      <AppContent />
     </Router>
   );
 }
