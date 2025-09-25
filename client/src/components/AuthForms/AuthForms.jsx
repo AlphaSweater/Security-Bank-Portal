@@ -71,8 +71,23 @@ function LoginForm({ onSwap }) {
     setLoading(true);
     setErrors({});
     try {
-      // TODO: Implement login logic
-      await new Promise((res) => setTimeout(res, 800));
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrors((e) => ({
+          ...e,
+          global: data.message || "Login failed. Try again.",
+        }));
+        setLoading(false);
+        return;
+      }
+      // Optionally: redirect or update UI on success
+      // window.location.href = "/dashboard";
     } catch (err) {
       setErrors((e) => ({ ...e, global: "Login failed. Try again." }));
     } finally {
@@ -245,8 +260,30 @@ function RegisterForm({ onSwap }) {
     setLoading(true);
     setErrors({});
     try {
-      // TODO: Implement register logic
-      await new Promise((res) => setTimeout(res, 800));
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: form.firstName,
+          lastName: form.lastName,
+          email: form.email,
+          saIdNumber: form.saIdNumber,
+          password: form.password,
+          passwordConfirm: form.passwordConfirm,
+        }),
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrors((e) => ({
+          ...e,
+          global: data.message || "Registration failed. Try again.",
+        }));
+        setLoading(false);
+        return;
+      }
+      // Optionally: redirect or update UI on success
+      // window.location.href = "/dashboard";
     } catch (err) {
       setErrors((e) => ({ ...e, global: "Registration failed. Try again." }));
     } finally {
