@@ -39,13 +39,13 @@ export async function verifyUser({ email, password }) {
   const user = await findUserByEmail(email);
   if (!user) {
     logger.debug("User not found");
-    throw new Error("Invalid credentials");
+    throw new Error("Invalid email or password");
   }
 
   const valid = await argon2.verify(user.passwordHash, password);
   if (!valid) {
     logger.debug("Invalid password");
-    throw new Error("Invalid credentials");
+    throw new Error("Invalid email or password");
   }
 
   return user;

@@ -68,8 +68,8 @@
   padding: 0.75rem 1.15rem;
   border-radius: var(--radius-md);
   border: 1.5px solid rgba(255, 255, 255, 0.18);
-  background: var(--color-surface-light);
-  color: var(--color-text-primary);
+  background: var(--color-surface-solid-light);
+  color: var(--color-text-primary-dark);
   font-size: var(--font-size-base);
   font-weight: 500;
   box-shadow: 0 2px 12px 0 rgba(49, 46, 129, 0.08),
@@ -89,7 +89,6 @@
 
 .inputField:focus {
   border-color: var(--color-primary-end);
-  background: rgba(255, 255, 255, 0.28);
   box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18),
     0 2px 16px 0 rgba(14, 165, 233, 0.1), 0 1.5px 8px 0 rgba(49, 46, 129, 0.08),
     inset 0 2px 12px 0 rgba(14, 165, 233, 0.06);
@@ -98,7 +97,6 @@
 .inputField.inputError {
   color: var(--color-error);
   border-color: var(--color-error);
-  background-color: rgba(244, 63, 94, 0.13);
   box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.18),
     0 2px 16px 0 rgba(244, 63, 94, 0.1), 0 1.5px 8px 0 rgba(49, 46, 129, 0.08),
     inset 0 2px 12px 0 rgba(244, 63, 94, 0.06);

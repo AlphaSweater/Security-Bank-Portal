@@ -1,9 +1,12 @@
-// External Dependencies
-
 // Styles
 import styles from "./AuthForms.module.css";
 
-// Components
+// Validation Schemas
+import {
+  registerUserSchema,
+  loginUserSchema,
+} from "../../utils/validation/userValidation";
+import { useState, useEffect } from "react";
 
 export default function AuthForms({ isLogin, onSwap }) {
   return (
@@ -20,30 +23,15 @@ export default function AuthForms({ isLogin, onSwap }) {
 // -------------------
 // Login Form
 // -------------------
-import Joi from "joi";
-import { useState, useEffect } from "react";
 
 function LoginForm({ onSwap }) {
-  const loginSchema = Joi.object({
-    email: Joi.string()
-      .email({ tlds: { allow: false } })
-      .required()
-      .messages({
-        "string.empty": "Email is required",
-        "string.email": "Please enter a valid email",
-      }),
-    password: Joi.string().required().messages({
-      "string.empty": "Password is required",
-    }),
-  });
-
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const { error } = loginSchema.validate(form, { abortEarly: false });
+    const { error } = loginUserSchema.validate(form, { abortEarly: false });
     const nextErrors = {};
     if (error && error.details) {
       for (const d of error.details) {
@@ -64,7 +52,7 @@ function LoginForm({ onSwap }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { error } = loginSchema.validate(form, { abortEarly: false });
+    const { error } = loginUserSchema.validate(form, { abortEarly: false });
     if (error) {
       const nextErrors = {};
       for (const d of error.details) {
@@ -154,49 +142,6 @@ function LoginForm({ onSwap }) {
 // Register Form
 // -------------------
 function RegisterForm({ onSwap }) {
-  const registerSchema = Joi.object({
-    firstName: Joi.string().min(2).max(100).required().messages({
-      "string.empty": "First name is required",
-      "string.min": "First name must be at least 2 characters",
-    }),
-    lastName: Joi.string().min(2).max(100).required().messages({
-      "string.empty": "Last name is required",
-      "string.min": "Last name must be at least 2 characters",
-    }),
-    email: Joi.string()
-      .email({ tlds: { allow: false } })
-      .required()
-      .messages({
-        "string.empty": "Email is required",
-        "string.email": "Please enter a valid email",
-      }),
-    saIdNumber: Joi.string()
-      .pattern(/^\d{13}$/)
-      .required()
-      .messages({
-        "string.empty": "SA ID Number is required",
-        "string.pattern.base": "SA ID Number must be 13 digits",
-      }),
-    password: Joi.string()
-      .min(8)
-      .max(128)
-      .pattern(new RegExp("(?=.*[a-z])"))
-      .pattern(new RegExp("(?=.*[A-Z])"))
-      .pattern(new RegExp("(?=.*[0-9])"))
-      .pattern(new RegExp("(?=.*[!@#$%^&*()_+-=[]{};':\"\\|,.<>/?])"))
-      .required()
-      .messages({
-        "string.empty": "Password is required",
-        "string.min": "Password must be at least 8 characters",
-        "string.pattern.base":
-          "Password must include upper, lower, number and special character",
-      }),
-    passwordConfirm: Joi.any().valid(Joi.ref("password")).required().messages({
-      "any.only": "Passwords do not match",
-      "any.required": "Please confirm your password",
-    }),
-  });
-
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -211,7 +156,7 @@ function RegisterForm({ onSwap }) {
   const [passwordStrength, setPasswordStrength] = useState(0);
 
   useEffect(() => {
-    const { error } = registerSchema.validate(form, { abortEarly: false });
+    const { error } = registerUserSchema.validate(form, { abortEarly: false });
     const nextErrors = {};
     if (error && error.details) {
       for (const d of error.details) {
@@ -229,7 +174,7 @@ function RegisterForm({ onSwap }) {
     if (pw.length >= 12) score++;
     if (/[A-Z]/.test(pw)) score++;
     if (/[0-9]/.test(pw)) score++;
-    if (/[!@#$%^&*()_+\-=[\]{};':\"\\|,.<>/?]/.test(pw)) score++;
+    if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(pw)) score++;
     return score; // 0..5
   }
 
@@ -244,7 +189,7 @@ function RegisterForm({ onSwap }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { error } = registerSchema.validate(form, { abortEarly: false });
+    const { error } = registerUserSchema.validate(form, { abortEarly: false });
     if (error) {
       const nextErrors = {};
       for (const d of error.details) {
@@ -385,6 +330,9 @@ function RegisterForm({ onSwap }) {
           </div>
           {touched.password && errors.password && (
             <p className={styles.errorText}>{errors.password}</p>
+          )}
+          {touched.passwordConfirm && errors.passwordConfirm && (
+            <p className={styles.errorText}>{errors.passwordConfirm}</p>
           )}
           {/* Password strength meter */}
           <div style={{ marginTop: 8 }}>

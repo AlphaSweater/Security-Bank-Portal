@@ -2,24 +2,22 @@ import { getLogger } from "#utils/logger.js";
 const logger = getLogger(import.meta.url);
 
 // Helper to format Joi errors for frontend
-function formatValidationErrors(error) {
-  if (!error || !Array.isArray(error.details)) return {};
+export function formatJoiError(error, { schema, genericKey = "generic" } = {}) {
+  if (!error || !error.details) return null;
+
   const formatted = {};
-  const passwordErrors = [];
 
-  error.details.forEach((err) => {
-    const field = err.path[0];
-    if (field === "password" || field === "passwordConfirm") {
-      passwordErrors.push(err.message);
-    } else if (field) {
-      if (!formatted[field]) formatted[field] = [];
-      formatted[field].push(err.message);
+  for (const detail of error.details) {
+    let field = detail.context?.label || detail.path?.[0] || genericKey;
+
+    // Collapse to generic for login schema (prevent info leaks)
+    if (schema === "login" && (field === "email" || field === "password")) {
+      field = genericKey;
     }
-  });
 
-  if (passwordErrors.length > 0) {
-    // Remove duplicates
-    formatted["password"] = [...new Set(passwordErrors)];
+    if (!formatted[field]) {
+      formatted[field] = detail.message;
+    }
   }
 
   return formatted;
@@ -30,18 +28,29 @@ export function validateData(schema) {
   return (req, res, next) => {
     logger.debug("Validating request data");
     logger.debug(`Request body: ${JSON.stringify(req.body)}`);
+
     const { value, error } = schema.validate(req.body, { abortEarly: false });
+
     if (error) {
       logger.debug(`Validation error: ${JSON.stringify(error)}`);
-      const formattedErrors = formatValidationErrors(error);
+
+      // Get schema name from .meta()
+      const schemaName =
+        schema.$_terms?.metas?.find((m) => m.schemaName)?.schemaName ||
+        "default";
+
+      const formattedErrors = formatJoiError(error, { schema: schemaName });
+
       logger.debug(
         `Formatted validation errors: ${JSON.stringify(formattedErrors)}`
       );
+
       return res
         .status(400)
-        .json({ message: "Validation error", errors: formattedErrors });
+        .json({ message: "Validation errors", errors: formattedErrors });
     }
-    req.body = value;
+
+    req.body = value; // clean validated data
     next();
   };
 }

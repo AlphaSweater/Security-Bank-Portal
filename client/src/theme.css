@@ -18,12 +18,15 @@
 
   /* Neutrals / Text */
   --color-text-primary: #ffffff; /* main headings, hero text */
+  --color-text-primary-dark: #0f172a; /* for light surfaces like #d9dae6 */
   --color-text-secondary: #cbd5e1; /* body text */
   --color-text-muted: #94a3b8; /* labels, helper text */
 
   /* Surfaces (cards, modals, navbars, etc.) */
   --color-surface-light: rgba(255, 255, 255, 0.08); /* faint translucent */
   --color-surface-strong: rgba(255, 255, 255, 0.6); /* stronger glass */
+  --color-surface-solid-light: #d9dae6; /* solid light surface */
+  --color-surface-solid-dark: #1e293b; /* solid dark surface */
 
   /* Borders */
   --color-border: rgba(255, 255, 255, 0.12);
