@@ -1,8 +1,8 @@
 // Centralized route config for client-side routing and navigation
-import LandingPage from "./pages/LandingPage";
-import AuthPage from "./pages/AuthPage";
-import DashboardPage from "./pages/DashboardPage";
-import PrivateRoute from "./components/PrivateRoute";
+import LandingPage from "../pages/LandingPage";
+import AuthPage from "../pages/AuthPage";
+import DashboardPage from "../pages/DashboardPage";
+import PrivateRoute from "./PrivateRoute";
 
 // Route meta: label for nav, element, auth, showInNav
 

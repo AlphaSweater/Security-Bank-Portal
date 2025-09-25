@@ -5,7 +5,7 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
-import routes from "./routes.jsx";
+import routes from "./routing/routes.jsx";
 
 // ...existing code...
 
