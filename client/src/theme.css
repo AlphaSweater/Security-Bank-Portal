@@ -1,0 +1,165 @@
+/* theme.css */
+
+/* ========== Root Theme Variables ========== */
+:root {
+  /* Brand Background (for body, hero sections, large areas) */
+  --color-bg-start: #0f172a; /* dark slate */
+  --color-bg-mid: #312e81; /* indigo deep */
+  --color-bg-end: #1e293b; /* slate dim */
+
+  /* Primary Accent (buttons, main links, active states) */
+  --color-primary-start: #6366f1; /* bright indigo */
+  --color-primary-end: #0ea5e9; /* sky blue */
+
+  /* Semantic States */
+  --color-error: #f43f5e; /* rose red – errors, destructive actions */
+  --color-warning: #f59e0b; /* amber orange – warnings */
+  --color-success: #10b981; /* emerald green – success confirmations */
+
+  /* Neutrals / Text */
+  --color-text-primary: #ffffff; /* main headings, hero text */
+  --color-text-secondary: #cbd5e1; /* body text */
+  --color-text-muted: #94a3b8; /* labels, helper text */
+
+  /* Surfaces (cards, modals, navbars, etc.) */
+  --color-surface-light: rgba(255, 255, 255, 0.08); /* faint translucent */
+  --color-surface-strong: rgba(255, 255, 255, 0.6); /* stronger glass */
+
+  /* Borders */
+  --color-border: rgba(255, 255, 255, 0.12);
+
+  /* Shadows (subtle depth, glassmorphism style) */
+  --shadow-card: 0 8px 20px rgba(0, 0, 0, 0.25);
+  --shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.35);
+
+  /* Typography scale */
+  --font-family-base: "Inter", "Segoe UI", sans-serif;
+  --font-size-sm: 0.875rem; /* small text */
+  --font-size-base: 1rem; /* body */
+  --font-size-lg: 1.25rem; /* section headings */
+  --font-size-xl: 1.5rem; /* big headings */
+  --font-size-2xl: 2rem; /* hero headings */
+
+  /* Radii (rounded corners) */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 2rem;
+
+  /* Transition timings */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 400ms ease;
+}
+
+/* ========== Base Layout ========== */
+body {
+  margin: 0;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  background: linear-gradient(
+    to bottom right,
+    var(--color-bg-start),
+    var(--color-bg-mid),
+    var(--color-bg-end)
+  );
+  min-height: 100vh;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+/* ========== Reusable Utility Classes ========== */
+
+/* Surfaces */
+.card {
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 1.5rem;
+  backdrop-filter: blur(16px);
+}
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--transition-fast),
+    box-shadow var(--transition-base);
+  color: #fff;
+  background: linear-gradient(
+    to right,
+    var(--color-primary-start),
+    var(--color-primary-end)
+  );
+  box-shadow: var(--shadow-card);
+}
+
+.btn:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Inputs */
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-strong);
+  color: var(--color-text-primary);
+  outline: none;
+  transition: border var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.input:focus {
+  border-color: var(--color-primary-end);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.3); /* sky highlight */
+}
+
+/* Headings */
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: 700;
+}
+
+h1 {
+  font-size: var(--font-size-2xl);
+}
+h2 {
+  font-size: var(--font-size-xl);
+}
+h3 {
+  font-size: var(--font-size-lg);
+}
+
+/* Text helpers */
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+/* Alerts */
+.alert-error {
+  color: var(--color-error);
+}
+.alert-success {
+  color: var(--color-success);
+}
+.alert-warning {
+  color: var(--color-warning);
+}

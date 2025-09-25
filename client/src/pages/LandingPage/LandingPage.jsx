@@ -16,7 +16,7 @@ function LandingPage() {
       <h1 className={styles.heading}>Security Bank Portal</h1>
 
       <button
-        className={styles.getStartedBtn}
+        className={`btn ${styles.getStartedBtn}`}
         onClick={() => navigate("/auth")}
       >
         Get Started
