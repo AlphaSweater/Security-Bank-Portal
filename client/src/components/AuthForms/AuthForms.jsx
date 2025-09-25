@@ -1,6 +1,4 @@
 // External Dependencies
-import { useState, useEffect } from "react";
-import Joi from "joi";
 
 // Styles
 import styles from "./AuthForms.module.css";
@@ -22,8 +20,10 @@ export default function AuthForms({ isLogin, onSwap }) {
 // -------------------
 // Login Form
 // -------------------
+import Joi from "joi";
+import { useState, useEffect } from "react";
+
 function LoginForm({ onSwap }) {
-  // --- Validation Schema (from demo) ---
   const loginSchema = Joi.object({
     email: Joi.string()
       .email({ tlds: { allow: false } })
@@ -42,14 +42,12 @@ function LoginForm({ onSwap }) {
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // Live validation on form change (after blur)
   useEffect(() => {
     const { error } = loginSchema.validate(form, { abortEarly: false });
     const nextErrors = {};
     if (error && error.details) {
       for (const d of error.details) {
-        const k = d.path[0];
-        if (!nextErrors[k]) nextErrors[k] = d.message;
+        nextErrors[d.path[0]] = d.message;
       }
     }
     setErrors(nextErrors);
@@ -66,13 +64,11 @@ function LoginForm({ onSwap }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Validate all fields on submit
     const { error } = loginSchema.validate(form, { abortEarly: false });
     if (error) {
       const nextErrors = {};
       for (const d of error.details) {
-        const k = d.path[0];
-        if (!nextErrors[k]) nextErrors[k] = d.message;
+        nextErrors[d.path[0]] = d.message;
       }
       setErrors(nextErrors);
       setTouched({ email: true, password: true });
@@ -81,24 +77,10 @@ function LoginForm({ onSwap }) {
     setLoading(true);
     setErrors({});
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        if (data.message === "Validation error") {
-          setErrors(data.errors || {});
-        } else {
-          setErrors({ global: data.message || "Login failed" });
-        }
-        return;
-      }
-      window.location.reload();
+      // TODO: Implement login logic
+      await new Promise((res) => setTimeout(res, 800));
     } catch (err) {
-      setErrors({ global: "Network error. Please try again." });
+      setErrors((e) => ({ ...e, global: "Login failed. Try again." }));
     } finally {
       setLoading(false);
     }
@@ -107,7 +89,6 @@ function LoginForm({ onSwap }) {
   return (
     <form className={styles.formBox} onSubmit={handleSubmit} noValidate>
       <h2 className={styles.heading}>Log In</h2>
-
       <div className={styles.inputGroup}>
         <div className={styles.inputWrapper}>
           <input
@@ -127,7 +108,6 @@ function LoginForm({ onSwap }) {
             <p className={styles.errorText}>{errors.email}</p>
           )}
         </div>
-
         <div className={styles.inputWrapper}>
           <input
             type="password"
@@ -147,10 +127,11 @@ function LoginForm({ onSwap }) {
           )}
         </div>
       </div>
-
-      <div className={errors.global ? styles.errorBox : ""}>
-        {errors.global && <p className={styles.errorText}>{errors.global}</p>}
-      </div>
+      {errors.global && (
+        <div className={styles.errorBox}>
+          <p className={styles.errorText}>{errors.global}</p>
+        </div>
+      )}
       <div className={styles.buttonGroup}>
         <button
           type="submit"
@@ -173,7 +154,6 @@ function LoginForm({ onSwap }) {
 // Register Form
 // -------------------
 function RegisterForm({ onSwap }) {
-  // --- Validation Schema (from demo, adapted to your fields) ---
   const registerSchema = Joi.object({
     firstName: Joi.string().min(2).max(100).required().messages({
       "string.empty": "First name is required",
@@ -203,7 +183,7 @@ function RegisterForm({ onSwap }) {
       .pattern(new RegExp("(?=.*[a-z])"))
       .pattern(new RegExp("(?=.*[A-Z])"))
       .pattern(new RegExp("(?=.*[0-9])"))
-      .pattern(new RegExp("(?=.*[!@#$%^&*()_+\\-=[]{};':\"\\|,.<>/?])"))
+      .pattern(new RegExp("(?=.*[!@#$%^&*()_+-=[]{};':\"\\|,.<>/?])"))
       .required()
       .messages({
         "string.empty": "Password is required",
@@ -230,14 +210,12 @@ function RegisterForm({ onSwap }) {
   const [loading, setLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
 
-  // Live validation on form change (after blur)
   useEffect(() => {
     const { error } = registerSchema.validate(form, { abortEarly: false });
     const nextErrors = {};
     if (error && error.details) {
       for (const d of error.details) {
-        const k = d.path[0];
-        if (!nextErrors[k]) nextErrors[k] = d.message;
+        nextErrors[d.path[0]] = d.message;
       }
     }
     setErrors(nextErrors);
@@ -247,11 +225,11 @@ function RegisterForm({ onSwap }) {
   function calculatePasswordStrength(pw) {
     if (!pw) return 0;
     let score = 0;
-    if (pw.length >= 8) score += 1;
-    if (pw.length >= 12) score += 1;
-    if (/[A-Z]/.test(pw)) score += 1;
-    if (/[0-9]/.test(pw)) score += 1;
-    if (/[!@#$%^&*()_+\-=[\]{};':\"\\|,.<>/?]/.test(pw)) score += 1;
+    if (pw.length >= 8) score++;
+    if (pw.length >= 12) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[!@#$%^&*()_+\-=[\]{};':\"\\|,.<>/?]/.test(pw)) score++;
     return score; // 0..5
   }
 
@@ -266,13 +244,11 @@ function RegisterForm({ onSwap }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Validate all fields on submit
     const { error } = registerSchema.validate(form, { abortEarly: false });
     if (error) {
       const nextErrors = {};
       for (const d of error.details) {
-        const k = d.path[0];
-        if (!nextErrors[k]) nextErrors[k] = d.message;
+        nextErrors[d.path[0]] = d.message;
       }
       setErrors(nextErrors);
       setTouched({
@@ -288,24 +264,10 @@ function RegisterForm({ onSwap }) {
     setLoading(true);
     setErrors({});
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        if (data.message === "Validation error") {
-          setErrors(data.errors || {});
-        } else {
-          setErrors({ global: data.message || "Registration failed" });
-        }
-        return;
-      }
-      window.location.reload();
+      // TODO: Implement register logic
+      await new Promise((res) => setTimeout(res, 800));
     } catch (err) {
-      setErrors({ global: "Network error. Please try again." });
+      setErrors((e) => ({ ...e, global: "Registration failed. Try again." }));
     } finally {
       setLoading(false);
     }
@@ -314,7 +276,6 @@ function RegisterForm({ onSwap }) {
   return (
     <form className={styles.formBox} onSubmit={handleSubmit} noValidate>
       <h2 className={styles.heading}>Sign Up</h2>
-
       <div className={styles.inputGroup}>
         <div className={styles.inputRow}>
           <div className={styles.inputWrapper}>
@@ -335,7 +296,6 @@ function RegisterForm({ onSwap }) {
               <p className={styles.errorText}>{errors.firstName}</p>
             )}
           </div>
-
           <div className={styles.inputWrapper}>
             <input
               type="text"
@@ -355,7 +315,6 @@ function RegisterForm({ onSwap }) {
             )}
           </div>
         </div>
-
         <div className={styles.inputWrapper}>
           <input
             type="email"
@@ -374,7 +333,6 @@ function RegisterForm({ onSwap }) {
             <p className={styles.errorText}>{errors.email}</p>
           )}
         </div>
-
         <div className={styles.inputWrapper}>
           <input
             type="text"
@@ -392,7 +350,6 @@ function RegisterForm({ onSwap }) {
             <p className={styles.errorText}>{errors.saIdNumber}</p>
           )}
         </div>
-
         <div className={styles.inputWrapper}>
           <div className={styles.inputRow}>
             <input
@@ -408,7 +365,6 @@ function RegisterForm({ onSwap }) {
               required
               autoComplete="new-password"
             />
-
             <input
               type="password"
               name="passwordConfirm"
@@ -427,7 +383,6 @@ function RegisterForm({ onSwap }) {
               autoComplete="new-password"
             />
           </div>
-
           {touched.password && errors.password && (
             <p className={styles.errorText}>{errors.password}</p>
           )}
@@ -473,11 +428,11 @@ function RegisterForm({ onSwap }) {
           </div>
         </div>
       </div>
-
-      <div className={errors.global ? styles.errorBox : ""}>
-        {errors.global && <p className={styles.errorText}>{errors.global}</p>}
-      </div>
-
+      {errors.global && (
+        <div className={styles.errorBox}>
+          <p className={styles.errorText}>{errors.global}</p>
+        </div>
+      )}
       <div className={styles.buttonGroup}>
         <button
           type="submit"
