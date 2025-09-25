@@ -108,6 +108,9 @@
   box-sizing: border-box;
   transition: border-color 0.2s, box-shadow 0.2s;
   margin-bottom: 0;
+  height: 48px;
+  min-height: 48px;
+  max-height: 48px;
 }
 .inputField:hover {
   border-color: var(--color-bg-input-hover);
@@ -186,29 +189,23 @@
 .errorList {
   margin: 0.5rem 0 0 1.2rem;
   padding: 0;
-  color: #b71c1c;
+  color: #e63946;
   font-size: 0.98rem;
 }
-.fieldError {
-  color: #b71c1c;
-  font-size: 0.93rem;
-  margin: 0.2rem 0 0.3rem 0.2rem;
-  text-align: left;
-}
-/* .inputError {
-  border-color: #f44336 !important;
-  box-shadow: 0 0 0 2px #ffebee;
-} */
 
 .inputError {
-  border: 2px solid #e63946 !important; /* modern red */
-  background-color: #fff5f5; /* subtle tint */
+  color: #e63946;
+  border: 2px solid #e63946 !important;
+  background-color: #fff5f5;
 }
+
 .errorText {
   color: #e63946;
   font-size: 0.85rem;
   margin-top: 0.25rem;
   font-weight: 500;
+  min-height: 1.2em;
+  display: block;
 }
 
 .globalError {

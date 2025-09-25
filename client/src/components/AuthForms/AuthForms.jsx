@@ -108,9 +108,10 @@ function LoginForm({ onSwap }) {
         </div>
       </div>
 
-      <div className={styles.spacer} />
-      <div className={styles.buttonGroup}>
+      <div className={errors.global ? styles.errorBox : ""}>
         {errors.global && <p className={styles.errorText}>{errors.global}</p>}
+      </div>
+      <div className={styles.buttonGroup}>
         <button
           type="submit"
           className={styles.primaryButton}
@@ -138,7 +139,7 @@ function RegisterForm({ onSwap }) {
     email: "",
     saIdNumber: "",
     password: "",
-    confirmPassword: "",
+    passwordConfirm: "",
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -263,8 +264,8 @@ function RegisterForm({ onSwap }) {
           )}
         </div>
 
-        <div className={styles.inputRow}>
-          <div className={styles.inputWrapper}>
+        <div className={styles.inputWrapper}>
+          <div className={styles.inputRow}>
             <input
               type="password"
               name="password"
@@ -277,35 +278,32 @@ function RegisterForm({ onSwap }) {
               required
               autoComplete="new-password"
             />
-            {errors.password && (
-              <p className={styles.errorText}>{errors.password}</p>
-            )}
-          </div>
 
-          <div className={styles.inputWrapper}>
             <input
               type="password"
-              name="confirmPassword"
+              name="passwordConfirm"
               placeholder="Confirm Password"
               className={`${styles.inputField} ${
-                errors.confirmPassword ? styles.inputError : ""
-              }`}
-              value={formData.confirmPassword}
+                errors.passwordConfirm ? styles.inputError : ""
+              } ${errors.password ? styles.inputError : ""}`}
+              value={formData.passwordConfirm}
               onChange={handleChange}
               required
               autoComplete="new-password"
             />
-            {errors.confirmPassword && (
-              <p className={styles.errorText}>{errors.confirmPassword}</p>
-            )}
           </div>
+
+          {errors.password && (
+            <p className={styles.errorText}>{errors.password}</p>
+          )}
         </div>
       </div>
 
+      <div className={errors.global ? styles.errorBox : ""}>
+        {errors.global && <p className={styles.errorText}>{errors.global}</p>}
+      </div>
+
       <div className={styles.buttonGroup}>
-        {errors.global && (
-          <div className={styles.globalError}>{errors.global}</div>
-        )}
         <button
           type="submit"
           className={styles.primaryButton}

@@ -7,7 +7,13 @@ function formatValidationErrors(error) {
   const formatted = {};
   error.details.forEach((err) => {
     const field = err.path[0];
-    if (field && !formatted[field]) {
+    // If the field is password or passwordConfirm, only set 'password' error once
+    if (field === "password" || field === "passwordConfirm") {
+      if (!formatted["password"]) {
+        logger.debug(`Combining password field error: ${err.message}`);
+        formatted["password"] = err.message;
+      }
+    } else if (field && !formatted[field]) {
       formatted[field] = err.message;
     }
   });
@@ -21,8 +27,11 @@ export function validateData(schema) {
     logger.debug(`Request body: ${JSON.stringify(req.body)}`);
     const { value, error } = schema.validate(req.body, { abortEarly: false });
     if (error) {
+      logger.debug(`Validation error: ${JSON.stringify(error)}`);
       const formattedErrors = formatValidationErrors(error);
-      logger.debug(`Validation errors: ${JSON.stringify(formattedErrors)}`);
+      logger.debug(
+        `Formatted validation errors: ${JSON.stringify(formattedErrors)}`
+      );
       return res
         .status(400)
         .json({ message: "Validation error", errors: formattedErrors });

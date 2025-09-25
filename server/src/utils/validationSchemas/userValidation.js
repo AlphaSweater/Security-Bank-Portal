@@ -140,14 +140,14 @@ export const registerUserSchema = Joi.object({
   // Password must meet complexity requirements
   password: safePassword(),
   // Confirm password must match password exactly
-  confirmPassword: Joi.string()
+  passwordConfirm: Joi.string()
     .trim()
     .empty("") // Treat empty string as missing
     .required()
     .valid(Joi.ref("password"))
     .messages({
-      "string.empty": "Confirm password is required",
-      "any.required": "Confirm password is required",
+      "string.empty": "Please confirm password",
+      "any.required": "Password confirmation is required",
       "any.only": "Passwords must match",
     }),
 }).options({ stripUnknown: true });
