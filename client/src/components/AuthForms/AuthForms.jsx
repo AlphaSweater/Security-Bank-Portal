@@ -72,7 +72,9 @@ function LoginForm({ onSwap }) {
             type="email"
             name="email"
             placeholder="Email"
-            className={styles.inputField}
+            className={`${styles.inputField} ${
+              errors.email ? styles.inputError : ""
+            }`}
             value={formData.email}
             onChange={handleChange}
             required

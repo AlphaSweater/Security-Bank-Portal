@@ -165,16 +165,16 @@ export const loginUserSchema = Joi.object({
     .messages({
       "string.base": "Email must be a string",
       "string.empty": "Email is required",
-      "string.email": "Invalid email or password",
-      "string.min": "Invalid email or password",
-      "string.max": "Invalid email or password",
+      "string.email": "Invalid email",
+      "string.min": "Invalid email",
+      "string.max": "Invalid email",
     }),
   // Password: only checks presence and max length, generic errors
   password: Joi.string().trim().min(1).max(128).required().messages({
     "string.base": "Password must be a string",
     "string.empty": "Password is required",
     "any.required": "Password is required",
-    "string.min": "Password is required",
-    "string.max": "Invalid email or password",
+    "string.min": "Invalid password",
+    "string.max": "Invalid password",
   }),
 }).options({ stripUnknown: true });
