@@ -28,6 +28,7 @@ export default function AuthForms({ isLogin, onSwap }) {
 // -------------------
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function ResponseBox({ type, message }) {
   if (!message) return null;
@@ -62,6 +63,7 @@ function ResponseBox({ type, message }) {
 
 function LoginForm({ onSwap }) {
   const [response, setResponse] = useState({ type: null, message: "" });
+  const navigate = useNavigate();
   // Custom hook usage
   const {
     form,
@@ -109,14 +111,15 @@ function LoginForm({ onSwap }) {
         method: "POST",
         body: JSON.stringify(form),
       });
-      // If the API returns a message, show it as success
       setResponse({
         type: "success",
         message: data?.message || "Login successful!",
       });
-      // Optionally, redirect or do something else here
+      // Navigate to dashboard after successful login
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 500); // short delay to show success message
     } catch (err) {
-      // If error has a response and message, show as error, else as 'weird' (blue)
       if (err?.response && err.response.message) {
         setResponse({ type: "error", message: err.response.message });
       } else if (err?.message) {
@@ -297,7 +300,10 @@ function RegisterForm({ onSwap }) {
         type: "success",
         message: data?.message || "Registration successful!",
       });
-      // Optionally, redirect or do something else here
+      // Switch to login form after successful signup
+      setTimeout(() => {
+        onSwap();
+      }, 500); // short delay to show success message
     } catch (err) {
       if (err?.response && err.response.message) {
         setResponse({ type: "error", message: err.response.message });

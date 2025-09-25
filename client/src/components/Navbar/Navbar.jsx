@@ -1,7 +1,8 @@
 // External Dependencies
 import React, { useState, useRef, useEffect } from "react";
 import { FiMenu, FiX, FiUser } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { apiRequest } from "../../utils/api";
 import routes from "../../routing/routes";
 
 // Assets
@@ -13,6 +14,7 @@ function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -31,6 +33,17 @@ function Navbar() {
     };
   }, [dropdownOpen]);
 
+  // Logout handler
+  const handleLogout = async (e) => {
+    e.preventDefault();
+    try {
+      await apiRequest("/api/auth/logout", { method: "POST" });
+    } catch (err) {
+      // Optionally handle error, but always redirect
+    }
+    navigate("/");
+  };
+
   return (
     <nav className={styles.navbar}>
       <div className={styles.brand}>🏦 Bank Portal</div>
@@ -45,7 +58,7 @@ function Navbar() {
 
       <ul className={`${styles.navLinks} ${menuOpen ? styles.open : ""}`}>
         {routes
-          .filter((route) => route.showInNav && !route.isPrivate)
+          .filter((route) => route.showInNav)
           .map((route) => (
             <li key={route.path}>
               <Link to={route.path}>{route.label}</Link>
@@ -78,7 +91,9 @@ function Navbar() {
         >
           <a href="#">Profile</a>
           <a href="#">Preferences</a>
-          <a href="#">Logout</a>
+          <a href="#" onMouseDown={handleLogout}>
+            Logout
+          </a>
         </div>
       </div>
     </nav>

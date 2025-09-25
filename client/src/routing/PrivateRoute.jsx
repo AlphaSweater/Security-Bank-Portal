@@ -1,10 +1,10 @@
 // PrivateRoute component for protecting routes in React Router v6+
 import { Navigate } from "react-router-dom";
 
-// Dummy auth check (replace with real logic)
+// TODO: Replace with real auth check (e.g., context, redux, cookie, etc.)
 const isAuthenticated = () => {
-  // TODO: Replace with real auth check (e.g., context, redux, cookie, etc.)
-  return !!localStorage.getItem("authToken");
+  // For now, always return true to bypass auth check
+  return true;
 };
 
 export default function PrivateRoute({ children }) {

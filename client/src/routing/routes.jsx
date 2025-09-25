@@ -9,15 +9,15 @@ import PrivateRoute from "./PrivateRoute";
 const routes = [
   {
     path: "/",
-    label: "Home",
+    label: "Landing",
     element: <LandingPage />,
-    showInNav: true,
+    showInNav: false,
     isPrivate: false,
-    showNavbar: true,
+    showNavbar: false,
   },
   {
     path: "/auth",
-    label: "Login",
+    label: "Auth",
     element: <AuthPage />,
     showInNav: false,
     isPrivate: false,
