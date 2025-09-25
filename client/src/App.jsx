@@ -8,6 +8,7 @@ import DashboardPage from "pages/DashboardPage";
 
 // UI Components
 import Navbar from "components/Navbar";
+import Navbar2 from "components/Navbar2";
 
 // Styles
 import styles from "./App.module.css";
@@ -17,7 +18,7 @@ function App() {
     <Router>
       <div className={styles.appRoot}>
         <header>
-          <Navbar />
+          <Navbar2 />
         </header>
 
         <main className={styles.contentContainer}>
