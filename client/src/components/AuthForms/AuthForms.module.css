@@ -1,3 +1,79 @@
+/* Modern password strength bar */
+.passwordStrengthBar {
+  width: 100%;
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 8px;
+  box-shadow: 0 1px 6px 0 rgba(49, 46, 129, 0.07);
+  position: relative;
+}
+.passwordStrengthBarFill {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.25s;
+  background: linear-gradient(90deg, #e63946 0%, #fbbf24 50%, #10b981 100%);
+}
+.passwordStrengthLabel {
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin-top: 4px;
+  text-align: left;
+  color: #888;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 4px rgba(49, 46, 129, 0.07);
+  min-height: 1.2em;
+}
+/* Add red asterisk to required floating labels */
+.floatingLabel[aria-required="true"]::before {
+  content: " *";
+  color: var(--color-error, #e63946);
+  font-size: 1em;
+  font-weight: 700;
+  vertical-align: top;
+}
+/* Floating label styles */
+.floatingLabelGroup {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+/* Improved floating label for better vertical alignment and no clipping */
+.floatingLabel {
+  position: absolute;
+  left: 1.15rem;
+  top: 1.1rem;
+  color: var(--color-text-muted, #b0b0b0);
+  font-size: 1rem;
+  font-weight: 500;
+  pointer-events: none;
+  background: transparent;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0 0.2em;
+  z-index: 2;
+  line-height: 1.2;
+}
+
+.floatingLabelGroup input:focus + .floatingLabel,
+.floatingLabelGroup input:not(:placeholder-shown) + .floatingLabel {
+  top: 0.18rem;
+  left: 1rem;
+  font-size: 0.85rem;
+  color: var(--color-primary-end, #0ea5e9);
+  background: var(--color-surface-solid-light, #fff);
+  padding: 0 0.3em;
+  transform: none;
+  line-height: 1.1;
+}
+
+.floatingLabelGroup input {
+  background-clip: padding-box;
+  z-index: 1;
+  padding-top: 1.55rem;
+}
 /* =============================
 	 Auth Forms Styles (moved from AuthPage)
 	 ============================= */

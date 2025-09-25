@@ -97,37 +97,49 @@ function LoginForm({ onSwap }) {
       <h2 className={styles.heading}>Log In</h2>
       <div className={styles.inputGroup}>
         <div className={styles.inputWrapper}>
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            className={`${styles.inputField} ${
-              shouldShowError("email") ? styles.inputError : ""
-            }`}
-            value={form.email}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            required
-            autoComplete="email"
-          />
+          <div className={styles.floatingLabelGroup}>
+            <input
+              type="email"
+              name="email"
+              id="login-email"
+              placeholder=" "
+              className={`${styles.inputField} ${
+                shouldShowError("email") ? styles.inputError : ""
+              }`}
+              value={form.email}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              required
+              autoComplete="email"
+            />
+            <label htmlFor="login-email" className={styles.floatingLabel}>
+              Email
+            </label>
+          </div>
           {shouldShowError("email") && (
             <p className={styles.errorText}>{errors.email}</p>
           )}
         </div>
         <div className={styles.inputWrapper}>
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            className={`${styles.inputField} ${
-              shouldShowError("password") ? styles.inputError : ""
-            }`}
-            value={form.password}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            required
-            autoComplete="current-password"
-          />
+          <div className={styles.floatingLabelGroup}>
+            <input
+              type="password"
+              name="password"
+              id="login-password"
+              placeholder=" "
+              className={`${styles.inputField} ${
+                shouldShowError("password") ? styles.inputError : ""
+              }`}
+              value={form.password}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              required
+              autoComplete="current-password"
+            />
+            <label htmlFor="login-password" className={styles.floatingLabel}>
+              Password
+            </label>
+          </div>
           {shouldShowError("password") && (
             <p className={styles.errorText}>{errors.password}</p>
           )}
@@ -260,105 +272,165 @@ function RegisterForm({ onSwap }) {
       <div className={styles.inputGroup}>
         <div className={styles.inputRow}>
           <div className={styles.inputWrapper}>
-            <input
-              type="text"
-              name="firstName"
-              placeholder="First Name"
-              className={`${styles.inputField} ${
-                shouldShowError("firstName") ? styles.inputError : ""
-              }`}
-              value={form.firstName}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              required
-              autoComplete="given-name"
-            />
+            <div className={styles.floatingLabelGroup}>
+              <input
+                type="text"
+                name="firstName"
+                id="register-firstName"
+                placeholder=" "
+                className={`${styles.inputField} ${
+                  shouldShowError("firstName") ? styles.inputError : ""
+                }`}
+                value={form.firstName}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                required
+                autoComplete="given-name"
+              />
+              <label
+                htmlFor="register-firstName"
+                className={styles.floatingLabel}
+                aria-required="true"
+              >
+                First Name
+              </label>
+            </div>
             {shouldShowError("firstName") && (
               <p className={styles.errorText}>{errors.firstName}</p>
             )}
           </div>
           <div className={styles.inputWrapper}>
-            <input
-              type="text"
-              name="lastName"
-              placeholder="Last Name"
-              className={`${styles.inputField} ${
-                shouldShowError("lastName") ? styles.inputError : ""
-              }`}
-              value={form.lastName}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              required
-              autoComplete="family-name"
-            />
+            <div className={styles.floatingLabelGroup}>
+              <input
+                type="text"
+                name="lastName"
+                id="register-lastName"
+                placeholder=" "
+                className={`${styles.inputField} ${
+                  shouldShowError("lastName") ? styles.inputError : ""
+                }`}
+                value={form.lastName}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                required
+                autoComplete="family-name"
+              />
+              <label
+                htmlFor="register-lastName"
+                className={styles.floatingLabel}
+                aria-required="true"
+              >
+                Last Name
+              </label>
+            </div>
             {shouldShowError("lastName") && (
               <p className={styles.errorText}>{errors.lastName}</p>
             )}
           </div>
         </div>
         <div className={styles.inputWrapper}>
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            className={`${styles.inputField} ${
-              shouldShowError("email") ? styles.inputError : ""
-            }`}
-            value={form.email}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            required
-            autoComplete="email"
-          />
+          <div className={styles.floatingLabelGroup}>
+            <input
+              type="email"
+              name="email"
+              id="register-email"
+              placeholder=" "
+              className={`${styles.inputField} ${
+                shouldShowError("email") ? styles.inputError : ""
+              }`}
+              value={form.email}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              required
+              autoComplete="email"
+            />
+            <label
+              htmlFor="register-email"
+              className={styles.floatingLabel}
+              aria-required="true"
+            >
+              Email
+            </label>
+          </div>
           {shouldShowError("email") && (
             <p className={styles.errorText}>{errors.email}</p>
           )}
         </div>
         <div className={styles.inputWrapper}>
-          <input
-            type="text"
-            name="saIdNumber"
-            placeholder="SA ID Number"
-            className={`${styles.inputField} ${
-              shouldShowError("saIdNumber") ? styles.inputError : ""
-            }`}
-            value={form.saIdNumber}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            required
-          />
+          <div className={styles.floatingLabelGroup}>
+            <input
+              type="text"
+              name="saIdNumber"
+              id="register-saIdNumber"
+              placeholder=" "
+              className={`${styles.inputField} ${
+                shouldShowError("saIdNumber") ? styles.inputError : ""
+              }`}
+              value={form.saIdNumber}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              required
+            />
+            <label
+              htmlFor="register-saIdNumber"
+              className={styles.floatingLabel}
+              aria-required="true"
+            >
+              SA ID Number
+            </label>
+          </div>
           {shouldShowError("saIdNumber") && (
             <p className={styles.errorText}>{errors.saIdNumber}</p>
           )}
         </div>
         <div className={styles.inputWrapper}>
           <div className={styles.inputRow}>
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              className={`${styles.inputField} ${
-                shouldShowError("password") ? styles.inputError : ""
-              }`}
-              value={form.password}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              required
-              autoComplete="new-password"
-            />
-            <input
-              type="password"
-              name="passwordConfirm"
-              placeholder="Confirm Password"
-              className={`${styles.inputField} ${
-                shouldShowError("passwordConfirm") ? styles.inputError : ""
-              } ${shouldShowError("password") ? styles.inputError : ""}`}
-              value={form.passwordConfirm}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              required
-              autoComplete="new-password"
-            />
+            <div className={styles.floatingLabelGroup} style={{ flex: 1 }}>
+              <input
+                type="password"
+                name="password"
+                id="register-password"
+                placeholder=" "
+                className={`${styles.inputField} ${
+                  shouldShowError("password") ? styles.inputError : ""
+                }`}
+                value={form.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                required
+                autoComplete="new-password"
+              />
+              <label
+                htmlFor="register-password"
+                className={styles.floatingLabel}
+                aria-required="true"
+              >
+                Password
+              </label>
+            </div>
+            <div className={styles.floatingLabelGroup} style={{ flex: 1 }}>
+              <input
+                type="password"
+                name="passwordConfirm"
+                id="register-passwordConfirm"
+                placeholder=" "
+                className={`${styles.inputField} ${
+                  shouldShowError("passwordConfirm") ? styles.inputError : ""
+                } ${shouldShowError("password") ? styles.inputError : ""}`}
+                value={form.passwordConfirm}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                required
+                autoComplete="new-password"
+              />
+              <label
+                htmlFor="register-passwordConfirm"
+                className={styles.floatingLabel}
+                aria-required="true"
+              >
+                Confirm Password
+              </label>
+            </div>
           </div>
           {shouldShowError("password") && (
             <p className={styles.errorText}>{errors.password}</p>
@@ -366,45 +438,29 @@ function RegisterForm({ onSwap }) {
           {shouldShowError("passwordConfirm") && (
             <p className={styles.errorText}>{errors.passwordConfirm}</p>
           )}
-          {/* Password strength meter */}
-          <div style={{ marginTop: 8 }}>
+          {/* Modern password strength bar */}
+          <div className={styles.passwordStrengthBar}>
             <div
+              className={styles.passwordStrengthBarFill}
               style={{
-                height: 6,
-                width: "100%",
-                background: "#eee",
-                borderRadius: 6,
-                overflow: "hidden",
+                width: `${(passwordStrength / 5) * 100}%`,
+                background:
+                  passwordStrength <= 1
+                    ? "linear-gradient(90deg, #e63946 60%, #fbbf24 100%)"
+                    : passwordStrength <= 3
+                    ? "linear-gradient(90deg, #fbbf24 40%, #10b981 100%)"
+                    : "linear-gradient(90deg, #10b981 80%, #22d3ee 100%)",
               }}
-            >
-              <div
-                style={{
-                  width: `${(passwordStrength / 5) * 100}%`,
-                  height: "100%",
-                  background:
-                    passwordStrength <= 1
-                      ? "#e63946"
-                      : passwordStrength <= 3
-                      ? "#fbbf24"
-                      : "#10b981",
-                  transition: "width 0.2s",
-                }}
-              />
-            </div>
-            <div
-              style={{
-                fontSize: 12,
-                color: "#888",
-                marginTop: 2,
-                textAlign: "left",
-              }}
-            >
-              {passwordStrength <= 1
-                ? "Weak"
-                : passwordStrength <= 3
-                ? "Okay"
-                : "Strong"}
-            </div>
+            />
+          </div>
+          <div className={styles.passwordStrengthLabel}>
+            {passwordStrength <= 1 ? (
+              <span style={{ color: "#e63946" }}>Weak</span>
+            ) : passwordStrength <= 3 ? (
+              <span style={{ color: "#fbbf24" }}>Okay</span>
+            ) : (
+              <span style={{ color: "#10b981" }}>Strong</span>
+            )}
           </div>
         </div>
       </div>
