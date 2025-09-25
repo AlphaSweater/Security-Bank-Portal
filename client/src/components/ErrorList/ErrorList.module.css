@@ -1,0 +1,15 @@
+.errorList {
+  padding: 0;
+  color: #e63946;
+  font-size: 0.98rem;
+}
+
+.errorText {
+  color: #e63946;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+  min-height: 1.2em;
+  display: block;
+  text-align: left;
+}

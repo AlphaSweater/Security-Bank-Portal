@@ -1,8 +1,16 @@
 // External Dependencies
 import { useState } from "react";
+import {
+  registerUserSchema,
+  loginUserSchema,
+} from "utils/validation/userValidation";
+import Joi from "joi";
 
 // Styles
 import styles from "./AuthForms.module.css";
+
+// Components
+import ErrorList from "components/ErrorList";
 
 export default function AuthForms({ isLogin, onSwap }) {
   return (
@@ -102,9 +110,7 @@ function LoginForm({ onSwap }) {
             required
             autoComplete="current-password"
           />
-          {errors.password && (
-            <p className={styles.errorText}>{errors.password}</p>
-          )}
+          <ErrorList errors={errors.password} />
         </div>
       </div>
 
@@ -293,9 +299,7 @@ function RegisterForm({ onSwap }) {
             />
           </div>
 
-          {errors.password && (
-            <p className={styles.errorText}>{errors.password}</p>
-          )}
+          <ErrorList errors={errors.password} />
         </div>
       </div>
 

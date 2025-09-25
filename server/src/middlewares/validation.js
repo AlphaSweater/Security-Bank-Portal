@@ -5,18 +5,23 @@ const logger = getLogger(import.meta.url);
 function formatValidationErrors(error) {
   if (!error || !Array.isArray(error.details)) return {};
   const formatted = {};
+  const passwordErrors = [];
+
   error.details.forEach((err) => {
     const field = err.path[0];
-    // If the field is password or passwordConfirm, only set 'password' error once
     if (field === "password" || field === "passwordConfirm") {
-      if (!formatted["password"]) {
-        logger.debug(`Combining password field error: ${err.message}`);
-        formatted["password"] = err.message;
-      }
-    } else if (field && !formatted[field]) {
-      formatted[field] = err.message;
+      passwordErrors.push(err.message);
+    } else if (field) {
+      if (!formatted[field]) formatted[field] = [];
+      formatted[field].push(err.message);
     }
   });
+
+  if (passwordErrors.length > 0) {
+    // Remove duplicates
+    formatted["password"] = [...new Set(passwordErrors)];
+  }
+
   return formatted;
 }
 
