@@ -10,21 +10,16 @@
 }
 
 /* Main content row (hero + forms) */
-
 .contentRow {
   display: flex;
   flex-direction: row;
   align-items: stretch;
   justify-content: center;
-  box-shadow: 0 12px 40px 0 rgba(16, 30, 54, 0.32),
-    0 1.5px 8px 0 rgba(99, 102, 241, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 16px rgba(80, 120, 255, 0.2);
   border-radius: var(--radius-xl);
   overflow: hidden;
   position: relative;
   min-height: 530px;
-
-  /* Soft glowing shadow to stand off background */
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 16px rgba(80, 120, 255, 0.2); /* faint blue glow */
 }
 
 .contentRow > * {
@@ -35,7 +30,6 @@
 /* =============================
    Hero Section Styles
    ============================= */
-
 .heroArea {
   width: 340px;
   background: linear-gradient(
@@ -95,7 +89,6 @@
 /* =============================
    Forms Area & Container
    ============================= */
-
 .formsArea {
   flex: 1;
   display: flex;
@@ -125,7 +118,7 @@
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  padding: 2.2rem 2.7rem 2.2rem 2.7rem;
+  padding: 2.2rem 2.7rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -149,7 +142,6 @@
 /* =============================
    Typography & Headings
    ============================= */
-
 .heading {
   color: var(--color-primary-end);
   font-size: var(--font-size-xl);
@@ -159,19 +151,6 @@
   text-shadow: 0 1px 8px rgba(49, 46, 129, 0.1);
 }
 
-.subheading {
-  font-size: var(--font-size-lg);
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: var(--color-primary-start);
-}
-
-.subtitle {
-  font-size: var(--font-size-base);
-  font-weight: 400;
-  color: var(--color-text-secondary);
-}
-
 .textCenter {
   text-align: center;
 }
@@ -179,7 +158,6 @@
 /* =============================
    Input Groups & Fields
    ============================= */
-
 .inputGroup {
   display: flex;
   flex-direction: column;
@@ -220,7 +198,6 @@
     background var(--transition-fast);
   outline: none;
   backdrop-filter: blur(10px) saturate(1.1);
-  /* Placeholder color for better contrast */
 }
 
 .inputField::placeholder {
@@ -251,7 +228,6 @@
 /* =============================
    Error Messages & Boxes
    ============================= */
-
 .errorText {
   color: var(--color-error);
   font-size: var(--font-size-sm);
@@ -279,7 +255,6 @@
 /* =============================
    Button Groups & Actions
    ============================= */
-
 .buttonGroup {
   display: flex;
   flex-direction: column;
