@@ -25,6 +25,7 @@ export default defineConfig({
         target: "https://localhost:5000", // match backend HTTPS port
         changeOrigin: true,
         secure: false, // allow self-signed certs in dev
+        rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
   },

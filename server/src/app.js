@@ -1,7 +1,7 @@
 import express from "express";
-import security from "#config/security.js";
-import errorHandler from "#middlewares/errorHandler.js";
-import sessionMiddleware from "#middlewares/sessionMiddleware.js";
+import setupSecurity from "#config/securityConfig.js";
+import errorHandler from "#middlewares/errorHandlerMiddleware.js";
+import session from "#middlewares/sessionMiddleware.js";
 import authRoutes from "#routes/authRoutes.js";
 import userRoutes from "#routes/userRoutes.js";
 import { getLogger } from "#utils/logger.js";
@@ -27,10 +27,10 @@ app.use((req, res, next) => {
 });
 
 // Security headers and other protections
-security(app);
+setupSecurity(app);
 
 // Session management
-app.use(sessionMiddleware());
+app.use(session());
 
 // Routes
 logger.info("Registering routes...");

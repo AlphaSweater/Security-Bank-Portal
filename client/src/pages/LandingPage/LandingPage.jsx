@@ -9,6 +9,10 @@ import styles from "./LandingPage.module.css";
 
 function LandingPage() {
   const navigate = useNavigate();
+  const handleGetStarted = () => {
+    navigate("/auth");
+  };
+
   return (
     <section className={styles.page}>
       <img src={reactLogo} alt="React logo" className={styles.heroLogo} />
@@ -16,8 +20,8 @@ function LandingPage() {
       <h1 className={styles.heading}>Security Bank Portal</h1>
 
       <button
-        className={styles.getStartedBtn}
-        onClick={() => navigate("/auth")}
+        className={`btn ${styles.getStartedBtn}`}
+        onClick={handleGetStarted}
       >
         Get Started
       </button>

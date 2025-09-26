@@ -4,7 +4,7 @@ import { validateData } from "#middlewares/validationMiddleware.js";
 import {
   loginUserSchema,
   registerUserSchema,
-} from "#utils/validationSchemas/userValidation.js";
+} from "#utils/validation/userValidation.js";
 
 const router = express.Router();
 

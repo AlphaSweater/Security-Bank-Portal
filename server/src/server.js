@@ -1,10 +1,10 @@
-import "#config/loadEnv.js";
 import https from "https";
 import http from "http";
+import "#config/loadEnvConfig.js";
+import { loadCerts } from "#config/loadCertsConfig.js";
+import { connectDB, closeDB } from "#config/mongoDBConfig.js";
 import app from "./app.js";
-import { loadCerts } from "#config/loadCerts.js";
 import { getLogger } from "#utils/logger.js";
-import { connectDB, closeDB } from "#config/mongoDB.js";
 const logger = getLogger(import.meta.url);
 
 const HTTPS_PORT = process.env.HTTPS_PORT;
