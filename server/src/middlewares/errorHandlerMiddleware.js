@@ -14,7 +14,12 @@ export default function errorHandler(err, req, res, next) {
     },
     err.message || "Unhandled error"
   );
-  res.status(err.status || 500).json({
+
+  if (err.code === "EBADCSRFTOKEN") {
+    return res.status(403).json({ message: "Invalid CSRF token" });
+  }
+
+  return res.status(err.status || 500).json({
     error: err.message || "Internal Server Error",
   });
 }
