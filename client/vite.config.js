@@ -1,32 +1,28 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import path from "path";
+import { fileURLToPath } from "url";
 
-// https://vite.dev/config/
-import { fileURLToPath, URL } from "url";
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  base: "/SecurityBankPortal/",
   plugins: [react()],
   resolve: {
     alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
-      components: fileURLToPath(new URL("./src/components", import.meta.url)),
-      pages: fileURLToPath(new URL("./src/pages", import.meta.url)),
-      assets: fileURLToPath(new URL("./src/assets", import.meta.url)),
-      // Add more aliases as needed
+      "@": path.resolve(__dirname, "src"),
+      components: path.resolve(__dirname, "src/components"),
+      pages: path.resolve(__dirname, "src/pages"),
+      assets: path.resolve(__dirname, "src/assets"),
     },
   },
-  server: {
-    https: {
-      key: "../server/certs/server.key",
-      cert: "../server/certs/server.crt",
-    },
-    proxy: {
-      "/api": {
-        target: "https://localhost:5000", // match backend HTTPS port
-        changeOrigin: true,
-        secure: false, // allow self-signed certs in dev
-        rewrite: (path) => path.replace(/^\/api/, ""),
-      },
-    },
-  },
-});
+  server:
+    mode === "development"
+      ? {
+          https: {
+            key: "../server/certs/server.key",
+            cert: "../server/certs/server.crt",
+          },
+        }
+      : undefined,
+}));
