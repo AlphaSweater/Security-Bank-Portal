@@ -8,7 +8,7 @@ import {
   setupLoggerSpies,
   teardownLoggerSpies,
   printLoggerSpiesIfFailed,
-} from "../../loggerTestHelpers.js";
+} from "../../loggerTestSpyHelpers.js";
 import logger from "#utils/logger.js";
 
 // -----------------------------------------------------------------------------
@@ -55,10 +55,14 @@ describe("[Login] User Data Validation", () => {
       };
       const { req, res, next } = mockExpressObjects(validBody);
 
+      // Log before validation
+      logger.info("[TEST] BEFORE validation (login, valid):", req.body);
+
       // Act
-      logger.info("[TEST] BEFORE validation (login):", req.body);
       validateData(loginUserSchema)(req, res, next);
-      logger.info("[TEST] AFTER validation (login):", req.body);
+
+      // Log after validation
+      logger.info("[TEST] AFTER validation (login, valid):", req.body);
 
       // Assert
       expect(next).toHaveBeenCalledOnce();
@@ -81,9 +85,13 @@ describe("[Login] User Data Validation", () => {
       const invalidBody = { email: "bademail", password: "pass" };
       const { req, res, next } = mockExpressObjects(invalidBody);
 
-      // Act
+      // Log before validation
       logger.info("[TEST] BEFORE validation (login, bad email):", req.body);
+
+      // Act
       validateData(loginUserSchema)(req, res, next);
+
+      // Log after validation
       logger.info(
         "[TEST] AFTER validation (login, bad email):",
         res.json.mock.calls[0]?.[0]
@@ -109,12 +117,16 @@ describe("[Login] User Data Validation", () => {
       const invalidBody = { email: "user@example.com" };
       const { req, res, next } = mockExpressObjects(invalidBody);
 
-      // Act
+      // Log before validation
       logger.info(
         "[TEST] BEFORE validation (login, missing password):",
         req.body
       );
+
+      // Act
       validateData(loginUserSchema)(req, res, next);
+
+      // Log after validation
       logger.info(
         "[TEST] AFTER validation (login, missing password):",
         res.json.mock.calls[0]?.[0]
@@ -168,10 +180,14 @@ describe("[Register] User Data Validation", () => {
       };
       const { req, res, next } = mockExpressObjects(validBody);
 
+      // Log before validation
+      logger.info("[TEST] BEFORE validation (register, valid):", req.body);
+
       // Act
-      logger.info("[TEST] BEFORE validation (register):", req.body);
       validateData(registerUserSchema)(req, res, next);
-      logger.info("[TEST] AFTER validation (register):", req.body);
+
+      // Log after validation
+      logger.info("[TEST] AFTER validation (register, valid):", req.body);
 
       // Assert
       expect(next).toHaveBeenCalledOnce();
@@ -212,9 +228,13 @@ describe("[Register] User Data Validation", () => {
       };
       const { req, res, next } = mockExpressObjects(invalidBody);
 
-      // Act
+      // Log before validation
       logger.info("[TEST] BEFORE validation (register, invalid):", req.body);
+
+      // Act
       validateData(registerUserSchema)(req, res, next);
+
+      // Log after validation
       logger.info(
         "[TEST] AFTER validation (register, invalid):",
         res.json.mock.calls[0]?.[0]

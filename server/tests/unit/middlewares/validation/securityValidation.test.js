@@ -8,7 +8,7 @@ import {
   setupLoggerSpies,
   teardownLoggerSpies,
   printLoggerSpiesIfFailed,
-} from "../../loggerTestHelpers.js";
+} from "../../loggerTestSpyHelpers.js";
 import logger from "#utils/logger.js";
 
 // -----------------------------------------------------------------------------
@@ -54,8 +54,20 @@ describe("[Login] User Input Security", () => {
       };
       const { req, res, next } = mockExpressObjects(maliciousBody);
 
+      // Log before validation
+      logger.info(
+        "[TEST] BEFORE validation (login, NoSQL injection):",
+        req.body
+      );
+
       // Act
       validateData(loginUserSchema)(req, res, next);
+
+      // Log after validation
+      logger.info(
+        "[TEST] AFTER validation (login, NoSQL injection):",
+        res.json.mock.calls[0]?.[0]
+      );
 
       // Assert
       expect(res.status).toHaveBeenCalledWith(400);
@@ -79,8 +91,17 @@ describe("[Login] User Input Security", () => {
       };
       const { req, res, next } = mockExpressObjects(maliciousBody);
 
+      // Log before validation
+      logger.info("[TEST] BEFORE validation (login, XSS):", req.body);
+
       // Act
       validateData(loginUserSchema)(req, res, next);
+
+      // Log after validation
+      logger.info(
+        "[TEST] AFTER validation (login, XSS):",
+        res.json.mock.calls[0]?.[0]
+      );
 
       // Assert
       expect(res.status).toHaveBeenCalledWith(expect.any(Number));
@@ -127,8 +148,20 @@ describe("[Register] User Input Security", () => {
       };
       const { req, res, next } = mockExpressObjects(maliciousBody);
 
+      // Log before validation
+      logger.info(
+        "[TEST] BEFORE validation (register, NoSQL injection):",
+        req.body
+      );
+
       // Act
       validateData(registerUserSchema)(req, res, next);
+
+      // Log after validation
+      logger.info(
+        "[TEST] AFTER validation (register, NoSQL injection):",
+        res.json.mock.calls[0]?.[0]
+      );
 
       // Assert
       expect(res.status).toHaveBeenCalledWith(400);
@@ -164,8 +197,20 @@ describe("[Register] User Input Security", () => {
       };
       const { req, res, next } = mockExpressObjects(maliciousBody);
 
+      // Log before validation
+      logger.info(
+        "[TEST] BEFORE validation (register, XSS firstName):",
+        req.body
+      );
+
       // Act
       validateData(registerUserSchema)(req, res, next);
+
+      // Log after validation
+      logger.info(
+        "[TEST] AFTER validation (register, XSS firstName):",
+        res.json.mock.calls[0]?.[0]
+      );
 
       // Assert
       expect(res.status).toHaveBeenCalledWith(400);
@@ -194,8 +239,20 @@ describe("[Register] User Input Security", () => {
       };
       const { req, res, next } = mockExpressObjects(maliciousBody);
 
+      // Log before validation
+      logger.info(
+        "[TEST] BEFORE validation (register, XSS all fields):",
+        req.body
+      );
+
       // Act
       validateData(registerUserSchema)(req, res, next);
+
+      // Log after validation
+      logger.info(
+        "[TEST] AFTER validation (register, XSS all fields):",
+        res.json.mock.calls[0]?.[0]
+      );
 
       // Assert
       expect(res.status).toHaveBeenCalledWith(400);
