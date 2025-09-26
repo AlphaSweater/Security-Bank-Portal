@@ -1,0 +1,62 @@
+name: 🚀 Build and Test
+
+on:
+  push:
+    branches: [development, "feature/*", "bugfix/*"]
+  pull_request:
+    branches: [development]
+  workflow_dispatch:
+
+jobs:
+  ci:
+    name: 🔄 CI Pipeline
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: |
+            client/package-lock.json
+            server/package-lock.json
+
+      # Frontend Pipeline
+      - name: 🎨 Install Frontend Dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: 🏗️ Build Frontend
+        working-directory: client
+        run: npm run build
+
+      - name: 🧪 Test Frontend
+        working-directory: client
+        run: npm test
+
+      # Backend Pipeline
+      - name: 🛠️ Install Backend Dependencies
+        working-directory: server
+        run: npm ci
+
+      - name: 🔨 Build Backend
+        working-directory: server
+        run: npm run build
+
+      - name: 🧪 Test Backend
+        working-directory: server
+        run: npm test
+
+        # Optional Linting Step
+      - name: 🔍 Lint Code (Optional)
+        run: |
+          cd client && npm run lint --if-present
+          cd ../server && npm run lint --if-present

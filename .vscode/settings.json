@@ -1,0 +1,105 @@
+{
+  "folderTemplates.structures": [
+    {
+      "name": "Custom Page",
+      "omitParentDirectory": true,
+      "structure": [
+        {
+          "fileName": "<FTName | pascalcase>/<FTName | pascalcase>.jsx",
+          "template": "CustomPageJSX"
+        },
+        {
+          "fileName": "<FTName | pascalcase>/<FTName | pascalcase>.module.css",
+          "template": "CustomPageCSS"
+        },
+        {
+          "fileName": "<FTName | pascalcase>/index.js",
+          "template": "CustomPageIndex"
+        }
+      ]
+    },
+    {
+      "name": "Custom Component",
+      "omitParentDirectory": true,
+      "structure": [
+        {
+          "fileName": "<FTName | pascalcase>/<FTName | pascalcase>.jsx",
+          "template": "CustomComponentJSX"
+        },
+        {
+          "fileName": "<FTName | pascalcase>/<FTName | pascalcase>.module.css",
+          "template": "CustomComponentCSS"
+        },
+        {
+          "fileName": "<FTName | pascalcase>/index.js",
+          "template": "CustomComponentIndex"
+        }
+      ]
+    }
+  ],
+  "folderTemplates.fileTemplates": {
+    "CustomPageJSX": [
+      "// External Dependencies",
+      "",
+      "// Assets",
+      "",
+      "// UI Components",
+      "",
+      "// Styles",
+      "import styles from './<FTName | pascalcase>.module.css';",
+      "",
+      "function <FTName | pascalcase>() {",
+      "  return (",
+      "    <section className={styles.page}>",
+      "      <h1>Welcome to the New Page</h1>",
+      "      <p>This is a newly created page in the application.</p>",
+      "    </section>",
+      "  );",
+      "}",
+      "",
+      "export default <FTName | pascalcase>;"
+    ],
+    "CustomPageCSS": [
+      ".page {",
+      "  justify-content: center;",
+      "  align-items: center;",
+      "  width: 100%;",
+      "}"
+    ],
+    "CustomPageIndex": ["export { default } from './<FTName | pascalcase>';"],
+    "CustomComponentJSX": [
+      "// External Dependencies",
+      "",
+      "// Assets",
+      "",
+      "// Styles",
+      "import styles from './<FTName | pascalcase>.module.css';",
+      "",
+      "function <FTName | pascalcase>() {",
+      "  return (",
+      "    <div className={styles.<FTName | camelcase>}>",
+      "      This is the <FTName | pascalcase> component.",
+      "    </div>",
+      "  );",
+      "}",
+      "",
+      "export default <FTName | pascalcase>;"
+    ],
+    "CustomComponentCSS": [
+      ".<FTName | camelcase> {",
+      "  font-size: 16px;",
+      "  color: #333;",
+      "}"
+    ],
+    "CustomComponentIndex": [
+      "export { default } from './<FTName | pascalcase>';"
+    ]
+  },
+  "folderTemplates.templateNotation": {
+    "start": ["<", "["],
+    "end": [">", "]"]
+  },
+  "github-actions.workflows.pinned.workflows": [
+    ".github/workflows/build-and-test.yml"
+  ]
+}
