@@ -63,15 +63,20 @@ describe("[Login] User Data Validation", () => {
   // --- Valid Input ---
   describe("Valid Input", () => {
     it("should pass validation and strip unknown fields", () => {
+      // Arrange
       const validBody = {
         email: "user@example.com",
         password: "anyPassword",
         extra: "strip me",
       };
       const { req, res, next } = mockExpressObjects(validBody);
+
+      // Act
       logger.info("[TEST] BEFORE validation (login):", req.body);
       validateData(loginUserSchema)(req, res, next);
       logger.info("[TEST] AFTER validation (login):", req.body);
+
+      // Assert
       expect(next).toHaveBeenCalledOnce();
       expect(res.status).not.toHaveBeenCalled();
       expect(req.body).not.toHaveProperty("extra");
@@ -88,14 +93,19 @@ describe("[Login] User Data Validation", () => {
   // --- Invalid Input ---
   describe("Invalid Input", () => {
     it("should fail validation with bad email (generic error key)", () => {
+      // Arrange
       const invalidBody = { email: "bademail", password: "pass" };
       const { req, res, next } = mockExpressObjects(invalidBody);
+
+      // Act
       logger.info("[TEST] BEFORE validation (login, bad email):", req.body);
       validateData(loginUserSchema)(req, res, next);
       logger.info(
         "[TEST] AFTER validation (login, bad email):",
         res.json.mock.calls[0]?.[0]
       );
+
+      // Assert
       expect(res.status).toHaveBeenCalledWith(400);
       expect(next).not.toHaveBeenCalled();
       const result = res.json.mock.calls[0][0];
@@ -111,8 +121,11 @@ describe("[Login] User Data Validation", () => {
     });
 
     it("should fail validation when password is missing (password error key)", () => {
+      // Arrange
       const invalidBody = { email: "user@example.com" };
       const { req, res, next } = mockExpressObjects(invalidBody);
+
+      // Act
       logger.info(
         "[TEST] BEFORE validation (login, missing password):",
         req.body
@@ -122,6 +135,8 @@ describe("[Login] User Data Validation", () => {
         "[TEST] AFTER validation (login, missing password):",
         res.json.mock.calls[0]?.[0]
       );
+
+      // Assert
       expect(res.status).toHaveBeenCalledWith(400);
       expect(next).not.toHaveBeenCalled();
       const result = res.json.mock.calls[0][0];
@@ -178,6 +193,7 @@ describe("[Register] User Data Validation", () => {
   // --- Valid Input ---
   describe("Valid Input", () => {
     it("should pass validation and sanitize req.body (unknown fields stripped)", () => {
+      // Arrange
       const validBody = {
         firstName: "John",
         lastName: "Doe",
@@ -188,9 +204,13 @@ describe("[Register] User Data Validation", () => {
         extraField: "should be stripped",
       };
       const { req, res, next } = mockExpressObjects(validBody);
+
+      // Act
       logger.info("[TEST] BEFORE validation (register):", req.body);
       validateData(registerUserSchema)(req, res, next);
       logger.info("[TEST] AFTER validation (register):", req.body);
+
+      // Assert
       expect(next).toHaveBeenCalledOnce();
       expect(res.status).not.toHaveBeenCalled();
       expect(req.body).not.toHaveProperty("extraField");
@@ -218,6 +238,7 @@ describe("[Register] User Data Validation", () => {
   // --- Invalid Input ---
   describe("Invalid Input", () => {
     it("should fail validation and return 400 with all error keys present and string values", () => {
+      // Arrange
       const invalidBody = {
         firstName: "J",
         lastName: "",
@@ -227,12 +248,16 @@ describe("[Register] User Data Validation", () => {
         passwordConfirm: "different",
       };
       const { req, res, next } = mockExpressObjects(invalidBody);
+
+      // Act
       logger.info("[TEST] BEFORE validation (register, invalid):", req.body);
       validateData(registerUserSchema)(req, res, next);
       logger.info(
         "[TEST] AFTER validation (register, invalid):",
         res.json.mock.calls[0]?.[0]
       );
+
+      // Assert
       expect(res.status).toHaveBeenCalledWith(400);
       expect(next).not.toHaveBeenCalled();
       const result = res.json.mock.calls[0][0];

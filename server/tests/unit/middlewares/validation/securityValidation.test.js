@@ -45,12 +45,17 @@ describe("[Login] User Input Security", () => {
   // --- NoSQL Injection ---
   describe("NoSQL Injection", () => {
     it("should block NoSQL injection attempts in login", () => {
+      // Arrange
       const maliciousBody = {
         email: { $ne: null },
         password: { $gt: "" },
       };
       const { req, res, next } = mockExpressObjects(maliciousBody);
+
+      // Act
       validateData(loginUserSchema)(req, res, next);
+
+      // Assert
       expect(res.status).toHaveBeenCalledWith(400);
       expect(next).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(
@@ -65,12 +70,17 @@ describe("[Login] User Input Security", () => {
   // While login isn't really vulnerable to XSS, we include a test to ensure no weird behavior happens
   describe("Cross-Site Scripting (XSS)", () => {
     it("should block XSS attempts in login email field", () => {
+      // Arrange
       const maliciousBody = {
         email: "<script>alert('XSS')</script>@test.com",
         password: "Password1!",
       };
       const { req, res, next } = mockExpressObjects(maliciousBody);
+
+      // Act
       validateData(loginUserSchema)(req, res, next);
+
+      // Assert
       expect(res.status).toHaveBeenCalledWith(expect.any(Number));
       if (res.status.mock.calls[0][0] === 400) {
         expect(next).not.toHaveBeenCalled();
@@ -105,6 +115,7 @@ describe("[Register] User Input Security", () => {
   // --- NoSQL Injection ---
   describe("NoSQL Injection", () => {
     it("should block NoSQL injection attempts in all registration fields", () => {
+      // Arrange
       const maliciousBody = {
         firstName: { $ne: null },
         lastName: "'; DROP TABLE users; --",
@@ -115,7 +126,11 @@ describe("[Register] User Input Security", () => {
         extraMaliciousField: { $eval: "db.users.drop()" },
       };
       const { req, res, next } = mockExpressObjects(maliciousBody);
+
+      // Act
       validateData(registerUserSchema)(req, res, next);
+
+      // Assert
       expect(res.status).toHaveBeenCalledWith(400);
       expect(next).not.toHaveBeenCalled();
       const result = res.json.mock.calls[0][0];
@@ -138,6 +153,7 @@ describe("[Register] User Input Security", () => {
   // --- XSS ---
   describe("Cross-Site Scripting (XSS)", () => {
     it("should block XSS attempts in firstName field", () => {
+      // Arrange
       const maliciousBody = {
         firstName: "<script>alert('XSS')</script>",
         lastName: "Doe",
@@ -147,7 +163,11 @@ describe("[Register] User Input Security", () => {
         passwordConfirm: "Password1!",
       };
       const { req, res, next } = mockExpressObjects(maliciousBody);
+
+      // Act
       validateData(registerUserSchema)(req, res, next);
+
+      // Assert
       expect(res.status).toHaveBeenCalledWith(400);
       expect(next).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(
@@ -163,6 +183,7 @@ describe("[Register] User Input Security", () => {
     });
 
     it("should block XSS attempts in all registration fields", () => {
+      // Arrange
       const maliciousBody = {
         firstName: "<img src=x onerror=alert('XSS')>",
         lastName: "<svg onload=alert('XSS')>",
@@ -172,7 +193,11 @@ describe("[Register] User Input Security", () => {
         passwordConfirm: "<iframe src=javascript:alert('XSS')>1",
       };
       const { req, res, next } = mockExpressObjects(maliciousBody);
+
+      // Act
       validateData(registerUserSchema)(req, res, next);
+
+      // Assert
       expect(res.status).toHaveBeenCalledWith(400);
       expect(next).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(
