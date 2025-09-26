@@ -1,14 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { validateData } from "#middlewares/validationMiddleware.js";
-import {
-  loginUserSchema,
-  registerUserSchema,
-} from "#utils/validation/userValidation.js";
-import {
-  setupLoggerSpies,
-  teardownLoggerSpies,
-  printLoggerSpiesIfFailed,
-} from "../../loggerTestSpyHelpers.js";
+import * as userValidation from "#utils/validation/userValidation.js";
+import * as loggerSpyHelper from "../../loggerTestSpyHelpers.js";
 import logger from "#utils/logger.js";
 
 // -----------------------------------------------------------------------------
@@ -36,12 +29,12 @@ describe("[Login] User Data Validation", () => {
   let spies;
 
   beforeEach(() => {
-    spies = setupLoggerSpies();
+    spies = loggerSpyHelper.setupLoggerSpies();
   });
 
   afterEach(() => {
-    printLoggerSpiesIfFailed(spies);
-    teardownLoggerSpies(spies);
+    loggerSpyHelper.printLoggerSpiesIfFailed(spies);
+    loggerSpyHelper.teardownLoggerSpies(spies);
   });
 
   // --- Valid Input ---
@@ -59,7 +52,7 @@ describe("[Login] User Data Validation", () => {
       logger.info("[TEST] BEFORE validation (login, valid):", req.body);
 
       // Act
-      validateData(loginUserSchema)(req, res, next);
+      validateData(userValidation.loginUserSchema)(req, res, next);
 
       // Log after validation
       logger.info("[TEST] AFTER validation (login, valid):", req.body);
@@ -89,7 +82,7 @@ describe("[Login] User Data Validation", () => {
       logger.info("[TEST] BEFORE validation (login, bad email):", req.body);
 
       // Act
-      validateData(loginUserSchema)(req, res, next);
+      validateData(userValidation.loginUserSchema)(req, res, next);
 
       // Log after validation
       logger.info(
@@ -124,7 +117,7 @@ describe("[Login] User Data Validation", () => {
       );
 
       // Act
-      validateData(loginUserSchema)(req, res, next);
+      validateData(userValidation.loginUserSchema)(req, res, next);
 
       // Log after validation
       logger.info(
@@ -157,12 +150,12 @@ describe("[Register] User Data Validation", () => {
   let spies;
 
   beforeEach(() => {
-    spies = setupLoggerSpies();
+    spies = loggerSpyHelper.setupLoggerSpies();
   });
 
   afterEach(() => {
-    printLoggerSpiesIfFailed(spies);
-    teardownLoggerSpies(spies);
+    loggerSpyHelper.printLoggerSpiesIfFailed(spies);
+    loggerSpyHelper.teardownLoggerSpies(spies);
   });
 
   // --- Valid Input ---
@@ -184,7 +177,7 @@ describe("[Register] User Data Validation", () => {
       logger.info("[TEST] BEFORE validation (register, valid):", req.body);
 
       // Act
-      validateData(registerUserSchema)(req, res, next);
+      validateData(userValidation.registerUserSchema)(req, res, next);
 
       // Log after validation
       logger.info("[TEST] AFTER validation (register, valid):", req.body);
@@ -232,7 +225,7 @@ describe("[Register] User Data Validation", () => {
       logger.info("[TEST] BEFORE validation (register, invalid):", req.body);
 
       // Act
-      validateData(registerUserSchema)(req, res, next);
+      validateData(userValidation.registerUserSchema)(req, res, next);
 
       // Log after validation
       logger.info(

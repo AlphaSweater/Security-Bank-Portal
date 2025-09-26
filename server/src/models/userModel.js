@@ -7,11 +7,11 @@ export async function insertUser(doc) {
   return await collection().insertOne(doc);
 }
 
-export async function findUserByEmail(email) {
+export async function getUserByEmail(email) {
   return await collection().findOne({ email });
 }
 
-export async function findUserById(id) {
+export async function getUserById(id) {
   return await collection().findOne({ _id: ObjectId.createFromHexString(id) });
 }
 
