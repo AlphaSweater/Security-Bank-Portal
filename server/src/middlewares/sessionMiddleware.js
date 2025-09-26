@@ -2,6 +2,7 @@ import expressSession from "express-session";
 import { RedisStore } from "connect-redis";
 import redisClient from "#config/redisConfig.js";
 import { getLogger } from "#utils/logger.js";
+
 const logger = getLogger(import.meta.url);
 
 export default function session() {
@@ -13,17 +14,10 @@ export default function session() {
     );
   }
 
-  // This function returns the actual middleware that Express will use
-  // When a request comes in, this middleware will:
-  //   1. Check for a session cookie (named 'sid' here) in the request
-  //   2. If present, load the session data from Redis
-  //   3. Attach the session object to req.session
-  //   4. If not present, create a new session and set a cookie in the response
   return expressSession({
     store: new RedisStore({ client: redisClient }),
-    // The name of the cookie that will store the session ID
     name: "sid",
-    secret: process.env.SESSION_SECRET,
+    secret: sessionSecret || "default_secret",
     resave: false,
     saveUninitialized: false,
     cookie: {
