@@ -1,10 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import util from "util";
 import { validateData } from "#middlewares/validation.js";
 import {
   loginUserSchema,
   registerUserSchema,
 } from "#utils/validation/userValidation.js";
+import {
+  setupLoggerSpies,
+  teardownLoggerSpies,
+  printLoggerSpiesIfFailed,
+} from "../../loggerTestHelpers.js";
 import logger from "#utils/logger.js";
 
 // -----------------------------------------------------------------------------
@@ -28,36 +32,16 @@ function mockExpressObjects(body = {}) {
 // SECTION 1: LOGIN INPUT VALIDATION
 // -----------------------------------------------------------------------------
 describe("[Login] User Data Validation", () => {
-  let infoSpy, errorSpy, debugSpy;
+  // Set up spies for logger methods
+  let spies;
 
   beforeEach(() => {
-    infoSpy = vi.spyOn(logger, "info").mockImplementation(() => {});
-    errorSpy = vi.spyOn(logger, "error").mockImplementation(() => {});
-    debugSpy = vi.spyOn(logger, "debug").mockImplementation(() => {});
+    spies = setupLoggerSpies();
   });
 
   afterEach(() => {
-    if (infoSpy.mock.calls.length > 0) {
-      console.log(
-        "[logger.info calls]",
-        util.inspect(infoSpy.mock.calls, { depth: null, colors: true })
-      );
-    }
-    if (errorSpy.mock.calls.length > 0) {
-      console.log(
-        "[logger.error calls]",
-        util.inspect(errorSpy.mock.calls, { depth: null, colors: true })
-      );
-    }
-    if (debugSpy.mock.calls.length > 0) {
-      console.log(
-        "[logger.debug calls]",
-        util.inspect(debugSpy.mock.calls, { depth: null, colors: true })
-      );
-    }
-    infoSpy.mockRestore();
-    errorSpy.mockRestore();
-    debugSpy.mockRestore();
+    printLoggerSpiesIfFailed(spies);
+    teardownLoggerSpies(spies);
   });
 
   // --- Valid Input ---
@@ -157,37 +141,16 @@ describe("[Login] User Data Validation", () => {
 // SECTION 2: REGISTRATION INPUT VALIDATION
 // -----------------------------------------------------------------------------
 describe("[Register] User Data Validation", () => {
-  let infoSpy, errorSpy, debugSpy;
+  // Set up spies for logger methods
+  let spies;
 
   beforeEach(() => {
-    infoSpy = vi.spyOn(logger, "info").mockImplementation(() => {});
-    errorSpy = vi.spyOn(logger, "error").mockImplementation(() => {});
-    debugSpy = vi.spyOn(logger, "debug").mockImplementation(() => {});
+    spies = setupLoggerSpies();
   });
 
   afterEach(() => {
-    // Print captured logs for debugging, always showing full object/array contents
-    if (infoSpy.mock.calls.length > 0) {
-      console.log(
-        "[logger.info calls]",
-        util.inspect(infoSpy.mock.calls, { depth: null, colors: true })
-      );
-    }
-    if (errorSpy.mock.calls.length > 0) {
-      console.log(
-        "[logger.error calls]",
-        util.inspect(errorSpy.mock.calls, { depth: null, colors: true })
-      );
-    }
-    if (debugSpy.mock.calls.length > 0) {
-      console.log(
-        "[logger.debug calls]",
-        util.inspect(debugSpy.mock.calls, { depth: null, colors: true })
-      );
-    }
-    infoSpy.mockRestore();
-    errorSpy.mockRestore();
-    debugSpy.mockRestore();
+    printLoggerSpiesIfFailed(spies);
+    teardownLoggerSpies(spies);
   });
 
   // --- Valid Input ---

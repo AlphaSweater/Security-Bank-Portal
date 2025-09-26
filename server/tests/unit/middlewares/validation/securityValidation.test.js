@@ -1,10 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import util from "util";
 import { validateData } from "#middlewares/validation.js";
 import {
   loginUserSchema,
   registerUserSchema,
 } from "#utils/validation/userValidation.js";
+import {
+  setupLoggerSpies,
+  teardownLoggerSpies,
+  printLoggerSpiesIfFailed,
+} from "../../loggerTestHelpers.js";
 import logger from "#utils/logger.js";
 
 // -----------------------------------------------------------------------------
@@ -28,18 +32,16 @@ function mockExpressObjects(body = {}) {
 // SECTION 1: LOGIN INPUT SECURITY
 // -----------------------------------------------------------------------------
 describe("[Login] User Input Security", () => {
-  let infoSpy, errorSpy, debugSpy;
+  // Set up spies for logger methods
+  let spies;
 
   beforeEach(() => {
-    infoSpy = vi.spyOn(logger, "info").mockImplementation(() => {});
-    errorSpy = vi.spyOn(logger, "error").mockImplementation(() => {});
-    debugSpy = vi.spyOn(logger, "debug").mockImplementation(() => {});
+    spies = setupLoggerSpies();
   });
 
   afterEach(() => {
-    infoSpy.mockRestore();
-    errorSpy.mockRestore();
-    debugSpy.mockRestore();
+    printLoggerSpiesIfFailed(spies);
+    teardownLoggerSpies(spies);
   });
 
   // --- NoSQL Injection ---
@@ -98,18 +100,16 @@ describe("[Login] User Input Security", () => {
 // SECTION 2: REGISTRATION INPUT SECURITY
 // -----------------------------------------------------------------------------
 describe("[Register] User Input Security", () => {
-  let infoSpy, errorSpy, debugSpy;
+  // Set up spies for logger methods
+  let spies;
 
   beforeEach(() => {
-    infoSpy = vi.spyOn(logger, "info").mockImplementation(() => {});
-    errorSpy = vi.spyOn(logger, "error").mockImplementation(() => {});
-    debugSpy = vi.spyOn(logger, "debug").mockImplementation(() => {});
+    spies = setupLoggerSpies();
   });
 
   afterEach(() => {
-    infoSpy.mockRestore();
-    errorSpy.mockRestore();
-    debugSpy.mockRestore();
+    printLoggerSpiesIfFailed(spies);
+    teardownLoggerSpies(spies);
   });
 
   // --- NoSQL Injection ---
@@ -223,6 +223,18 @@ describe("[Register] User Input Security", () => {
 // SECTION 3: TRANSACTION INPUT SECURITY
 // -----------------------------------------------------------------------------
 describe("[Transaction] User Input Security", () => {
+  // Set up spies for logger methods
+  let spies;
+
+  beforeEach(() => {
+    spies = setupLoggerSpies();
+  });
+
+  afterEach(() => {
+    printLoggerSpiesIfFailed(spies);
+    teardownLoggerSpies(spies);
+  });
+
   // TODO: Implement Transaction schema and validation tests for NoSQL Injection and XSS
   // Example:
   // describe("NoSQL Injection", () => { ... });
