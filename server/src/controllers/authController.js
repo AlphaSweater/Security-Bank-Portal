@@ -13,7 +13,7 @@ export async function login(req, res, next) {
   try {
     const user = await verifyUser({ email, password });
     await createSession(req, user);
-    return res.json({ message: "Logged in" });
+    return res.json({ message: "Log in successful" });
   } catch (err) {
     // Invalid credentials or session error
     return res

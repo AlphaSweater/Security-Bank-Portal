@@ -1,20 +1,21 @@
 import express from "express";
+import * as userController from "#controllers/userController.js";
 import requireAuth from "#middlewares/authMiddleware.js";
 import { requireRole } from "#middlewares/roleMiddleware.js";
-import {
-  getMe,
-  getDashboard,
-  getAdminData,
-} from "#controllers/userController.js";
 
 const router = express.Router();
 
-router.get("/me", requireAuth, getMe);
+router.get("/me", requireAuth, userController.getMe);
 
 // Protected dashboard route
-router.get("/dashboard", requireAuth, getDashboard);
+router.get("/dashboard", requireAuth, userController.getDashboard);
 
 // Example: only admin can access
-router.get("/admin-data", requireAuth, requireRole("admin"), getAdminData);
+router.get(
+  "/admin-data",
+  requireAuth,
+  requireRole("admin"),
+  userController.getAdminData
+);
 
 export default router;
