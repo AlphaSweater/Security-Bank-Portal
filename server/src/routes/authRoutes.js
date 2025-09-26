@@ -7,7 +7,7 @@ import { asyncHandler } from "#utils/asyncHandler.js";
 const router = express.Router();
 
 // GET endpoints to check authentication status
-router.get("/session", asyncHandler(authController.sessionCheck));
+router.get("/sessionCheck", asyncHandler(authController.sessionCheck));
 
 // POST endpoints for authentication
 router.post(
