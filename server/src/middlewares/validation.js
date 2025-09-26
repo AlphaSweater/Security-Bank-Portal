@@ -10,8 +10,12 @@ export function formatJoiError(error, { schema, genericKey = "generic" } = {}) {
   for (const detail of error.details) {
     let field = detail.context?.label || detail.path?.[0] || genericKey;
 
-    // Collapse to generic for login schema (prevent info leaks)
-    if (schema === "login" && (field === "email" || field === "password")) {
+    // For login schema, only collapse errors with the exact message to generic
+    if (
+      schema === "login" &&
+      (field === "email" || field === "password") &&
+      detail.message === "Invalid email or password"
+    ) {
       field = genericKey;
     }
 

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import util from "util";
-import { validateData } from "#middlewares/validationMiddleware.js";
+import { validateData } from "#middlewares/validation.js";
 import {
   loginUserSchema,
   registerUserSchema,
-} from "#utils/validationSchemas/userValidation.js";
+} from "#utils/validation/userValidation.js";
 import logger from "#utils/logger.js";
 
 // -----------------------------------------------------------------------------
@@ -70,7 +70,7 @@ describe("validateData middleware", () => {
         saIdNumber: "9001015009087",
         email: "john.doe@example.com",
         password: "Password1!",
-        confirmPassword: "Password1!",
+        passwordConfirm: "Password1!",
         extraField: "should be stripped",
       };
       const { req, res, next } = mockExpressObjects(validBody);
@@ -90,7 +90,7 @@ describe("validateData middleware", () => {
         saIdNumber: "9001015009087",
         email: "john.doe@example.com",
         password: "Password1!",
-        confirmPassword: "Password1!",
+        passwordConfirm: "Password1!",
       });
     });
 
@@ -102,7 +102,7 @@ describe("validateData middleware", () => {
         saIdNumber: "123",
         email: "not-an-email",
         password: "short",
-        confirmPassword: "different",
+        passwordConfirm: "different",
       };
       const { req, res, next } = mockExpressObjects(invalidBody);
 
@@ -119,25 +119,23 @@ describe("validateData middleware", () => {
       expect(next).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Validation error",
-          errors: expect.arrayContaining([
-            expect.stringContaining(
-              "First name must be at least 2 characters long"
+          message: "Validation errors",
+          errors: expect.objectContaining({
+            firstName: expect.stringContaining(
+              "First name must be at least 2 characters"
             ),
-            expect.stringContaining("Last name is required"),
-            expect.stringContaining(
-              "SA ID number must be at least 13 characters long"
+            lastName: expect.stringContaining("Last name is required"),
+            saIdNumber: expect.stringContaining(
+              "SA ID number must be at least 13 characters"
             ),
-            expect.stringContaining("SA ID number must be a valid ID number"),
-            expect.stringContaining("Email must be a valid email address"),
-            expect.stringContaining(
-              "Password must be at least 8 characters long"
+            email: expect.stringContaining(
+              "Email must be a valid email address"
             ),
-            expect.stringContaining(
-              "Password must include at least one uppercase letter, one digit, and one special character"
+            password: expect.stringContaining(
+              "Password must be at least 8 characters"
             ),
-            expect.stringContaining("Passwords must match"),
-          ]),
+            passwordConfirm: expect.stringContaining("Passwords do not match"),
+          }),
         })
       );
     });
@@ -189,10 +187,10 @@ describe("validateData middleware", () => {
       expect(next).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Validation error",
-          errors: expect.arrayContaining([
-            expect.stringContaining("Invalid email or password"),
-          ]),
+          message: "Validation errors",
+          errors: expect.objectContaining({
+            generic: expect.stringContaining("Invalid email or password"),
+          }),
         })
       );
     });
@@ -218,10 +216,10 @@ describe("validateData middleware", () => {
       expect(next).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Validation error",
-          errors: expect.arrayContaining([
-            expect.stringContaining("Password is required"),
-          ]),
+          message: "Validation errors",
+          errors: expect.objectContaining({
+            password: expect.stringContaining("Password is required"),
+          }),
         })
       );
     });
@@ -253,7 +251,7 @@ describe("validateData middleware", () => {
       expect(next).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Validation error",
+          message: "Validation errors",
         })
       );
     });
@@ -266,7 +264,7 @@ describe("validateData middleware", () => {
         saIdNumber: "9001015009087",
         email: "xss@example.com",
         password: "Password1!",
-        confirmPassword: "Password1!",
+        passwordConfirm: "Password1!",
       };
 
       const { req, res, next } = mockExpressObjects(maliciousBody);
@@ -293,12 +291,12 @@ describe("validateData middleware", () => {
       expect(next).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Validation error",
-          errors: expect.arrayContaining([
-            expect.stringContaining(
+          message: "Validation errors",
+          errors: expect.objectContaining({
+            firstName: expect.stringContaining(
               "letters, spaces, apostrophes, or hyphens only"
             ),
-          ]),
+          }),
         })
       );
     });
@@ -311,7 +309,7 @@ describe("validateData middleware", () => {
         saIdNumber: "javascript:alert('XSS')",
         email: "<script>alert('XSS')</script>@evil.com",
         password: "<iframe src=javascript:alert('XSS')>1",
-        confirmPassword: "<iframe src=javascript:alert('XSS')>1",
+        passwordConfirm: "<iframe src=javascript:alert('XSS')>1",
       };
 
       const { req, res, next } = mockExpressObjects(maliciousBody);
@@ -329,17 +327,17 @@ describe("validateData middleware", () => {
       expect(next).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Validation error",
-          errors: expect.arrayContaining([
-            expect.stringContaining(
+          message: "Validation errors",
+          errors: expect.objectContaining({
+            firstName: expect.stringContaining(
               "letters, spaces, apostrophes, or hyphens only"
-            ), // firstName
-            expect.stringContaining(
+            ),
+            lastName: expect.stringContaining(
               "letters, spaces, apostrophes, or hyphens only"
-            ), // lastName
-            expect.stringContaining("SA ID number must be a valid ID number"), // saIdNumber
-            expect.stringContaining("Email must be a valid email address"), // email
-          ]),
+            ),
+            saIdNumber: expect.any(String),
+            email: expect.any(String),
+          }),
         })
       );
     });
@@ -352,7 +350,7 @@ describe("validateData middleware", () => {
         saIdNumber: { $regex: ".*" }, // NoSQL regex injection
         email: { $where: "this.password.length > 0" }, // NoSQL where injection
         password: { $gt: "" }, // NoSQL comparison injection
-        confirmPassword: "1' OR '1'='1", // SQL injection
+        passwordConfirm: "1' OR '1'='1", // SQL injection
         extraMaliciousField: { $eval: "db.users.drop()" }, // Should be stripped
       };
 
@@ -374,15 +372,15 @@ describe("validateData middleware", () => {
       expect(next).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Validation error",
-          errors: expect.arrayContaining([
-            expect.stringContaining("First name must be a string"),
-            expect.stringContaining("Last name must be"), // Could be string validation
-            expect.stringContaining("SA ID number must be a string"),
-            expect.stringContaining("Email must be a string"),
-            expect.stringContaining("Password must be a string"),
-            expect.stringContaining("must be a string"), // confirmPassword
-          ]),
+          message: "Validation errors",
+          errors: expect.objectContaining({
+            firstName: expect.any(String),
+            lastName: expect.any(String),
+            saIdNumber: expect.any(String),
+            email: expect.any(String),
+            password: expect.any(String),
+            passwordConfirm: expect.any(String),
+          }),
         })
       );
     });
