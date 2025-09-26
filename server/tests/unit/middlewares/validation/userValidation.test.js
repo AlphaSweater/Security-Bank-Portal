@@ -21,12 +21,129 @@ function mockExpressObjects(body = {}) {
 }
 
 // -----------------------------------------------------------------------------
-// Test Suite: Validation of User Data
+// USER DATA VALIDATION TESTS
 // -----------------------------------------------------------------------------
-describe("Validation of User Data", () => {
+
+// -----------------------------------------------------------------------------
+// SECTION 1: LOGIN INPUT VALIDATION
+// -----------------------------------------------------------------------------
+describe("[Login] User Data Validation", () => {
   let infoSpy, errorSpy, debugSpy;
 
-  // Setup & teardown logger spies
+  beforeEach(() => {
+    infoSpy = vi.spyOn(logger, "info").mockImplementation(() => {});
+    errorSpy = vi.spyOn(logger, "error").mockImplementation(() => {});
+    debugSpy = vi.spyOn(logger, "debug").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    if (infoSpy.mock.calls.length > 0) {
+      console.log(
+        "[logger.info calls]",
+        util.inspect(infoSpy.mock.calls, { depth: null, colors: true })
+      );
+    }
+    if (errorSpy.mock.calls.length > 0) {
+      console.log(
+        "[logger.error calls]",
+        util.inspect(errorSpy.mock.calls, { depth: null, colors: true })
+      );
+    }
+    if (debugSpy.mock.calls.length > 0) {
+      console.log(
+        "[logger.debug calls]",
+        util.inspect(debugSpy.mock.calls, { depth: null, colors: true })
+      );
+    }
+    infoSpy.mockRestore();
+    errorSpy.mockRestore();
+    debugSpy.mockRestore();
+  });
+
+  // --- Valid Input ---
+  describe("Valid Input", () => {
+    it("should pass validation and strip unknown fields", () => {
+      const validBody = {
+        email: "user@example.com",
+        password: "anyPassword",
+        extra: "strip me",
+      };
+      const { req, res, next } = mockExpressObjects(validBody);
+      logger.info("[TEST] BEFORE validation (login):", req.body);
+      validateData(loginUserSchema)(req, res, next);
+      logger.info("[TEST] AFTER validation (login):", req.body);
+      expect(next).toHaveBeenCalledOnce();
+      expect(res.status).not.toHaveBeenCalled();
+      expect(req.body).not.toHaveProperty("extra");
+      expect(Object.keys(req.body).sort()).toEqual(
+        ["email", "password"].sort()
+      );
+      expect(req.body).toMatchObject({
+        email: "user@example.com",
+        password: "anyPassword",
+      });
+    });
+  });
+
+  // --- Invalid Input ---
+  describe("Invalid Input", () => {
+    it("should fail validation with bad email (generic error key)", () => {
+      const invalidBody = { email: "bademail", password: "pass" };
+      const { req, res, next } = mockExpressObjects(invalidBody);
+      logger.info("[TEST] BEFORE validation (login, bad email):", req.body);
+      validateData(loginUserSchema)(req, res, next);
+      logger.info(
+        "[TEST] AFTER validation (login, bad email):",
+        res.json.mock.calls[0]?.[0]
+      );
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(next).not.toHaveBeenCalled();
+      const result = res.json.mock.calls[0][0];
+      expect(Object.keys(result.errors)).toEqual(["generic"]);
+      expect(result).toEqual(
+        expect.objectContaining({
+          message: "Validation errors",
+          errors: expect.objectContaining({
+            generic: expect.any(String),
+          }),
+        })
+      );
+    });
+
+    it("should fail validation when password is missing (password error key)", () => {
+      const invalidBody = { email: "user@example.com" };
+      const { req, res, next } = mockExpressObjects(invalidBody);
+      logger.info(
+        "[TEST] BEFORE validation (login, missing password):",
+        req.body
+      );
+      validateData(loginUserSchema)(req, res, next);
+      logger.info(
+        "[TEST] AFTER validation (login, missing password):",
+        res.json.mock.calls[0]?.[0]
+      );
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(next).not.toHaveBeenCalled();
+      const result = res.json.mock.calls[0][0];
+      expect(Object.keys(result.errors)).toEqual(["password"]);
+      expect(result).toEqual(
+        expect.objectContaining({
+          message: "Validation errors",
+          errors: expect.objectContaining({
+            password: expect.any(String),
+          }),
+        })
+      );
+    });
+  });
+});
+
+// -----------------------------------------------------------------------------
+// SECTION 2: REGISTRATION INPUT VALIDATION
+// -----------------------------------------------------------------------------
+describe("[Register] User Data Validation", () => {
+  let infoSpy, errorSpy, debugSpy;
+
   beforeEach(() => {
     infoSpy = vi.spyOn(logger, "info").mockImplementation(() => {});
     errorSpy = vi.spyOn(logger, "error").mockImplementation(() => {});
@@ -58,12 +175,9 @@ describe("Validation of User Data", () => {
     debugSpy.mockRestore();
   });
 
-  // ---------------------------------------------------------------------------
-  // Registration schema tests
-  // ---------------------------------------------------------------------------
-  describe("registerUserSchema", () => {
-    it("passes validation and sanitizes req.body", () => {
-      // Arrange
+  // --- Valid Input ---
+  describe("Valid Input", () => {
+    it("should pass validation and sanitize req.body (unknown fields stripped)", () => {
       const validBody = {
         firstName: "John",
         lastName: "Doe",
@@ -74,13 +188,9 @@ describe("Validation of User Data", () => {
         extraField: "should be stripped",
       };
       const { req, res, next } = mockExpressObjects(validBody);
-
-      // Act
       logger.info("[TEST] BEFORE validation (register):", req.body);
       validateData(registerUserSchema)(req, res, next);
       logger.info("[TEST] AFTER validation (register):", req.body);
-
-      // Check only expected fields remain, unknown fields stripped
       expect(next).toHaveBeenCalledOnce();
       expect(res.status).not.toHaveBeenCalled();
       expect(req.body).not.toHaveProperty("extraField");
@@ -103,10 +213,11 @@ describe("Validation of User Data", () => {
         passwordConfirm: "Password1!",
       });
     });
+  });
 
-    // Checks all expected error keys are present and values are strings
-    it("fails validation and returns 400 with error messages (all error keys present, all string values)", () => {
-      // Arrange
+  // --- Invalid Input ---
+  describe("Invalid Input", () => {
+    it("should fail validation and return 400 with all error keys present and string values", () => {
       const invalidBody = {
         firstName: "J",
         lastName: "",
@@ -116,16 +227,12 @@ describe("Validation of User Data", () => {
         passwordConfirm: "different",
       };
       const { req, res, next } = mockExpressObjects(invalidBody);
-
-      // Act
       logger.info("[TEST] BEFORE validation (register, invalid):", req.body);
       validateData(registerUserSchema)(req, res, next);
       logger.info(
         "[TEST] AFTER validation (register, invalid):",
         res.json.mock.calls[0]?.[0]
       );
-
-      // Assert
       expect(res.status).toHaveBeenCalledWith(400);
       expect(next).not.toHaveBeenCalled();
       const result = res.json.mock.calls[0][0];
@@ -150,100 +257,6 @@ describe("Validation of User Data", () => {
             email: expect.any(String),
             password: expect.any(String),
             passwordConfirm: expect.any(String),
-          }),
-        })
-      );
-    });
-  });
-
-  // ---------------------------------------------------------------------------
-  // Login schema tests
-  // ---------------------------------------------------------------------------
-  describe("loginUserSchema", () => {
-    // Checks only expected fields remain after validation
-    it("passes validation and strips unknown fields", () => {
-      // Arrange
-      const validBody = {
-        email: "user@example.com",
-        password: "anyPassword",
-        extra: "strip me",
-      };
-      const { req, res, next } = mockExpressObjects(validBody);
-
-      // Act
-      logger.info("[TEST] BEFORE validation (login):", req.body);
-      validateData(loginUserSchema)(req, res, next);
-      logger.info("[TEST] AFTER validation (login):", req.body);
-
-      // Assert
-      expect(next).toHaveBeenCalledOnce();
-      expect(res.status).not.toHaveBeenCalled();
-      expect(req.body).not.toHaveProperty("extra");
-      expect(Object.keys(req.body).sort()).toEqual(
-        ["email", "password"].sort()
-      );
-      expect(req.body).toMatchObject({
-        email: "user@example.com",
-        password: "anyPassword",
-      });
-    });
-
-    // Checks generic error key for login failures
-    it("fails validation with bad email (generic error key)", () => {
-      // Arrange
-      const invalidBody = { email: "bademail", password: "pass" };
-      const { req, res, next } = mockExpressObjects(invalidBody);
-
-      // Act
-      logger.info("[TEST] BEFORE validation (login, bad email):", req.body);
-      validateData(loginUserSchema)(req, res, next);
-      logger.info(
-        "[TEST] AFTER validation (login, bad email):",
-        res.json.mock.calls[0]?.[0]
-      );
-
-      // Assert
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(next).not.toHaveBeenCalled();
-      const result = res.json.mock.calls[0][0];
-      expect(Object.keys(result.errors)).toEqual(["generic"]);
-      expect(result).toEqual(
-        expect.objectContaining({
-          message: "Validation errors",
-          errors: expect.objectContaining({
-            generic: expect.any(String),
-          }),
-        })
-      );
-    });
-
-    // Checks password error key for missing password
-    it("fails validation when password is missing (password error key)", () => {
-      // Arrange
-      const invalidBody = { email: "user@example.com" };
-      const { req, res, next } = mockExpressObjects(invalidBody);
-
-      // Act
-      logger.info(
-        "[TEST] BEFORE validation (login, missing password):",
-        req.body
-      );
-      validateData(loginUserSchema)(req, res, next);
-      logger.info(
-        "[TEST] AFTER validation (login, missing password):",
-        res.json.mock.calls[0]?.[0]
-      );
-
-      // Assert
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(next).not.toHaveBeenCalled();
-      const result = res.json.mock.calls[0][0];
-      expect(Object.keys(result.errors)).toEqual(["password"]);
-      expect(result).toEqual(
-        expect.objectContaining({
-          message: "Validation errors",
-          errors: expect.objectContaining({
-            password: expect.any(String),
           }),
         })
       );
