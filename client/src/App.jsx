@@ -51,7 +51,7 @@ function AppContent() {
 
 function App() {
   return (
-    <Router basename="/SecurityBankPortal">
+    <Router>
       <AppContent />
     </Router>
   );
