@@ -65,5 +65,6 @@ export async function verifyUser({ email, password }) {
     throw new Error("Invalid email or password");
   }
 
+  logger.debug(`User ${user._id} authenticated successfully`);
   return user;
 }

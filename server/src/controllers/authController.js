@@ -5,37 +5,6 @@ const logger = getLogger(import.meta.url);
 
 // Auth controller
 
-// Register controller action
-// POST /auth/register
-export async function register(req, res, next) {
-  try {
-    // All fields are already validated and stripped by middleware
-
-    // Destructure the validated fields
-    const { firstName, lastName, saIdNumber, email, password } = req.body;
-
-    try {
-      const userId = await registerNewUser({
-        firstName,
-        lastName,
-        saIdNumber,
-        email,
-        password,
-      });
-
-      // Registration successful response
-      res.status(201).json({ message: "Registration successful" });
-    } catch (registrationError) {
-      // Duplicate email or other registration error response
-      res
-        .status(400)
-        .json({ message: registrationError.message || "Registration failed" });
-    }
-  } catch (unexpectedError) {
-    next(unexpectedError);
-  }
-}
-
 // Login controller action
 // POST /auth/login
 export async function login(req, res, next) {
@@ -69,6 +38,37 @@ export async function login(req, res, next) {
   }
 }
 
+// Register controller action
+// POST /auth/register
+export async function register(req, res, next) {
+  try {
+    // All fields are already validated and stripped by middleware
+
+    // Destructure the validated fields
+    const { firstName, lastName, saIdNumber, email, password } = req.body;
+
+    try {
+      const userId = await registerNewUser({
+        firstName,
+        lastName,
+        saIdNumber,
+        email,
+        password,
+      });
+
+      // Registration successful response
+      res.status(201).json({ message: "Registration successful" });
+    } catch (registrationError) {
+      // Duplicate email or other registration error response
+      res
+        .status(400)
+        .json({ message: registrationError.message || "Registration failed" });
+    }
+  } catch (unexpectedError) {
+    next(unexpectedError);
+  }
+}
+
 // Logout controller action
 // POST /auth/logout
 export async function logout(req, res) {
@@ -79,4 +79,17 @@ export async function logout(req, res) {
   } catch (logoutError) {
     res.status(500).json({ message: "Logout failed" });
   }
+}
+
+// Session check controller action
+// GET /auth/session
+export async function sessionCheck(req, res) {
+  logger.debug("Session check requested");
+  // Check if the session and userId exist
+  if (!req.session || !req.session.userId) {
+    logger.debug("No valid session");
+    return res.status(401).json({ authenticated: false });
+  }
+  logger.debug("Session verified!");
+  return res.json({ authenticated: true });
 }

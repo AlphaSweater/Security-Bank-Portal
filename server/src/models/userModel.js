@@ -1,3 +1,11 @@
+/**
+ * @typedef {Object} User
+ * @property {string|ObjectId} _id - MongoDB ObjectId
+ * @property {string} email
+ * @property {string} passwordHash
+ * @property {"user"|"employee"} role
+ * @property {Date} createdAt
+ */
 import { getDB } from "#config/mongoDBConfig.js";
 import { ObjectId } from "mongodb";
 
