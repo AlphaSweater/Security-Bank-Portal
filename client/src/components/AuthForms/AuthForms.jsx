@@ -67,8 +67,6 @@ function LoginForm({ onSwap }) {
   // Custom hook usage
   const {
     form,
-    setForm,
-    errors,
     setErrors,
     loading,
     setLoading,
@@ -228,8 +226,6 @@ function RegisterForm({ onSwap }) {
   const [response, setResponse] = useState({ type: null, message: "" });
   const {
     form,
-    setForm,
-    errors,
     setErrors,
     loading,
     setLoading,

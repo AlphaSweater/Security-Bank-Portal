@@ -38,7 +38,7 @@ function Navbar() {
     e.preventDefault();
     try {
       await apiRequest("/api/auth/logout", { method: "POST" });
-    } catch (err) {
+    } catch {
       // Optionally handle error, but always redirect
     }
     navigate("/");
