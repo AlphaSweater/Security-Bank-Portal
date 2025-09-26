@@ -20,25 +20,17 @@ export default function session() {
   //   3. Attach the session object to req.session
   //   4. If not present, create a new session and set a cookie in the response
   return expressSession({
-    // Store session data in Redis for persistence and scalability
     store: new RedisStore({ client: redisClient }),
     // The name of the cookie that will store the session ID
     name: "sid",
-    // Secret for signing the session ID cookie
     secret: process.env.SESSION_SECRET,
-    // Don't save session if nothing was modified
     resave: false,
-    // Don't create session until something is stored
     saveUninitialized: false,
     cookie: {
-      // Prevent client-side JS from accessing the cookie
-      httpOnly: true,
-      // Only send cookie over HTTPS in production
-      secure: process.env.NODE_ENV === "production",
-      // Controls when cookies are sent (lax is a good default for most apps)
-      sameSite: "lax",
-      // How long the session cookie is valid (2 hours here)
-      maxAge: 1000 * 60 * 60 * 2,
+      httpOnly: true, // Ensures the cookie is sent only over HTTP(S), not client JS
+      secure: true, // Ensures the browser only sends the cookie over HTTPS
+      sameSite: "strict", // Helps prevent CSRF attacks
+      maxAge: 1000 * 60 * 30, // Session expires after 30 minutes of inactivity
     },
   });
 }

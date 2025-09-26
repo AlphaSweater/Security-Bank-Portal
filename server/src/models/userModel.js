@@ -1,11 +1,3 @@
-/**
- * @typedef {Object} User
- * @property {string|ObjectId} _id - MongoDB ObjectId
- * @property {string} email
- * @property {string} passwordHash
- * @property {"user"|"employee"} role
- * @property {Date} createdAt
- */
 import { getDB } from "#config/mongoDBConfig.js";
 import { ObjectId } from "mongodb";
 
@@ -15,11 +7,11 @@ export async function insertUser(doc) {
   return await collection().insertOne(doc);
 }
 
-export async function findUserByEmail(email) {
+export async function getUserByEmail(email) {
   return await collection().findOne({ email });
 }
 
-export async function findUserById(id) {
+export async function getUserById(id) {
   return await collection().findOne({ _id: ObjectId.createFromHexString(id) });
 }
 

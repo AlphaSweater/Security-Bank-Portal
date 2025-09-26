@@ -1,7 +1,7 @@
 import { createSession, destroySession } from "#services/sessionService.js";
-import { registerNewUser, authenticateUser } from "#services/authService.js";
+import * as authService from "#services/authService.js";
+import { isActiveUser } from "#services/userService.js";
 import { getLogger } from "#utils/logger.js";
-
 const logger = getLogger(import.meta.url);
 
 // --- Auth Controller ---
@@ -11,7 +11,7 @@ export async function login(req, res, next) {
   // All fields are already validated and stripped by middleware
   const { email, password } = req.body;
   try {
-    const user = await authenticateUser({ email, password });
+    const user = await authService.authenticateUser({ email, password });
     await createSession(req, user);
     return res.json({ message: "Log in successful" });
   } catch (err) {
@@ -27,7 +27,13 @@ export async function register(req, res, next) {
   // All fields are already validated and stripped by middleware
   const { firstName, lastName, saIdNumber, email, password } = req.body;
   try {
-    await registerNewUser({ firstName, lastName, saIdNumber, email, password });
+    await authService.registerNewUser({
+      firstName,
+      lastName,
+      saIdNumber,
+      email,
+      password,
+    });
     return res.status(201).json({ message: "Registration successful" });
   } catch (err) {
     // Duplicate email or other registration error response
@@ -49,12 +55,23 @@ export async function logout(req, res) {
 
 // GET /auth/session
 export async function sessionCheck(req, res) {
-  logger.debug("Session check requested");
-  // Check if the session and userId exist
+  logger.debugAsync("Session check requested");
+
+  // Check if session exists and has a valid userId
   if (!req.session || !req.session.userId) {
-    logger.debug("No valid session");
+    logger.debugAsync("No valid session or userId");
     return res.status(401).json({ authenticated: false });
   }
-  logger.debug("Session verified!");
+
+  // Validate user exists and is active
+  const isActive = await isActiveUser(req.session.userId);
+  if (!isActive) {
+    await destroySession(req, res);
+    logger.debugAsync(`Session invalidated for userId ${req.session.userId}`);
+    return res.status(401).json({ authenticated: false });
+  }
+
+  // Session is valid, return success
+  logger.debugAsync(`Session verified!`);
   return res.json({ authenticated: true });
 }

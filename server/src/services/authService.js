@@ -1,5 +1,5 @@
 import argon2 from "argon2";
-import { insertUser, findUserByEmail } from "#models/userModel.js";
+import * as userRepo from "#models/userModel.js";
 import { getLogger } from "#utils/logger.js";
 const logger = getLogger(import.meta.url);
 
@@ -22,7 +22,7 @@ export async function registerNewUser({
   }
 
   // Check if email is already registered
-  const existingUser = await findUserByEmail(email);
+  const existingUser = await userRepo.getUserByEmail(email);
   if (existingUser) {
     throw new Error("Email already registered");
   }
@@ -42,7 +42,7 @@ export async function registerNewUser({
   };
 
   // Insert user into database
-  const result = await insertUser(newUser);
+  const result = await userRepo.insertUser(newUser);
   return result.insertedId;
 }
 
@@ -58,7 +58,7 @@ export async function authenticateUser({ email, password }) {
 
   logger.debug(`Attempting to authenticate user`);
 
-  const user = await findUserByEmail(email);
+  const user = await userRepo.getUserByEmail(email);
   if (!user) {
     logger.debug("User not found");
     throw new Error("Invalid email or password");
