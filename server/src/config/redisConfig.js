@@ -3,7 +3,7 @@ import RedisMock from "ioredis-mock";
 import { getLogger } from "#utils/logger.js";
 const logger = getLogger(import.meta.url);
 
-const USE_REDIS_MOCK = true;
+const USE_REDIS_MOCK = process.env.USE_REDIS_MOCK === "true" || true;
 
 let redisClient;
 if (USE_REDIS_MOCK) {
@@ -15,7 +15,7 @@ if (USE_REDIS_MOCK) {
     password: process.env.REDIS_PASSWORD || undefined,
   };
   redisClient = new Redis(redisOptions);
-  redisClient.on("connect", () => logger.info("✅ Redis connected"));
+  redisClient.on("connect", () => logger.debug("✅ Redis connected"));
   redisClient.on("error", (err) => logger.error("❌ Redis error", err));
 }
 

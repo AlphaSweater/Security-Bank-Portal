@@ -1,5 +1,5 @@
 import { createSession, destroySession } from "#services/sessionService.js";
-import { registerNewUser, verifyUser } from "#services/authService.js";
+import { registerNewUser, authenticateUser } from "#services/authService.js";
 import { getLogger } from "#utils/logger.js";
 
 const logger = getLogger(import.meta.url);
@@ -11,7 +11,7 @@ export async function login(req, res, next) {
   // All fields are already validated and stripped by middleware
   const { email, password } = req.body;
   try {
-    const user = await verifyUser({ email, password });
+    const user = await authenticateUser({ email, password });
     await createSession(req, user);
     return res.json({ message: "Log in successful" });
   } catch (err) {

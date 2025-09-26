@@ -1,7 +1,6 @@
 import argon2 from "argon2";
 import { insertUser, findUserByEmail } from "#models/userModel.js";
 import { getLogger } from "#utils/logger.js";
-
 const logger = getLogger(import.meta.url);
 
 /**
@@ -52,7 +51,13 @@ export async function registerNewUser({
  * @param {Object} credentials - User login data
  * @returns {Promise<Object>} User object if valid
  */
-export async function verifyUser({ email, password }) {
+export async function authenticateUser({ email, password }) {
+  if (!email || !password) {
+    throw new Error("Email and password are required");
+  }
+
+  logger.debug(`Attempting to authenticate user`);
+
   const user = await findUserByEmail(email);
   if (!user) {
     logger.debug("User not found");
@@ -65,6 +70,6 @@ export async function verifyUser({ email, password }) {
     throw new Error("Invalid email or password");
   }
 
-  logger.debug(`User ${user._id} authenticated successfully`);
+  logger.debug(`User authenticated successfully!`);
   return user;
 }

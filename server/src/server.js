@@ -44,7 +44,7 @@ async function startServer() {
       res.end();
     });
     httpServer.listen(HTTP_PORT, () => {
-      logger.infoAsync(`🌍 HTTP redirect server running on port ${HTTP_PORT}`);
+      logger.debugAsync(`🌍 HTTP redirect server running on port ${HTTP_PORT}`);
     });
     httpServer.on("error", (err) => {
       logger.errorAsync(`HTTP server error: ${err.message}`);

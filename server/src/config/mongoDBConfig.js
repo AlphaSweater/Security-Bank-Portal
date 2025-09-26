@@ -1,7 +1,5 @@
 import { MongoClient } from "mongodb";
 import { getLogger } from "#utils/logger.js";
-import process from "process";
-
 const logger = getLogger(import.meta.url);
 
 const uri = process.env.MONGODB_URI;
@@ -21,9 +19,9 @@ async function connectDB() {
   try {
     await client.connect();
     db = client.db(dbName);
-    logger.info(`🌐 Attempting to ping ${dbName} ...`);
+    logger.debug(`🌐 Attempting to ping ${dbName} ...`);
     await db.command({ ping: 1 });
-    logger.info(`🏓 Ping to ${dbName} successful!`);
+    logger.debug(`🏓 Ping to ${dbName} successful!`);
     return db;
   } catch (mongoError) {
     logger.error(`❌ MongoDB connection error: ${mongoError.message}`);
