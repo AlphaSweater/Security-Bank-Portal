@@ -12,14 +12,8 @@ export async function login(req, res, next) {
   const { email, password } = req.body;
   try {
     const user = await verifyUser({ email, password });
-    const sessionId = await createSession(req, user);
-    return res.json({
-      message: "Logged in",
-      userId: user._id,
-      roles: user.role ? [user.role] : [],
-      name: user.firstName || user.email,
-      sessionCookie: sessionId,
-    });
+    await createSession(req, user);
+    return res.json({ message: "Logged in" });
   } catch (err) {
     // Invalid credentials or session error
     return res
