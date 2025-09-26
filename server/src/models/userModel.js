@@ -1,4 +1,4 @@
-import { getDB } from "#config/mongoDB.js";
+import { getDB } from "#config/mongoDBConfig.js";
 import { ObjectId } from "mongodb";
 
 const collection = () => getDB().collection("users");

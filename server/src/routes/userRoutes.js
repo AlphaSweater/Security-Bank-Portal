@@ -1,6 +1,6 @@
 import express from "express";
-import requireAuth from "#middlewares/auth.js";
-import { requireRole } from "#middlewares/roles.js";
+import requireAuth from "#middlewares/authMiddleware.js";
+import { requireRole } from "#middlewares/roleMiddleware.js";
 import {
   getMe,
   getDashboard,

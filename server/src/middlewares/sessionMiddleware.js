@@ -1,10 +1,10 @@
-import session from "express-session";
+import expressSession from "express-session";
 import { RedisStore } from "connect-redis";
-import redisClient from "#config/redis.js";
+import redisClient from "#config/redisConfig.js";
 import { getLogger } from "#utils/logger.js";
 const logger = getLogger(import.meta.url);
 
-export default function sessionMiddleware() {
+export default function session() {
   // The secret is used to sign the session ID cookie, making it tamper-proof
   const sessionSecret = process.env.SESSION_SECRET;
   if (!sessionSecret) {
@@ -19,7 +19,7 @@ export default function sessionMiddleware() {
   //   2. If present, load the session data from Redis
   //   3. Attach the session object to req.session
   //   4. If not present, create a new session and set a cookie in the response
-  return session({
+  return expressSession({
     // Store session data in Redis for persistence and scalability
     store: new RedisStore({ client: redisClient }),
     // The name of the cookie that will store the session ID
