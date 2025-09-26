@@ -5,8 +5,8 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export default defineConfig(({ mode }) => ({
-  base: "/SecurityBankPortal/",
+export default defineConfig({
+  base: "./",
   plugins: [react()],
   resolve: {
     alias: {
@@ -16,13 +16,10 @@ export default defineConfig(({ mode }) => ({
       assets: path.resolve(__dirname, "src/assets"),
     },
   },
-  server:
-    mode === "development"
-      ? {
-          https: {
-            key: "../server/certs/server.key",
-            cert: "../server/certs/server.crt",
-          },
-        }
-      : undefined,
-}));
+  server: {
+    https: {
+      key: "../server/certs/server.key",
+      cert: "../server/certs/server.crt",
+    },
+  },
+});
