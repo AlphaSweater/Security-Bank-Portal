@@ -3,109 +3,92 @@ import { getLogger } from "#utils/logger.js";
 const logger = getLogger(import.meta.url);
 
 /**
- * Generic Joi validation middleware for Express
+ * Joi validation middleware for Express.
+ * Validates req.body, req.query, or req.params based on options.target.
+ * Logs masked request data in development.
  * @param {import('joi').ObjectSchema} schema - Joi schema to validate against
  * @param {Object} [options]
  * @param {('body'|'query'|'params')} [options.target='body'] - Which part of the request to validate
- * @returns {import('express').RequestHandler}
+ * @returns {Function} Express middleware
  */
 export function validateData(schema, options = {}) {
-  const { target = "body" } = options;
+  // Default to validating req.body
+  const target = options.target || "body";
+
   return (req, res, next) => {
-    const env = process.env.NODE_ENV || "development";
-    if (env !== "production") {
+    const isDev = (process.env.NODE_ENV || "development") !== "production";
+
+    // Mask password fields for logging
+    if (isDev) {
       logger.debug(`Validating request ${target}`);
-      const masked = maskPasswords(req[target]);
-      logger.debug(`Request ${target}: ${JSON.stringify(masked)}`);
+      logger.debug(
+        `Request ${target}: ${JSON.stringify(maskPasswords(req[target]))}`
+      );
     }
 
-    let valueToValidate = req[target];
-    if (typeof valueToValidate !== "object" || valueToValidate == null) {
-      valueToValidate = {};
-    }
+    // Always validate an object (never null/undefined)
+    const data =
+      typeof req[target] === "object" && req[target] !== null
+        ? req[target]
+        : {};
 
-    let value, error;
-    try {
-      ({ value, error } = schema.validate(valueToValidate, {
-        abortEarly: false,
-      }));
-    } catch (err) {
-      logger.error("Schema validation threw an error", err);
-      return res.status(500).json({ message: "Internal validation error" });
-    }
+    // Validate using Joi
+    const result = schema.validate(data, { abortEarly: false });
 
-    if (error) {
-      if (env !== "production") {
+    if (result.error) {
+      // Get schema name for error formatting (if set)
+      let schemaName = "default";
+      if (schema.$_terms && schema.$_terms.metas) {
+        const meta = schema.$_terms.metas.find((m) => m.schemaName);
+        if (meta && meta.schemaName) schemaName = meta.schemaName;
       }
-      // Get schema name from .meta()
-      const schemaName =
-        schema.$_terms?.metas?.find((m) => m.schemaName)?.schemaName ||
-        "default";
-      const formattedErrors = formatJoiError(error, { schema: schemaName });
-      if (env !== "production") {
-        logger.debug(
-          `Formatted validation errors: ${JSON.stringify(formattedErrors)}`
-        );
+      const errors = formatJoiError(result.error, { schema: schemaName });
+      if (isDev) {
+        logger.debug(`Validation errors: ${JSON.stringify(errors)}`);
       }
       return res.status(400).json({
         status: "fail",
         message: "Validation errors",
-        errors: formattedErrors,
+        errors,
       });
     }
 
-    // Request is valid
-    if (env !== "production") {
+    // If valid, replace req[target] with validated data
+    req[target] = result.value;
+    if (isDev) {
       logger.debug(`Validated request ${target} successfully!`);
     }
-
-    req[target] = value; // clean validated data
     next();
   };
 }
 
-/**
- * Recursively mask password fields in an object for safe logging.
- * @param {Object} obj
- * @returns {Object}
- */
+// --- Helpers below ---
+
+// Mask password fields in an object (for logging only)
 function maskPasswords(obj) {
-  if (Array.isArray(obj)) {
-    return obj.map(maskPasswords);
-  } else if (obj && typeof obj === "object") {
-    const masked = {};
+  if (Array.isArray(obj)) return obj.map(maskPasswords);
+  if (obj && typeof obj === "object") {
+    const out = {};
     for (const [key, value] of Object.entries(obj)) {
       if (typeof key === "string" && key.toLowerCase().includes("password")) {
-        if (typeof value === "string") {
-          masked[key] = "*".repeat(value.length);
-        } else {
-          masked[key] = "****";
-        }
+        out[key] =
+          typeof value === "string" ? "*".repeat(value.length) : "****";
       } else {
-        masked[key] = maskPasswords(value);
+        out[key] = maskPasswords(value);
       }
     }
-    return masked;
+    return out;
   }
   return obj;
 }
 
-/**
- * Helper to format Joi errors for frontend
- * @param {import('joi').ValidationError} error
- * @param {Object} options
- * @param {string} [options.schema]
- * @param {string} [options.genericKey]
- * @returns {Object|null}
- */
-
-// Helper to format Joi errors for frontend
+// Format Joi errors for frontend (grouped by field)
 export function formatJoiError(error, { schema, genericKey = "generic" } = {}) {
   if (!error || !error.details) return null;
-  const formatted = {};
+  const out = {};
   for (const detail of error.details) {
     let field = detail.context?.label || detail.path?.[0] || genericKey;
-    // For login schema, only collapse errors with the exact message to generic
+    // For login schema, collapse certain errors to generic
     if (
       schema === "login" &&
       (field === "email" || field === "password") &&
@@ -113,9 +96,9 @@ export function formatJoiError(error, { schema, genericKey = "generic" } = {}) {
     ) {
       field = genericKey;
     }
-    if (!formatted[field]) {
-      formatted[field] = detail.message;
+    if (!out[field]) {
+      out[field] = detail.message;
     }
   }
-  return formatted;
+  return out;
 }
