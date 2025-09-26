@@ -1,15 +1,21 @@
 import { getLogger } from "#utils/logger.js";
 const logger = getLogger(import.meta.url);
 
+/**
+ * Helper to format Joi errors for frontend
+ * @param {import('joi').ValidationError} error
+ * @param {Object} options
+ * @param {string} [options.schema]
+ * @param {string} [options.genericKey]
+ * @returns {Object|null}
+ */
+
 // Helper to format Joi errors for frontend
 export function formatJoiError(error, { schema, genericKey = "generic" } = {}) {
   if (!error || !error.details) return null;
-
   const formatted = {};
-
   for (const detail of error.details) {
     let field = detail.context?.label || detail.path?.[0] || genericKey;
-
     // For login schema, only collapse errors with the exact message to generic
     if (
       schema === "login" &&
@@ -18,43 +24,65 @@ export function formatJoiError(error, { schema, genericKey = "generic" } = {}) {
     ) {
       field = genericKey;
     }
-
     if (!formatted[field]) {
       formatted[field] = detail.message;
     }
   }
-
   return formatted;
 }
 
-// Generic Joi validation middleware for Express
-export function validateData(schema) {
+/**
+ * Generic Joi validation middleware for Express
+ * @param {import('joi').ObjectSchema} schema - Joi schema to validate against
+ * @param {Object} [options]
+ * @param {('body'|'query'|'params')} [options.target='body'] - Which part of the request to validate
+ * @returns {import('express').RequestHandler}
+ */
+export function validateData(schema, options = {}) {
+  const { target = "body" } = options;
   return (req, res, next) => {
-    logger.debug("Validating request data");
-    logger.debug(`Request body: ${JSON.stringify(req.body)}`);
+    const env = process.env.NODE_ENV || "development";
+    if (env !== "production") {
+      logger.debug(`Validating request ${target}`);
+      logger.debug(`Request ${target}: ${JSON.stringify(req[target])}`);
+    }
 
-    const { value, error } = schema.validate(req.body, { abortEarly: false });
+    let valueToValidate = req[target];
+    if (typeof valueToValidate !== "object" || valueToValidate == null) {
+      valueToValidate = {};
+    }
+
+    let value, error;
+    try {
+      ({ value, error } = schema.validate(valueToValidate, {
+        abortEarly: false,
+      }));
+    } catch (err) {
+      logger.error("Schema validation threw an error", err);
+      return res.status(500).json({ message: "Internal validation error" });
+    }
 
     if (error) {
-      logger.debug(`Validation error: ${JSON.stringify(error)}`);
-
+      if (env !== "production") {
+      }
       // Get schema name from .meta()
       const schemaName =
         schema.$_terms?.metas?.find((m) => m.schemaName)?.schemaName ||
         "default";
-
       const formattedErrors = formatJoiError(error, { schema: schemaName });
-
-      logger.debug(
-        `Formatted validation errors: ${JSON.stringify(formattedErrors)}`
-      );
-
-      return res
-        .status(400)
-        .json({ message: "Validation errors", errors: formattedErrors });
+      if (env !== "production") {
+        logger.debug(
+          `Formatted validation errors: ${JSON.stringify(formattedErrors)}`
+        );
+      }
+      return res.status(400).json({
+        status: "fail",
+        message: "Validation errors",
+        errors: formattedErrors,
+      });
     }
 
-    req.body = value; // clean validated data
+    req[target] = value; // clean validated data
     next();
   };
 }
