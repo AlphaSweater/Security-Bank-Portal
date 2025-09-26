@@ -1,11 +1,11 @@
-// server/src/middlewares/validation.js
+// server/src/middlewares/validationMiddleware.js
 import { getLogger } from "#utils/logger.js";
 const logger = getLogger(import.meta.url);
 
 /**
  * Joi validation middleware for Express.
  * Validates req.body, req.query, or req.params based on options.target.
- * Logs masked request data in development.
+ * Logs request data when in development.
  * @param {import('joi').ObjectSchema} schema - Joi schema to validate against
  * @param {Object} [options]
  * @param {('body'|'query'|'params')} [options.target='body'] - Which part of the request to validate

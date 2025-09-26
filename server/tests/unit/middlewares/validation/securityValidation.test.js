@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { validateData } from "#middlewares/validation.js";
+import { validateData } from "#middlewares/validationMiddleware.js";
 import {
   loginUserSchema,
   registerUserSchema,
