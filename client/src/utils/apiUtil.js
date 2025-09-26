@@ -1,5 +1,7 @@
 import { getCsrfToken, resetCsrfToken } from "./csrfUtil";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 // Utility function to make API requests with error handling
 export async function apiRequest(url, options = {}) {
   try {
@@ -12,7 +14,13 @@ export async function apiRequest(url, options = {}) {
       headers["X-CSRF-Token"] = token;
     }
 
-    const res = await fetch(url, {
+    // Prepend API_BASE_URL if url starts with /api
+    const fullUrl =
+      url.startsWith("/api") && API_BASE_URL
+        ? API_BASE_URL + url.replace(/^\/api/, "")
+        : url;
+
+    const res = await fetch(fullUrl, {
       credentials: "include",
       headers,
       ...options,
