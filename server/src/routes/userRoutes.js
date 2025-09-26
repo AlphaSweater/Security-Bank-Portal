@@ -2,6 +2,7 @@ import express from "express";
 import * as userController from "#controllers/userController.js";
 import requireAuth from "#middlewares/authMiddleware.js";
 import { requireRole } from "#middlewares/roleMiddleware.js";
+import { asyncHandler } from "#utils/asyncHandler.js";
 
 const router = express.Router();
 

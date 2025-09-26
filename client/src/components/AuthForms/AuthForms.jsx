@@ -2,7 +2,7 @@
 import { useForm } from "./useForm";
 
 // Internal Imports
-import { apiRequest } from "../../utils/api";
+import { apiRequest } from "../../utils/apiUtil";
 import {
   registerUserSchema,
   loginUserSchema,

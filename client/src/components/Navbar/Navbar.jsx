@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FiMenu, FiX, FiUser } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
-import { apiRequest } from "../../utils/api";
+import { apiRequest } from "../../utils/apiUtil";
 import routes from "../../routing/routes";
 
 // Assets
