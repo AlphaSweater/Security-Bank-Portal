@@ -1,10 +1,14 @@
-name: "📦 Merge Development to Production"
+name: "📦 Sync Development → Production"
 
 on:
     workflow_dispatch:
 
+permissions:
+    contents: write
+    pull-requests: write
+
 jobs:
-    merge:
+    sync:
         runs-on: ubuntu-latest
         steps:
             - name: "🔒 Authorize Workflow Actor"
@@ -24,61 +28,41 @@ jobs:
                   git config --global user.name "$GITHUB_ACTOR"
                   git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-            - name: "🔄 Merge Production into Temp Branch (Favor Development)"
+            - name: "🔄 Prepare Sync Branch"
               env:
                   PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
               run: |
                   git fetch origin
-                  git checkout -b dev-merge-temp origin/development
-                  git merge origin/production -X ours -m "Merge production into development (auto-resolve in favor of development)"
-                  git push --force https://x-access-token:${PAT_TOKEN}@github.com/AlphaSweater/Security-Bank-Portal.git dev-merge-temp
 
-            - name: "📝 Create PR: Temp Branch → Development"
-              env:
-                  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-              run: |
-                  gh auth login --with-token < <(echo "$PAT_TOKEN")
-                  # Check for existing open PR from temp branch to development
-                  existing_pr=$(gh pr list --base development --head dev-merge-temp --state open --json number --jq '.[0].number')
-                  if [ "$existing_pr" != "" ]; then
-                    echo "🔗 PR already exists: #$existing_pr. Adding label and assigning..."
-                    gh pr edit $existing_pr --add-label "auto-merge" --add-assignee "AlphaSweater"
-                    exit 0
+                  # Always reset a single sync branch from dev
+                  if git show-ref --verify --quiet refs/remotes/origin/dev-to-prod-sync; then
+                    git push origin --delete dev-to-prod-sync || true
                   fi
-                  # Create new PR
-                  gh pr create \
-                    --base development \
-                    --head dev-merge-temp \
-                    --title "🔄 Merge production into development (auto-resolve)" \
-                    --body "✨ This PR merges production into development, auto-resolving conflicts in favor of development." \
-                    --label "auto-merge" \
-                    --assignee "AlphaSweater"
-                  if [ $? -ne 0 ]; then
-                    echo "❌ Error: Failed to create pull request to development. Please check permissions and branch status."
-                    exit 1
-                  fi
+
+                  git checkout -b dev-to-prod-sync origin/development
+                  git merge origin/production -X ours -m "Sync production into dev-to-prod-sync (favor dev side)"
+
+                  git push --force https://x-access-token:${PAT_TOKEN}@github.com/AlphaSweater/Security-Bank-Portal.git dev-to-prod-sync
 
             - name: "🚀 Create or Update PR: Development → Production"
               env:
                   PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
               run: |
                   gh auth login --with-token < <(echo "$PAT_TOKEN")
-                  # Check for existing open PR from development to production
-                  existing_pr=$(gh pr list --base production --head development --state open --json number --jq '.[0].number')
+
+                  # Look for existing sync PR
+                  existing_pr=$(gh pr list --base production --head dev-to-prod-sync --state open --json number --jq '.[0].number')
                   if [ "$existing_pr" != "" ]; then
-                    echo "🔗 PR already exists: #$existing_pr. Adding label and assigning..."
-                    gh pr edit $existing_pr --add-label "auto-merge" --add-assignee "AlphaSweater"
+                    echo "🔗 PR already exists: #$existing_pr. Updating labels/assignee..."
+                    gh pr edit $existing_pr --title "📦 Sync development → production" --add-label "sync" --add-assignee "AlphaSweater"
                     exit 0
                   fi
-                  # Create new PR
+
+                  # Create a quiet PR
                   gh pr create \
                     --base production \
-                    --head development \
-                    --title "🚀 Automated Merge: development → production" \
-                    --body "✨ This PR merges the latest changes from development into production." \
-                    --label "auto-merge" \
+                    --head dev-to-prod-sync \
+                    --title "📦 Sync development → production" \
+                    --body "Automated sync of development into production. Conflicts resolved in favor of development." \
+                    --label "sync" \
                     --assignee "AlphaSweater"
-                  if [ $? -ne 0 ]; then
-                    echo "❌ Error: Failed to create pull request. Please check permissions and branch status."
-                    exit 1
-                  fi
