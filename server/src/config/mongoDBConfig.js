@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb";
 import { getLogger } from "#utils/logger.js";
-const logger = getLogger(import.meta.url);
 
+const logger = getLogger(import.meta.url);
 const uri = process.env.MONGO_DB_URI;
 const dbName = process.env.MONGO_DB_NAME;
 
@@ -19,12 +19,12 @@ async function connectDB() {
   try {
     await client.connect();
     db = client.db(dbName);
-    logger.debug(`🌐 Attempting to ping ${dbName} ...`);
+    logger.debugAsync(`🌐 Attempting to ping ${dbName}...`);
     await db.command({ ping: 1 });
-    logger.debug(`🏓 Ping to ${dbName} successful!`);
+    logger.debugAsync(`🏓 Ping to ${dbName} successful!`);
     return db;
   } catch (mongoError) {
-    logger.error(`❌ MongoDB connection error: ${mongoError.message}`);
+    logger.errorAsync(`❌ MongoDB connection error: ${mongoError.message}`);
     throw mongoError;
   }
 }
@@ -39,9 +39,11 @@ function getDB() {
 async function closeDB() {
   try {
     await client.close();
-    logger.info("🛑 MongoDB connection closed.");
+    logger.infoAsync("🛑 MongoDB connection closed.");
   } catch (closeError) {
-    logger.error(`❌ Error closing MongoDB connection: ${closeError.message}`);
+    logger.errorAsync(
+      `❌ Error closing MongoDB connection: ${closeError.message}`
+    );
     throw closeError;
   }
 }

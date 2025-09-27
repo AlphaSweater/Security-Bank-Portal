@@ -14,9 +14,10 @@ logger.info("Initializing Express app...");
 const app = express();
 
 // Register core middleware
+logger.info("Registering core middleware");
 app.use(express.json({ limit: "1mb" })); // Parse JSON bodies, 1mb limit
 app.use(cookieParser()); // Parse cookies
-app.use(await session()); // Await session middleware setup
+app.use(await session()); // Set up session management
 
 // Log incoming requests (development only)
 app.use((req, res, next) => {
@@ -43,5 +44,5 @@ app.use((req, res, next) => {
 // Error handling middleware
 app.use(errorHandler);
 
-logger.info("Express app ready.");
+logger.info("Express app ready!");
 export default app;

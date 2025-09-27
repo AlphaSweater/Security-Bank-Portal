@@ -1,13 +1,12 @@
 import argon2 from "argon2";
 import * as userRepo from "#models/userModel.js";
 import { getLogger } from "#utils/logger.js";
+
 const logger = getLogger(import.meta.url);
 
 /**
  * Registers a new user after validating input and ensuring email uniqueness.
  * Passwords are securely hashed using Argon2id.
- * @param {Object} userData - User registration data
- * @returns {Promise<string>} Inserted user ID
  */
 export async function registerNewUser({
   firstName,
@@ -48,8 +47,6 @@ export async function registerNewUser({
 
 /**
  * Verifies user credentials by email and password.
- * @param {Object} credentials - User login data
- * @returns {Promise<Object>} User object if valid
  */
 export async function authenticateUser({ email, password }) {
   if (!email || !password) {

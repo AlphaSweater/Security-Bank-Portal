@@ -1,7 +1,12 @@
 import { getLogger } from "#utils/logger.js";
+
 const logger = getLogger(import.meta.url);
 
-// Centralized error handling middleware
+/**
+ * Centralized error handling middleware for Express.
+ * Logs error details and sends appropriate HTTP responses.
+ * Handles CSRF token errors specifically.
+ */
 export default function errorHandler(err, req, res, next) {
   logger.error(
     {

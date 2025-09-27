@@ -9,7 +9,7 @@ const logger = getLogger(import.meta.url);
 export default async function session() {
   const sessionSecret = process.env.SESSION_SECRET;
   if (!sessionSecret) {
-    logger.warn(
+    logger.warnAsync(
       "SESSION_SECRET is not set. Using default value (insecure for production)."
     );
   }
@@ -22,7 +22,7 @@ export default async function session() {
   const store = redisClient
     ? new RedisStore({ client: redisClient })
     : undefined;
-  logger.info(
+  logger.debugAsync(
     store ? "Session: Using RedisStore" : "Session: Using in-memory MemoryStore"
   );
 

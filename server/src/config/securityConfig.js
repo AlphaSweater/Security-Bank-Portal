@@ -2,9 +2,14 @@ import helmet from "helmet";
 import cors from "cors";
 import csurf from "csurf";
 import { getLogger } from "#utils/logger.js";
-const logger = getLogger(import.meta.url);
 
-const corsOrigin = process.env.CORS_ORIGIN || "https://localhost:5173";
+const logger = getLogger(import.meta.url);
+const corsOrigin = process.env.CORS_ORIGIN;
+if (!corsOrigin) {
+  logger.warn(
+    "CORS_ORIGIN is not set. This may lead to security vulnerabilities."
+  );
+}
 
 export default function setupSecurity(app) {
   // Helmet for security headers

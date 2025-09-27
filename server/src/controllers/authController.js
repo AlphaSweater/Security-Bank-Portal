@@ -2,6 +2,7 @@ import { createSession, destroySession } from "#services/sessionService.js";
 import * as authService from "#services/authService.js";
 import { isActiveUser } from "#services/userService.js";
 import { getLogger } from "#utils/logger.js";
+
 const logger = getLogger(import.meta.url);
 
 // --- Auth Controller ---
