@@ -1,19 +1,17 @@
 import pino from "pino";
 import path from "path";
 
-const showDebugLogs = process.env.SERVER_MODE !== "production" || process.env.SHOW_DEBUG_LOGS === "true";
+const showDebugLogs = process.env.SHOW_DEBUG_LOGS === "true";
 
 const baseLogger = pino({
   level: showDebugLogs ? "debug" : "info",
-  transport: showDebugLogs
-    ? {
-        target: "pino-pretty",
-        options: {
-          colorize: true,
-          ignore: "pid,hostname",
-        },
-      }
-    : undefined,
+  transport: {
+    target: "pino-pretty",
+    options: {
+      colorize: true,
+      ignore: "pid,hostname",
+    },
+  },
 });
 
 function getLogger(moduleUrlOrName) {
@@ -35,7 +33,6 @@ function getLogger(moduleUrlOrName) {
 
     if (typeof msg === "string") {
       if (level === "info") {
-        // Reset color after label for info logs only
         baseLogger[level](`[${displayLabel}]${COLOR_RESET} ${msg}`, ...args);
       } else {
         baseLogger[level](`[${displayLabel}] ${msg}`, ...args);
@@ -45,29 +42,33 @@ function getLogger(moduleUrlOrName) {
     }
   };
 
+  // Only enable debug methods if showDebugLogs is true
+  const debugFn = showDebugLogs
+    ? (msg, ...args) => logWithLabel(`${label}: Sync`, "debug", msg, ...args)
+    : () => {};
+  const debugAsyncFn = showDebugLogs
+    ? (msg, ...args) => logWithLabel(`${label}: Async`, "debug", msg, ...args)
+    : () => {};
+
   return {
-    // Sync logs
     info: (msg, ...args) =>
       logWithLabel(`${label}: Sync`, "info", msg, ...args),
     warn: (msg, ...args) =>
       logWithLabel(`${label}: Sync`, "warn", msg, ...args),
     error: (msg, ...args) =>
       logWithLabel(`${label}: Sync`, "error", msg, ...args),
-    debug: (msg, ...args) =>
-      logWithLabel(`${label}: Sync`, "debug", msg, ...args),
+    debug: debugFn,
     fatal: (msg, ...args) =>
       logWithLabel(`${label}: Sync`, "fatal", msg, ...args),
     trace: (msg, ...args) =>
       logWithLabel(`${label}: Sync`, "trace", msg, ...args),
-    // Async logs
     infoAsync: (msg, ...args) =>
       logWithLabel(`${label}: Async`, "info", msg, ...args),
     warnAsync: (msg, ...args) =>
       logWithLabel(`${label}: Async`, "warn", msg, ...args),
     errorAsync: (msg, ...args) =>
       logWithLabel(`${label}: Async`, "error", msg, ...args),
-    debugAsync: (msg, ...args) =>
-      logWithLabel(`${label}: Async`, "debug", msg, ...args),
+    debugAsync: debugAsyncFn,
     fatalAsync: (msg, ...args) =>
       logWithLabel(`${label}: Async`, "fatal", msg, ...args),
     traceAsync: (msg, ...args) =>

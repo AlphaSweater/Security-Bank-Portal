@@ -2,7 +2,7 @@ import { createClient } from "redis";
 import { getLogger } from "#utils/logger.js";
 
 const logger = getLogger(import.meta.url);
-const USE_REDIS_MOCK = process.env.USE_REDIS_MOCK === "true";
+const USE_REDIS = process.env.USE_REDIS === "true";
 
 // Checks if all required Redis environment variables are set
 function hasRedisEnv() {
@@ -16,7 +16,7 @@ function hasRedisEnv() {
 
 // Returns a connected Redis client (real), or undefined for failover
 async function getRedisClient() {
-  if (USE_REDIS_MOCK) {
+  if (!USE_REDIS) {
     logger.infoAsync("Using in-memory express-session for testing");
     return undefined;
   }
