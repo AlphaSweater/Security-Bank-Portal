@@ -98,23 +98,3 @@ jobs:
                     echo "production:  $NEW_PROD"
                     echo "tree:        $NEW_PROD_TREE"
                   } >> "$GITHUB_STEP_SUMMARY"
-
-            - name: "🏷️ Tag production snapshot"
-              if: ${{ steps.shas.outputs.needs_update == 'true' }}
-              env:
-                  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-              run: |
-                  set -e
-                  git remote set-url origin "https://x-access-token:${PAT_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-
-                  # Build a unique tag with date + time
-                  SNAPSHOT_TAG="prod-$(date +'%Y-%m-%d_%H-%M-%S')"
-
-                  # Tag the new production HEAD
-                  git tag -a "$SNAPSHOT_TAG" origin/production -m "Production snapshot from development"
-
-                  # Push the tag
-                  git push origin "$SNAPSHOT_TAG"
-
-                  echo "🏷️ Created tag: $SNAPSHOT_TAG"
-                  echo "tag=$SNAPSHOT_TAG" >> "$GITHUB_OUTPUT"
