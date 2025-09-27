@@ -1,9 +1,7 @@
 import * as userRepo from "#models/userModel.js";
 
 /**
- * Returns basic user info for session validation and frontend use.
- * @param {string} userId
- * @returns {Promise<{ id, email, role, firstName, lastName }|null>}
+ * Returns basic user info using the userId.
  */
 export async function getBasicUserInfo(userId) {
   if (!userId) return null;
@@ -18,9 +16,7 @@ export async function getBasicUserInfo(userId) {
 }
 
 /**
- * Checks if a user exists and is active
- * @param {string} userId
- * @returns {Promise<boolean>}
+ * Checks if a user exists and is active using the userId.
  */
 export async function isActiveUser(userId) {
   if (!userId) return false;

@@ -1,16 +1,12 @@
-// server/src/middlewares/validationMiddleware.js
 import { getLogger } from "#utils/logger.js";
+
 const logger = getLogger(import.meta.url);
 
 /**
  * Joi validation middleware for Express.
  * Validates req.body, req.query, or req.params based on options.target.
  * Logs request data when in development.
- * @param {import('joi').ObjectSchema} schema - Joi schema to validate against
- * @param {Object} [options]
- * @param {('body'|'query'|'params')} [options.target='body'] - Which part of the request to validate
- * @returns {Function} Express middleware
- */
+ **/
 export function validateData(schema, options = {}) {
   // Default to validating req.body
   const target = options.target || "body";
@@ -36,16 +32,15 @@ export function validateData(schema, options = {}) {
     const result = schema.validate(data, { abortEarly: false });
 
     if (result.error) {
-      // Get schema name for error formatting (if set)
-      let schemaName = "default";
-      if (schema.$_terms && schema.$_terms.metas) {
-        const meta = schema.$_terms.metas.find((m) => m.schemaName);
-        if (meta && meta.schemaName) schemaName = meta.schemaName;
-      }
+      // Always get schema name from Joi meta, fallback to "default"
+      const meta = schema?.$_terms?.metas?.find((m) => m.schemaName);
+      const schemaName = meta?.schemaName || "default";
+
       const errors = formatJoiError(result.error, { schema: schemaName });
       if (isDev) {
         logger.debug(`Validation errors: ${JSON.stringify(errors)}`);
       }
+
       return res.status(400).json({
         status: "fail",
         message: "Validation errors",
@@ -58,6 +53,7 @@ export function validateData(schema, options = {}) {
     if (isDev) {
       logger.debug(`Validated request ${target} successfully!`);
     }
+
     next();
   };
 }
@@ -67,8 +63,10 @@ export function validateData(schema, options = {}) {
 // Mask password fields in an object (for logging only)
 function maskPasswords(obj) {
   if (Array.isArray(obj)) return obj.map(maskPasswords);
+
   if (obj && typeof obj === "object") {
     const out = {};
+
     for (const [key, value] of Object.entries(obj)) {
       if (typeof key === "string" && key.toLowerCase().includes("password")) {
         out[key] =
@@ -77,28 +75,41 @@ function maskPasswords(obj) {
         out[key] = maskPasswords(value);
       }
     }
+
     return out;
   }
+
   return obj;
 }
 
 // Format Joi errors for frontend (grouped by field)
 export function formatJoiError(error, { schema, genericKey = "generic" } = {}) {
   if (!error || !error.details) return null;
-  const out = {};
+
+  const errors = {};
+
   for (const detail of error.details) {
-    let field = detail.context?.label || detail.path?.[0] || genericKey;
-    // For login schema, collapse certain errors to generic
-    if (
-      schema === "login" &&
-      (field === "email" || field === "password") &&
-      detail.message === "Invalid email or password"
-    ) {
+    // Prefer context label, then path, else generic
+    let field = detail.context?.label || detail.path?.[0];
+
+    // If no field or error is general, assign to genericKey
+    const isGeneric =
+      !field ||
+      (schema === "login" &&
+        ["email", "password"].includes(field) &&
+        detail.message === "Invalid email or password") ||
+      detail.type === "any.base" ||
+      detail.type === "any.custom";
+
+    if (isGeneric) {
       field = genericKey;
     }
-    if (!out[field]) {
-      out[field] = detail.message;
+
+    // Only set first error per field
+    if (!errors[field]) {
+      errors[field] = detail.message;
     }
   }
-  return out;
+
+  return errors;
 }

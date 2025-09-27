@@ -36,6 +36,15 @@
         "cwd": "${workspaceFolder}/server"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "Prune Remote Branches",
+      "type": "shell",
+      "command": "git fetch --prune",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
     }
   ]
 }

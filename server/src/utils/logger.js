@@ -1,11 +1,11 @@
 import pino from "pino";
 import path from "path";
 
-const isDev = process.env.NODE_ENV !== "production";
+const showDebugLogs = process.env.SERVER_MODE !== "production" || process.env.SHOW_DEBUG_LOGS === "true";
 
 const baseLogger = pino({
-  level: isDev ? "debug" : "info",
-  transport: isDev
+  level: showDebugLogs ? "debug" : "info",
+  transport: showDebugLogs
     ? {
         target: "pino-pretty",
         options: {

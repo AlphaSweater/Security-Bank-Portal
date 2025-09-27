@@ -1,5 +1,6 @@
 // server/src/controllers/userController.js
 import { getLogger } from "#utils/logger.js";
+
 const logger = getLogger(import.meta.url);
 
 // Get current user info
