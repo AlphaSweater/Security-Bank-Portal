@@ -31,6 +31,7 @@ jobs:
                   git fetch origin
                   git checkout -b dev-merge-temp origin/development
                   git merge origin/production -X ours -m "Merge production into development (auto-resolve in favor of development)"
+                  git pull --rebase origin dev-merge-temp
                   git push https://x-access-token:${PAT_TOKEN}@github.com/AlphaSweater/Security-Bank-Portal.git dev-merge-temp
 
             - name: "📝 Create PR: Temp Branch → Development"
@@ -50,7 +51,7 @@ jobs:
                     --base development \
                     --head dev-merge-temp \
                     --title "🔄 Merge production into development (auto-resolve)" \
-                    --body "✨ This PR merges production into development, auto-resolving conflicts in favor of development."
+                    --body "✨ This PR merges production into development, auto-resolving conflicts in favor of development." \
                     --label "auto-merge" \
                     --assignee "AlphaSweater"
                   if [ $? -ne 0 ]; then
@@ -75,7 +76,7 @@ jobs:
                     --base production \
                     --head development \
                     --title "🚀 Automated Merge: development → production" \
-                    --body "✨ This PR merges the latest changes from development into production."
+                    --body "✨ This PR merges the latest changes from development into production." \
                     --label "auto-merge" \
                     --assignee "AlphaSweater"
                   if [ $? -ne 0 ]; then
