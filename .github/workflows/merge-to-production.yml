@@ -73,8 +73,8 @@ jobs:
                   gh auth login --with-token < <(echo "$PAT_TOKEN")
                   pr_url="${PR_URL}"
 
-                  # Enable auto-merge (requires at least one approved review if repo settings enforce it)
-                  gh pr merge "$pr_url" --auto --merge-method merge
+                  # Enable auto-merge (merge commits, waits for required checks)
+                  gh pr merge "$pr_url" --auto -m
 
             - name: "🧹 Auto-Clean Temp Branch After Merge"
               if: always()
