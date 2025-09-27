@@ -1,0 +1,32 @@
+name: Merge development to production
+
+on:
+    workflow_dispatch:
+
+jobs:
+    merge:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check if actor is authorized
+              run: |
+                  if [ "$GITHUB_ACTOR" != "AlphaSweater" ]; then
+                    echo "This workflow can only be triggered by AlphaSweater."
+                    exit 1
+                  fi
+
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Set up Git user
+              run: |
+                  git config --global user.name "$GITHUB_ACTOR"
+                  git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+            - name: Merge development into production
+              run: |
+                  git fetch origin
+                  git checkout production
+                  git merge origin/development --no-ff -m "Merge development into production [CI]"
+                  git push origin production
