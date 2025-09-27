@@ -7,6 +7,7 @@ const logger = getLogger(import.meta.url);
 
 // Async function to create and return session middleware
 export default async function session() {
+  const sessionCookieName = process.env.SESSION_COOKIE_NAME;
   const sessionSecret = process.env.SESSION_SECRET;
   if (!sessionSecret) {
     logger.warnAsync(
@@ -28,7 +29,7 @@ export default async function session() {
 
   return expressSession({
     store,
-    name: "sid",
+    name: sessionCookieName || "sid",
     secret: sessionSecret || "default_secret",
     resave: false,
     saveUninitialized: false,
