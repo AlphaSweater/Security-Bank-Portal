@@ -5,10 +5,10 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
+import { useEffect } from "react";
+import { getCsrfToken } from "./utils/csrfUtil";
 import routes from "./routing/routes.jsx";
 import PageTransition from "components/PageTransition/PageTransition";
-
-// ...existing code...
 
 // UI Components
 import Navbar from "components/Navbar";
@@ -17,6 +17,11 @@ import Navbar from "components/Navbar";
 import styles from "./App.module.css";
 
 function AppContent() {
+  // Fetch CSRF token
+  useEffect(() => {
+    getCsrfToken();
+  }, []);
+
   const location = useLocation();
   // Find the first matching route (exact match)
   const currentRoute = routes.find((r) => r.path === location.pathname);
