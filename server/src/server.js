@@ -5,14 +5,15 @@ import { loadCerts } from "#config/loadCertsConfig.js";
 import { connectDB, closeDB } from "#config/mongoDBConfig.js";
 import app from "./app.js";
 import { getLogger } from "#utils/logger.js";
-const logger = getLogger(import.meta.url);
 
+const logger = getLogger(import.meta.url);
+const isProduction = process.env.SERVER_MODE === "production";
 const isHosted = process.env.IS_HOSTED_ENV === "true";
 const PORT = process.env.PORT;
 
+// Starts the server (hosted: HTTP, local: HTTPS + HTTP redirect)
 async function startServer() {
   try {
-    // Connect to database first
     logger.infoAsync("🔌 Connecting to MongoDB...");
     try {
       await connectDB();
@@ -25,19 +26,18 @@ async function startServer() {
       process.exit(1);
     }
 
-    // Start server
     logger.infoAsync("🚀 Starting server...");
-
     if (!PORT) {
       logger.errorAsync("❌ PORT environment variable is not set.");
       process.exit(1);
     }
 
     logger.infoAsync(
-      `🌍 Server running in ${isHosted ? "hosted" : "local"} mode`
+      `🌍 Server running in ${isHosted ? "hosted" : "local"} environment with ${
+        isProduction ? "production" : "development"
+      } settings`
     );
 
-    // Determine if the server is hosted or local
     if (isHosted) {
       // Hosted: HTTP only (Render handles HTTPS)
       const httpServer = http.createServer(app);
@@ -49,12 +49,17 @@ async function startServer() {
         process.exit(1);
       });
     } else {
-      // Local: HTTPS + HTTP redirect servers
+      // Local: HTTPS + HTTP redirect
+      let options;
+      try {
+        options = await loadCerts();
+      } catch (certError) {
+        logger.errorAsync(
+          `❌ Failed to load SSL certificates: ${certError.message}`
+        );
+        process.exit(1);
+      }
 
-      // Load SSL certs
-      const options = await loadCerts();
-
-      // Use PORT for HTTPS in local
       const httpsServer = https.createServer(options, app);
       httpsServer.listen(PORT, () => {
         logger.infoAsync(`✅ HTTPS server running on port ${PORT}`);
@@ -64,11 +69,13 @@ async function startServer() {
         process.exit(1);
       });
 
-      // Redirect HTTP to HTTPS on a separate port for local
+      // HTTP redirect to HTTPS
       const httpRedirectPort = process.env.REDIRECT_PORT || 8080;
       const httpServer = http.createServer((req, res) => {
+        // Safely handle missing host header
+        const host = req.headers.host || `localhost:${PORT}`;
         res.writeHead(301, {
-          Location: "https://" + req.headers.host + req.url,
+          Location: `https://${host}${req.url}`,
         });
         res.end();
       });
@@ -104,7 +111,6 @@ const shutdown = async () => {
 
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
-
 process.on("beforeExit", async () => {
   await shutdown();
 });
