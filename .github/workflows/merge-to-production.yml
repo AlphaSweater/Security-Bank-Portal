@@ -28,25 +28,17 @@ jobs:
                   git config --global user.name "$GITHUB_ACTOR"
                   git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-            - name: "⬆️ Install Latest GitHub CLI"
-              run: |
-                  curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-                  sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-                  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-                  sudo apt update
-                  sudo apt install gh -y
-
             - name: "🔄 Create Temp Sync Branch"
               env:
                   PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
               run: |
                   git fetch origin
 
-                  # Shorter unique branch name: sync/dev-prod-YYYYMMDD-HHMM
+                  # Short unique branch name
                   branch_name="sync/dev-prod-$(date +%Y%m%d-%H%M)"
                   git checkout -b "$branch_name" origin/development
 
-                  # Merge production into temp, always favoring dev
+                  # Merge production into temp, always favoring dev side
                   git merge origin/production -X ours -m "Sync production into $branch_name (favor dev side)"
 
                   git push https://x-access-token:${PAT_TOKEN}@github.com/AlphaSweater/Security-Bank-Portal.git "$branch_name"
@@ -61,35 +53,28 @@ jobs:
 
                   branch_name="${BRANCH_NAME}"
 
+                  # Create PR and capture URL from stdout
                   pr_url=$(gh pr create \
                     --base production \
                     --head "$branch_name" \
                     --title "📦 Sync development → production" \
                     --body "Automated sync of development into production. Conflicts resolved in favor of development.\n\nBranch: \`$branch_name\`" \
                     --label "sync" \
-                    --assignee "AlphaSweater" \
-                    --json url \
-                    --jq '.')
+                    --assignee "AlphaSweater")
 
                   echo "PR_URL=$pr_url" >> $GITHUB_ENV
                   echo "✅ PR created: $pr_url"
 
-            - name: "✅ Auto-Merge PR After Checks Pass"
+            - name: "🤖 Enable Auto-Merge When Checks Pass"
+              if: always()
               env:
                   PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
               run: |
                   gh auth login --with-token < <(echo "$PAT_TOKEN")
                   pr_url="${PR_URL}"
-                  pr_number=$(gh pr view "$pr_url" --json number --jq '.number')
-                  echo "Waiting for PR #$pr_number checks to pass..."
-                  for i in {1..60}; do
-                    status=$(gh pr view $pr_number --json status --jq '.status')
-                    if [ "$status" = "MERGEABLE" ]; then
-                      break
-                    fi
-                    sleep 10
-                  done
-                  gh pr merge $pr_number --auto
+
+                  # Enable auto-merge (requires at least one approved review if repo settings enforce it)
+                  gh pr merge "$pr_url" --auto --merge-method merge
 
             - name: "🧹 Auto-Clean Temp Branch After Merge"
               if: always()
@@ -98,10 +83,11 @@ jobs:
               run: |
                   gh auth login --with-token < <(echo "$PAT_TOKEN")
                   branch_name="${BRANCH_NAME}"
+                  pr_url="${PR_URL}"
 
-                  # Check if the PR was merged before deleting the branch
-                  merged=$(gh pr view "$PR_URL" --json merged --jq '.merged')
-                  if [ "$merged" = "true" ]; then
+                  # Check if PR is merged before deleting branch
+                  merged_state=$(gh pr view "$pr_url" --json merged --jq '.merged' 2>/dev/null || echo "false")
+                  if [ "$merged_state" = "true" ]; then
                     echo "🧹 Cleaning up merged branch: $branch_name"
                     git push https://x-access-token:${PAT_TOKEN}@github.com/AlphaSweater/Security-Bank-Portal.git --delete "$branch_name"
                   else
