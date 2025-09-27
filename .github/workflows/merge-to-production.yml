@@ -1,14 +1,17 @@
-name: "📦 Sync Development → Production"
+name: "📸 Snapshot development → production"
 
 on:
     workflow_dispatch:
 
 permissions:
     contents: write
-    pull-requests: write
+
+concurrency:
+    group: snapshot-production
+    cancel-in-progress: false
 
 jobs:
-    sync:
+    snapshot:
         runs-on: ubuntu-latest
         steps:
             - name: "🔒 Authorize Workflow Actor"
@@ -23,53 +26,47 @@ jobs:
               with:
                   fetch-depth: 0
 
-            - name: "👤 Configure Git User"
+            - name: "👤 Configure Git"
               run: |
                   git config --global user.name "$GITHUB_ACTOR"
                   git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-            - name: "🔄 Create Temp Sync Branch"
+            - name: "📥 Fetch all branches"
+              run: |
+                  git fetch --no-tags --prune origin +refs/heads/*:refs/remotes/origin/*
+
+            - name: "🔍 Determine current SHAs"
+              id: shas
+              run: |
+                  DEV_SHA=$(git rev-parse origin/development)
+                  PROD_SHA=$(git rev-parse origin/production 2>/dev/null || echo "none")
+                  echo "dev_sha=$DEV_SHA" >> "$GITHUB_OUTPUT"
+                  echo "prod_sha=$PROD_SHA" >> "$GITHUB_OUTPUT"
+                  if [ "$PROD_SHA" = "$DEV_SHA" ]; then
+                    echo "needs_update=false" >> "$GITHUB_OUTPUT"
+                    echo "✅ Production already matches development ($DEV_SHA)"
+                  else
+                    echo "needs_update=true" >> "$GITHUB_OUTPUT"
+                    echo "ℹ️  Will update production from $PROD_SHA to $DEV_SHA"
+                  fi
+
+            - name: "🚢 Force-update production to development"
+              if: ${{ steps.shas.outputs.needs_update == 'true' }}
               env:
                   PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+                  DEV_SHA: ${{ steps.shas.outputs.dev_sha }}
               run: |
-                  git fetch origin
-
-                  # Short unique branch name
-                  branch_name="sync/dev-prod-$(date +%Y%m%d-%H%M)"
-                  git checkout -b "$branch_name" origin/development
-
-                  # Merge production into temp, always favoring dev side
-                  git merge origin/production -X ours -m "Sync production into $branch_name (favor dev side)"
-
-                  git push https://x-access-token:${PAT_TOKEN}@github.com/AlphaSweater/Security-Bank-Portal.git "$branch_name"
-                  echo "BRANCH_NAME=$branch_name" >> $GITHUB_ENV
-
-            - name: "🚀 Create PR: Development → Production"
-              id: create_pr
-              env:
-                  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-              run: |
-                  gh auth login --with-token < <(echo "$PAT_TOKEN")
-
-                  branch_name="${BRANCH_NAME}"
-
-                  # Create PR and capture URL from stdout
-                  pr_url=$(gh pr create \
-                    --base production \
-                    --head "$branch_name" \
-                    --title "📦 Sync development → production" \
-                    --body "Automated sync of development into production. Conflicts resolved in favor of development.\n\nBranch: \`$branch_name\`" \
-                    --label "sync" \
-                    --assignee "AlphaSweater")
-
-                  echo "PR_URL=$pr_url" >> $GITHUB_ENV
-                  echo "✅ PR created: $pr_url"
-
-            - name: "🤖 Enable Auto-Merge When Checks Pass"
-              if: always()
-              env:
-                  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-              run: |
-                  gh auth login --with-token < <(echo "$PAT_TOKEN")
-                  pr_url="${PR_URL}"
-                  gh pr merge "$pr_url" --auto -m
+                  # Use PAT to ensure we can push to protected branches
+                  git remote set-url origin "https://x-access-token:${PAT_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+                  # Update remote production ref to point exactly to development commit
+                  git push origin "$DEV_SHA":refs/heads/production --force
+                  # Verify
+                  git fetch origin production --prune
+                  NEW_PROD=$(git rev-parse origin/production)
+                  echo "✅ production now at $NEW_PROD"
+                  {
+                    echo "# Snapshot complete"
+                    echo
+                    echo "- development: $DEV_SHA"
+                    echo "- production:  $NEW_PROD"
+                  } >> "$GITHUB_STEP_SUMMARY"
