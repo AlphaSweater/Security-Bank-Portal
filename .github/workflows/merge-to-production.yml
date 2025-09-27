@@ -73,21 +73,3 @@ jobs:
                   gh auth login --with-token < <(echo "$PAT_TOKEN")
                   pr_url="${PR_URL}"
                   gh pr merge "$pr_url" --auto -m
-
-            - name: "🧹 Auto-Clean Temp Branch After Merge"
-              if: always()
-              env:
-                  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-              run: |
-                  gh auth login --with-token < <(echo "$PAT_TOKEN")
-                  branch_name="${BRANCH_NAME}"
-                  pr_url="${PR_URL}"
-
-                  # Check if PR is merged before deleting branch
-                  merged_state=$(gh pr view "$pr_url" --json merged --jq '.merged' 2>/dev/null || echo "false")
-                  if [ "$merged_state" = "true" ]; then
-                    echo "🧹 Cleaning up merged branch: $branch_name"
-                    git push https://x-access-token:${PAT_TOKEN}@github.com/AlphaSweater/Security-Bank-Portal.git --delete "$branch_name"
-                  else
-                    echo "ℹ️ Branch not deleted because PR is not merged yet."
-                  fi
