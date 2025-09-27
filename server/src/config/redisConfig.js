@@ -1,5 +1,4 @@
 import { createClient } from "redis";
-import RedisMock from "ioredis-mock";
 import { getLogger } from "#utils/logger.js";
 
 const logger = getLogger(import.meta.url);
@@ -15,45 +14,44 @@ function hasRedisEnv() {
   );
 }
 
-// Returns a connected Redis client (real or mock)
+// Returns a connected Redis client (real), or undefined for failover
 async function getRedisClient() {
-  if (!USE_REDIS_MOCK && hasRedisEnv()) {
-    logger.info("⚡ Using real Redis client");
-    try {
-      const redisClient = createClient({
-        socket: {
-          host: process.env.REDIS_HOST,
-          port: Number(process.env.REDIS_PORT),
-        },
-        username: process.env.REDIS_USERNAME,
-        password: process.env.REDIS_PASSWORD,
-      });
-      redisClient.on("connect", () => logger.info("✅ Connected to Redis"));
-      redisClient.on("error", (err) =>
-        logger.error("❌ Redis error", err.message)
-      );
-      await redisClient.connect();
-      return redisClient;
-    } catch (err) {
-      logger.error(
-        `❌ Failed to connect to Redis: ${err.message}. Falling back to ioredis-mock.`
-      );
-    }
-  }
-
-  // Use mock if env vars missing or USE_REDIS_MOCK is true
   if (USE_REDIS_MOCK) {
-    logger.info("⚡ Using ioredis-mock (test mode, USE_REDIS_MOCK=true)");
-  } else {
-    logger.warn(
-      "⚡ Missing Redis environment variables. Using ioredis-mock (test mode)."
-    );
+    logger.infoAsync("Using in-memory express-session for testing");
+    return undefined;
   }
 
-  const redisClientMock = new RedisMock();
-  return redisClientMock;
+  if (!hasRedisEnv()) {
+    logger.warnAsync(
+      "Missing Redis environment variables. Falling back to in-memory express-session."
+    );
+    return undefined;
+  }
+
+  logger.infoAsync("⚡ Using real Redis client");
+  try {
+    const redisClient = createClient({
+      socket: {
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT),
+      },
+      username: process.env.REDIS_USERNAME,
+      password: process.env.REDIS_PASSWORD,
+    });
+    redisClient.on("connect", () => logger.infoAsync("✅ Connected to Redis"));
+    redisClient.on("error", (err) =>
+      logger.errorAsync("❌ Redis error", err.message)
+    );
+    await redisClient.connect();
+    return redisClient;
+  } catch (err) {
+    logger.errorAsync(
+      `❌ Failed to connect to Redis: ${err.message}. Falling back to in-memory express-session.`
+    );
+    return undefined;
+  }
 }
 
-// Export a promise that resolves to a Redis client
+// Export a promise that resolves to a Redis client (or undefined)
 const redisInstancePromise = getRedisClient();
 export default redisInstancePromise;

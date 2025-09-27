@@ -16,7 +16,7 @@ const app = express();
 // Register core middleware
 app.use(express.json({ limit: "1mb" })); // Parse JSON bodies, 1mb limit
 app.use(cookieParser()); // Parse cookies
-app.use(session()); // Session management
+app.use(await session()); // Await session middleware setup
 
 // Log incoming requests (development only)
 app.use((req, res, next) => {
