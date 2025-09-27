@@ -65,7 +65,7 @@ jobs:
                   echo "PR_URL=$pr_url" >> $GITHUB_ENV
                   echo "✅ PR created: $pr_url"
 
-            - name: "🤖 Enable Auto-Merge When Checks Pass"
+            - name: "🤖 Auto-Approve & Enable Auto-Merge When Checks Pass"
               if: always()
               env:
                   PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
@@ -73,7 +73,10 @@ jobs:
                   gh auth login --with-token < <(echo "$PAT_TOKEN")
                   pr_url="${PR_URL}"
 
-                  # Enable auto-merge (merge commits, waits for required checks)
+                  # Step 1: Auto-approve
+                  gh pr review "$pr_url" --approve --body "Auto-approved by sync workflow"
+
+                  # Step 2: Enable auto-merge (merge commits, waits for required checks)
                   gh pr merge "$pr_url" --auto -m
 
             - name: "🧹 Auto-Clean Temp Branch After Merge"
