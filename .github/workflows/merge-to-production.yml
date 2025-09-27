@@ -1,14 +1,17 @@
-name: "📦 Sync Development → Production"
+name: "📸 Snapshot development → production"
 
 on:
     workflow_dispatch:
 
 permissions:
     contents: write
-    pull-requests: write
+
+concurrency:
+    group: snapshot-production
+    cancel-in-progress: false
 
 jobs:
-    sync:
+    snapshot:
         runs-on: ubuntu-latest
         steps:
             - name: "🔒 Authorize Workflow Actor"
@@ -23,53 +26,75 @@ jobs:
               with:
                   fetch-depth: 0
 
-            - name: "👤 Configure Git User"
+            - name: "👤 Configure Git"
               run: |
                   git config --global user.name "$GITHUB_ACTOR"
                   git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-            - name: "🔄 Create Temp Sync Branch"
+            - name: "📥 Fetch all branches"
+              run: |
+                  git fetch --no-tags --prune origin +refs/heads/*:refs/remotes/origin/*
+
+            - name: "🔍 Determine current SHAs/trees"
+              id: shas
+              run: |
+                  set -e
+                  DEV_SHA=$(git rev-parse origin/development)
+                  DEV_TREE=$(git rev-parse origin/development^{tree})
+                  PROD_SHA=$(git rev-parse origin/production 2>/dev/null || echo "none")
+                  if [ "$PROD_SHA" != "none" ]; then
+                    PROD_TREE=$(git rev-parse origin/production^{tree})
+                  else
+                    PROD_TREE="none"
+                  fi
+
+                  echo "dev_sha=$DEV_SHA" >> "$GITHUB_OUTPUT"
+                  echo "dev_tree=$DEV_TREE" >> "$GITHUB_OUTPUT"
+                  echo "prod_sha=$PROD_SHA" >> "$GITHUB_OUTPUT"
+                  echo "prod_tree=$PROD_TREE" >> "$GITHUB_OUTPUT"
+
+                  if [ "$PROD_TREE" = "$DEV_TREE" ]; then
+                    echo "needs_update=false" >> "$GITHUB_OUTPUT"
+                    echo "✅ Production content already matches development (tree $DEV_TREE)"
+                  else
+                    echo "needs_update=true" >> "$GITHUB_OUTPUT"
+                    echo "ℹ️  Will update production (tree $PROD_TREE) → development (tree $DEV_TREE)"
+                  fi
+
+            - name: "🔄 Promote development → production (with marker)"
+              if: ${{ steps.shas.outputs.needs_update == 'true' }}
               env:
                   PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+                  DEV_SHA: ${{ steps.shas.outputs.dev_sha }}
+                  PROD_SHA: ${{ steps.shas.outputs.prod_sha }}
               run: |
-                  git fetch origin
+                  set -e
+                  # Use PAT to ensure we can push to protected branches
+                  git remote set-url origin "https://x-access-token:${PAT_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 
-                  # Short unique branch name
-                  branch_name="sync/dev-prod-$(date +%Y%m%d-%H%M)"
-                  git checkout -b "$branch_name" origin/development
+                  # Create a local branch at the exact development commit
+                  git checkout --detach "$DEV_SHA"
+                  git checkout -B production
 
-                  # Merge production into temp, always favoring dev side
-                  git merge origin/production -X ours -m "Sync production into $branch_name (favor dev side)"
+                  # Add a tiny marker commit without changing the tree
+                  git commit --allow-empty \
+                    -m "🔄 Snapshot promotion: development → production $(date +'%Y-%m-%d_%H-%M-%S')" \
+                    -m "dev:  $DEV_SHA" \
+                    -m "prev: ${PROD_SHA}" \
+                    -m "by:   $GITHUB_ACTOR"
 
-                  git push https://x-access-token:${PAT_TOKEN}@github.com/AlphaSweater/Security-Bank-Portal.git "$branch_name"
-                  echo "BRANCH_NAME=$branch_name" >> $GITHUB_ENV
+                  # Push production so that its content matches development (force) plus the marker commit on top
+                  git push origin production --force
 
-            - name: "🚀 Create PR: Development → Production"
-              id: create_pr
-              env:
-                  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-              run: |
-                  gh auth login --with-token < <(echo "$PAT_TOKEN")
-
-                  branch_name="${BRANCH_NAME}"
-
-                  # Create PR and capture URL from stdout
-                  pr_url=$(gh pr create \
-                    --base production \
-                    --head "$branch_name" \
-                    --title "📦 Sync development → production" \
-                    --body "Automated sync of development into production. Conflicts resolved in favor of development.\n\nBranch: \`$branch_name\`" \
-                    --label "sync" \
-                    --assignee "AlphaSweater")
-
-                  echo "PR_URL=$pr_url" >> $GITHUB_ENV
-                  echo "✅ PR created: $pr_url"
-
-            - name: "🤖 Enable Auto-Merge When Checks Pass"
-              if: always()
-              env:
-                  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-              run: |
-                  gh auth login --with-token < <(echo "$PAT_TOKEN")
-                  pr_url="${PR_URL}"
-                  gh pr merge "$pr_url" --auto -m
+                  # Verify and summarize
+                  git fetch origin production --prune
+                  NEW_PROD=$(git rev-parse origin/production)
+                  NEW_PROD_TREE=$(git rev-parse origin/production^{tree})
+                  echo "✅ production now at $NEW_PROD"
+                  {
+                    echo "### Snapshot complete"
+                    echo
+                    echo "development: $DEV_SHA"
+                    echo "production:  $NEW_PROD"
+                    echo "tree:        $NEW_PROD_TREE"
+                  } >> "$GITHUB_STEP_SUMMARY"
