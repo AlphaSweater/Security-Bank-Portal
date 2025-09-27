@@ -1,4 +1,4 @@
-name: 📦 Merge development to production
+name: "📦 Merge Development to Production"
 
 on:
     workflow_dispatch:
@@ -7,33 +7,58 @@ jobs:
     merge:
         runs-on: ubuntu-latest
         steps:
-            - name: 🔒 Check if actor is authorized
+            - name: "🔒 Authorize Workflow Actor"
               run: |
                   if [ "$GITHUB_ACTOR" != "AlphaSweater" ]; then
                     echo "🚫 This workflow can only be triggered by AlphaSweater."
                     exit 1
                   fi
 
-            - name: 📦 Checkout repository
+            - name: "📦 Checkout Repository"
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
 
-            - name: 👤 Set up Git user
+            - name: "👤 Configure Git User"
               run: |
                   git config --global user.name "$GITHUB_ACTOR"
                   git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-            - name: � Merge production into development (resolve conflicts in favor of development)
+            - name: "🔄 Merge Production into Temp Branch (Favor Development)"
               env:
                   PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
               run: |
                   git fetch origin
-                  git checkout development
+                  git checkout -b dev-merge-temp origin/development
                   git merge origin/production -X ours -m "Merge production into development (auto-resolve in favor of development)"
-                  git push https://x-access-token:${PAT_TOKEN}@github.com/AlphaSweater/Security-Bank-Portal.git development
+                  git push https://x-access-token:${PAT_TOKEN}@github.com/AlphaSweater/Security-Bank-Portal.git dev-merge-temp
 
-            - name: 🚀 Create or update pull request
+            - name: "📝 Create PR: Temp Branch → Development"
+              env:
+                  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+              run: |
+                  gh auth login --with-token < <(echo "$PAT_TOKEN")
+                  # Check for existing open PR from temp branch to development
+                  existing_pr=$(gh pr list --base development --head dev-merge-temp --state open --json number --jq '.[0].number')
+                  if [ "$existing_pr" != "" ]; then
+                    echo "🔗 PR already exists: #$existing_pr. Adding label and assigning..."
+                    gh pr edit $existing_pr --add-label "auto-merge" --add-assignee "AlphaSweater"
+                    exit 0
+                  fi
+                  # Create new PR
+                  gh pr create \
+                    --base development \
+                    --head dev-merge-temp \
+                    --title "🔄 Merge production into development (auto-resolve)" \
+                    --body "✨ This PR merges production into development, auto-resolving conflicts in favor of development."
+                    --label "auto-merge" \
+                    --assignee "AlphaSweater"
+                  if [ $? -ne 0 ]; then
+                    echo "❌ Error: Failed to create pull request to development. Please check permissions and branch status."
+                    exit 1
+                  fi
+
+            - name: "🚀 Create or Update PR: Development → Production"
               env:
                   PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
               run: |
