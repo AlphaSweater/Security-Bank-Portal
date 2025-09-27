@@ -2,7 +2,7 @@ import { MongoClient } from "mongodb";
 import { getLogger } from "#utils/logger.js";
 const logger = getLogger(import.meta.url);
 
-const uri = process.env.MONGODB_URI;
+const uri = process.env.MONGO_DB_URI;
 const dbName = process.env.MONGO_DB_NAME;
 
 if (!uri || !dbName) {

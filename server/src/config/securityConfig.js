@@ -4,7 +4,6 @@ import csurf from "csurf";
 import { getLogger } from "#utils/logger.js";
 const logger = getLogger(import.meta.url);
 
-// You can adjust these as needed or use environment variables
 const corsOrigin = process.env.CORS_ORIGIN || "https://localhost:5173";
 
 export default function setupSecurity(app) {

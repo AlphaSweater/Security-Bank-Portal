@@ -1,7 +1,9 @@
 import pino from "pino";
 import path from "path";
 
-const isDev = process.env.NODE_ENV !== "production";
+// TODO: Make isDev dynamic again!
+// const isDev = process.env.SERVER_MODE !== "production";
+const isDev = true;
 
 const baseLogger = pino({
   level: isDev ? "debug" : "info",

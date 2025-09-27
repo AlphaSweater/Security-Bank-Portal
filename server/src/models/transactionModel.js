@@ -7,13 +7,13 @@ export async function insertTransaction(doc) {
   return await collection().insertOne(doc);
 }
 
-export async function findTransactionsByUserId(userId) {
+export async function getTransactionsByUserId(userId) {
   return await collection()
     .find({ userId: ObjectId.createFromHexString(userId) })
     .toArray();
 }
 
-export async function findPendingTransactions() {
+export async function getPendingTransactions() {
   return await collection().find({ status: "pending" }).toArray();
 }
 
