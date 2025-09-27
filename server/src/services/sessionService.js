@@ -3,10 +3,6 @@ const logger = getLogger(import.meta.url);
 
 /**
  * Regenerates the session and sets user data.
- * Uses async/await for clarity.
- * @param {object} req - Express request object
- * @param {object} user - User object to store in session
- * @returns {Promise<string>} Resolves with the new session ID
  */
 export async function createSession(req, user) {
   // Promisify session.regenerate for async/await
@@ -21,10 +17,6 @@ export async function createSession(req, user) {
 
 /**
  * Destroys the session and clears the cookie.
- * Uses async/await for clarity.
- * @param {object} req - Express request object
- * @param {object} res - Express response object
- * @returns {Promise<void>}
  */
 export async function destroySession(req, res) {
   // Promisify session.destroy for async/await

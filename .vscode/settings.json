@@ -101,5 +101,6 @@
   },
   "github-actions.workflows.pinned.workflows": [
     ".github/workflows/build-and-test.yml"
-  ]
+  ],
+  "postman.settings.dotenv-detection-notification-visibility": false
 }

@@ -1,4 +1,5 @@
 import { getLogger } from "#utils/logger.js";
+
 const logger = getLogger(import.meta.url);
 
 export function requireRole(...allowedRoles) {
