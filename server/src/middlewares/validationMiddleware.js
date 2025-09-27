@@ -5,7 +5,6 @@ const logger = getLogger(import.meta.url);
 /**
  * Joi validation middleware for Express.
  * Validates req.body, req.query, or req.params based on options.target.
- * Logs request data when in development.
  **/
 export function validateData(schema, options = {}) {
   // Default to validating req.body
