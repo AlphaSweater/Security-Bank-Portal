@@ -33,7 +33,9 @@ async function startServer() {
       process.exit(1);
     }
 
-    logger.infoAsync(`Server running in ${SERVER_MODE} mode`);
+    logger.infoAsync(
+      `🌍 Server running in ${isHosted ? "hosted" : "local"} mode`
+    );
 
     // Determine if the server is hosted or local
     if (isHosted) {
