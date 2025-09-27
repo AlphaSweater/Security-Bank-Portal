@@ -31,8 +31,7 @@ jobs:
                   git fetch origin
                   git checkout -b dev-merge-temp origin/development
                   git merge origin/production -X ours -m "Merge production into development (auto-resolve in favor of development)"
-                  git pull --rebase origin dev-merge-temp
-                  git push https://x-access-token:${PAT_TOKEN}@github.com/AlphaSweater/Security-Bank-Portal.git dev-merge-temp
+                  git push --force https://x-access-token:${PAT_TOKEN}@github.com/AlphaSweater/Security-Bank-Portal.git dev-merge-temp
 
             - name: "📝 Create PR: Temp Branch → Development"
               env:
