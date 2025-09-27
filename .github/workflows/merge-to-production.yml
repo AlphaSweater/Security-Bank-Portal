@@ -66,6 +66,23 @@ jobs:
                   echo "PR_URL=$pr_url" >> $GITHUB_ENV
                   echo "✅ PR created: $pr_url"
 
+            - name: "✅ Auto-Merge PR After Checks Pass"
+              env:
+                  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+              run: |
+                  gh auth login --with-token < <(echo "$PAT_TOKEN")
+                  pr_url="${PR_URL}"
+                  pr_number=$(gh pr view "$pr_url" --json number --jq '.number')
+                  echo "Waiting for PR #$pr_number checks to pass..."
+                  for i in {1..60}; do
+                    status=$(gh pr view $pr_number --json status --jq '.status')
+                    if [ "$status" = "MERGEABLE" ]; then
+                      break
+                    fi
+                    sleep 10
+                  done
+                  gh pr merge $pr_number --auto
+
             - name: "🧹 Auto-Clean Temp Branch After Merge"
               if: always()
               env:
