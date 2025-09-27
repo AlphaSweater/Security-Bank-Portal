@@ -7,7 +7,7 @@ import app from "./app.js";
 import { getLogger } from "#utils/logger.js";
 const logger = getLogger(import.meta.url);
 
-const SERVER_MODE = process.env.SERVER_MODE || "development";
+const isHosted = process.env.IS_HOSTED_ENV === "true";
 const PORT = process.env.PORT;
 
 async function startServer() {
@@ -35,8 +35,9 @@ async function startServer() {
 
     logger.infoAsync(`Server running in ${SERVER_MODE} mode`);
 
-    if (SERVER_MODE === "production") {
-      // Production: HTTP only (Render handles HTTPS)
+    // Determine if the server is hosted or local
+    if (isHosted) {
+      // Hosted: HTTP only (Render handles HTTPS)
       const httpServer = http.createServer(app);
       httpServer.listen(PORT, () => {
         logger.infoAsync(`✅ HTTP server running on port ${PORT}`);
@@ -45,13 +46,13 @@ async function startServer() {
         logger.errorAsync(`HTTP server error: ${err.message}`);
         process.exit(1);
       });
-    } else if (SERVER_MODE === "development") {
-      // Development: HTTPS + HTTP redirect
+    } else {
+      // Local: HTTPS + HTTP redirect servers
 
       // Load SSL certs
       const options = await loadCerts();
 
-      // Use PORT for HTTPS in development
+      // Use PORT for HTTPS in local
       const httpsServer = https.createServer(options, app);
       httpsServer.listen(PORT, () => {
         logger.infoAsync(`✅ HTTPS server running on port ${PORT}`);
@@ -61,7 +62,7 @@ async function startServer() {
         process.exit(1);
       });
 
-      // Redirect HTTP to HTTPS on a separate port
+      // Redirect HTTP to HTTPS on a separate port for local
       const httpRedirectPort = process.env.REDIRECT_PORT || 8080;
       const httpServer = http.createServer((req, res) => {
         res.writeHead(301, {
@@ -77,11 +78,6 @@ async function startServer() {
       httpServer.on("error", (err) => {
         logger.errorAsync(`HTTP server error: ${err.message}`);
       });
-    } else {
-      logger.errorAsync(
-        `❌ Invalid SERVER_MODE: ${SERVER_MODE}. Must be 'development' or 'production'.`
-      );
-      process.exit(1);
     }
   } catch (e) {
     logger.errorAsync(`Failed to start server: ${e.message}`);
