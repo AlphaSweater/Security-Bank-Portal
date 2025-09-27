@@ -28,5 +28,10 @@ jobs:
               run: |
                   git fetch origin
                   git checkout production
-                  git merge origin/development --no-ff -m "Merge development into production [CI]"
-                  git push origin production
+                  git merge origin/development --no-ff -X theirs -m "Merge development into production [CI]"
+
+            - name: Push changes
+              env:
+                  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+              run: |
+                  git push https://x-access-token:${PAT_TOKEN}@github.com/AlphaSweater/Security-Bank-Portal.git production
