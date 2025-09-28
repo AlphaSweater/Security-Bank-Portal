@@ -7,6 +7,7 @@ const logger = getLogger(import.meta.url);
 
 // Async function to create and return session middleware
 export default async function session() {
+  const appDomain = process.env.APP_DOMAIN || "localhost";
   const sessionCookieName = process.env.SESSION_COOKIE_NAME;
   const sessionSecret = process.env.SESSION_SECRET;
   if (!sessionSecret) {
@@ -36,7 +37,8 @@ export default async function session() {
     cookie: {
       httpOnly: true, // Only sent over HTTP(S), not accessible via JS
       secure: true, // Only sent over HTTPS
-      sameSite: "strict", // Prevents CSRF
+      sameSite: "lax", // Using lax to allow our subdomains share cookies
+      domain: `.${appDomain}`,
       maxAge: 1000 * 60 * 30, // 30 min session timeout
     },
   });

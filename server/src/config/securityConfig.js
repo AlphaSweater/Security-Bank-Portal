@@ -4,6 +4,7 @@ import csurf from "csurf";
 import { getLogger } from "#utils/logger.js";
 
 const logger = getLogger(import.meta.url);
+const appDomain = process.env.APP_DOMAIN || "localhost";
 const corsOrigin = process.env.CORS_ORIGIN;
 if (!corsOrigin) {
   logger.warn(
@@ -33,7 +34,12 @@ export default function setupSecurity(app) {
   // CSRF Protection (after CORS, before routes)
   app.use(
     csurf({
-      cookie: true, // Use cookies for CSRF tokens
+      cookie: {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: true,
+        domain: `.${appDomain}`,
+      },
     })
   );
   logger.debug("CSRF protection middleware applied");

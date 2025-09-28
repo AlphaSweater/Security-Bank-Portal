@@ -16,9 +16,7 @@ export async function apiRequest(url, options = {}) {
 
     // Prepend API_BASE_URL if url starts with /api
     const fullUrl =
-      url.startsWith("/api") && API_BASE_URL
-        ? API_BASE_URL + url.replace(/^\/api/, "")
-        : url;
+      url.startsWith("/api") && API_BASE_URL ? API_BASE_URL + url : url;
 
     const res = await fetch(fullUrl, {
       credentials: "include",

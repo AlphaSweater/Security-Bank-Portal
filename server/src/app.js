@@ -15,6 +15,7 @@ const app = express();
 
 // Register core middleware
 logger.info("Registering core middleware");
+app.set("trust proxy", 1); // Trust first proxy (like Render, Heroku, etc.)
 app.use(express.json({ limit: "1mb" })); // Parse JSON bodies, 1mb limit
 app.use(cookieParser()); // Parse cookies
 app.use(await session()); // Set up session management
@@ -32,9 +33,9 @@ app.use((req, res, next) => {
 setupSecurity(app);
 
 // Register routes
-app.use("/auth", authRoutes);
-app.use("/users", userRoutes);
-app.get("/health", (req, res) => res.status(200).send("OK"));
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.get("/api/health", (req, res) => res.status(200).send("OK"));
 
 // 404 handler (for unmatched routes)
 app.use((req, res, next) => {
