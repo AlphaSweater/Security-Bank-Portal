@@ -21,6 +21,12 @@ export default function setupSecurity(app) {
   );
   logger.debug("Helmet middleware applied");
 
+  // Log incoming Origin header for CORS sanity check
+  app.use((req, res, next) => {
+    logger.debug(`Incoming CORS request from Origin: ${req.headers.origin}`);
+    next();
+  });
+
   // CORS
   app.use(
     cors({
