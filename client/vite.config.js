@@ -17,9 +17,11 @@ export default defineConfig({
     },
   },
   server: {
+    host: "localhost",
+    port: 5173,
     https: {
-      key: "../server/certs/server.key",
-      cert: "../server/certs/server.crt",
+      key: "../server/certs/localhost.key",
+      cert: "../server/certs/localhost.crt",
     },
   },
 });
