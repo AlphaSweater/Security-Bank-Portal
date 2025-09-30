@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 // Assets
-import reactLogo from "../../assets/react.svg";
+import reactLogo from "../../assets/sbpLogo.png";
 
 // UI Components
 import AuthForms from "../../components/AuthForms/AuthForms";

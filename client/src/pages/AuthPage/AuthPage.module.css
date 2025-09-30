@@ -49,8 +49,8 @@
 }
 
 .heroLogo {
-  width: 92px;
-  margin-bottom: 1.7rem;
+  width: 175px;
+  margin-bottom: 0.35rem;
   animation: pulse 2.5s infinite;
   filter: drop-shadow(0 0 2.5em var(--color-primary-end));
 }

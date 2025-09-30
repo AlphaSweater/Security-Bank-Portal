@@ -1,7 +1,12 @@
 // External Imports
-import { useForm } from "./useForm";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+// Components
+import InputBox from "../Common/InputBox/InputBox";
 
 // Internal Imports
+import { useForm } from "./useForm";
 import { apiRequest } from "../../utils/apiUtil";
 import {
   registerUserSchema,
@@ -26,9 +31,6 @@ export default function AuthForms({ isLogin, onSwap }) {
 // -------------------
 // Login Form
 // -------------------
-
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 function ResponseBox({ type, message }) {
   if (!message) return null;
@@ -140,65 +142,29 @@ function LoginForm({ onSwap }) {
       <ResponseBox type={response.type} message={response.message} />
 
       <div className={styles.inputGroup}>
-        <div className={styles.inputWrapper}>
-          <div className={styles.floatingLabelGroup}>
-            <input
-              type="email"
-              name="email"
-              id="login-email"
-              placeholder=" "
-              value={form.email}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              required
-              autoComplete="email"
-              aria-invalid={!!shouldShowError("email")}
-              className={`${styles.inputField} ${
-                shouldShowError("email") ? styles.inputError : ""
-              }`}
-            />
-            <label
-              className={styles.floatingLabel}
-              aria-required="true"
-              htmlFor="login-email"
-            >
-              Email
-            </label>
-          </div>
-          {shouldShowError("email") && (
-            <p className={styles.errorText}>{currentErrors.email}</p>
-          )}
-        </div>
+        <InputBox
+          type="email"
+          name="email"
+          label="Email Address"
+          value={form.email}
+          onChange={(val) => handleChange({ target: { name: "email", value: val } })}
+          onBlur={handleBlur}
+          error={shouldShowError("email") ? currentErrors.email : undefined}
+          required
+          autoComplete="email"
+        />
 
-        <div className={styles.inputWrapper}>
-          <div className={styles.floatingLabelGroup}>
-            <input
-              type="password"
-              name="password"
-              id="login-password"
-              placeholder=" "
-              value={form.password}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              required
-              autoComplete="current-password"
-              aria-invalid={!!shouldShowError("password")}
-              className={`${styles.inputField} ${
-                shouldShowError("password") ? styles.inputError : ""
-              }`}
-            />
-            <label
-              className={styles.floatingLabel}
-              aria-required="true"
-              htmlFor="login-password"
-            >
-              Password
-            </label>
-          </div>
-          {shouldShowError("password") && (
-            <p className={styles.errorText}>{currentErrors.password}</p>
-          )}
-        </div>
+        <InputBox
+          type="password"
+          name="password"
+          label="Password"
+          value={form.password}
+          onChange={(val) => handleChange({ target: { name: "password", value: val } })}
+          onBlur={handleBlur}
+          error={shouldShowError("password") ? currentErrors.password : undefined}
+          required
+          autoComplete="current-password"
+        />
       </div>
 
       <div className={styles.buttonGroup}>
@@ -224,6 +190,8 @@ function LoginForm({ onSwap }) {
 // -------------------
 function RegisterForm({ onSwap }) {
   const [response, setResponse] = useState({ type: null, message: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const {
     form,
     setErrors,
@@ -324,214 +292,109 @@ function RegisterForm({ onSwap }) {
 
       <div className={styles.inputGroup}>
         <div className={styles.inputRow}>
-          <div className={styles.inputWrapper}>
-            <div className={styles.floatingLabelGroup}>
-              <input
-                type="text"
-                name="firstName"
-                id="register-firstName"
-                placeholder=" "
-                value={form.firstName}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                required
-                autoComplete="given-name"
-                aria-invalid={!!shouldShowError("firstName")}
-                className={`${styles.inputField} ${
-                  shouldShowError("firstName") ? styles.inputError : ""
-                }`}
-              />
-              <label
-                className={styles.floatingLabel}
-                aria-required="true"
-                htmlFor="register-firstName"
-              >
-                First Name
-              </label>
-            </div>
-            {shouldShowError("firstName") && (
-              <p className={styles.errorText}>{currentErrors.firstName}</p>
-            )}
-          </div>
+          <InputBox
+            type="text"
+            name="firstName"
+            label="First Name"
+            value={form.firstName}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={shouldShowError("firstName") ? currentErrors.firstName : undefined}
+            required
+            autoComplete="given-name"
+          />
 
-          <div className={styles.inputWrapper}>
-            <div className={styles.floatingLabelGroup}>
-              <input
-                type="text"
-                name="lastName"
-                id="register-lastName"
-                placeholder=" "
-                value={form.lastName}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                required
-                autoComplete="family-name"
-                aria-invalid={!!shouldShowError("lastName")}
-                className={`${styles.inputField} ${
-                  shouldShowError("lastName") ? styles.inputError : ""
-                }`}
-              />
-              <label
-                className={styles.floatingLabel}
-                aria-required="true"
-                htmlFor="register-lastName"
-              >
-                Last Name
-              </label>
-            </div>
-            {shouldShowError("lastName") && (
-              <p className={styles.errorText}>{currentErrors.lastName}</p>
-            )}
-          </div>
-        </div>
-
-        <div className={styles.inputWrapper}>
-          <div className={styles.floatingLabelGroup}>
-            <input
-              type="email"
-              name="email"
-              id="register-email"
-              placeholder=" "
-              value={form.email}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              required
-              autoComplete="email"
-              aria-invalid={!!shouldShowError("email")}
-              className={`${styles.inputField} ${
-                shouldShowError("email") ? styles.inputError : ""
-              }`}
-            />
-            <label
-              className={styles.floatingLabel}
-              aria-required="true"
-              htmlFor="register-email"
-            >
-              Email
-            </label>
-          </div>
-          {shouldShowError("email") && (
-            <p className={styles.errorText}>{currentErrors.email}</p>
-          )}
-        </div>
-
-        <div className={styles.inputWrapper}>
-          <div className={styles.floatingLabelGroup}>
-            <input
-              type="text"
-              name="saIdNumber"
-              id="register-saIdNumber"
-              placeholder=" "
-              value={form.saIdNumber}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              required
-              aria-invalid={!!shouldShowError("saIdNumber")}
-              className={`${styles.inputField} ${
-                shouldShowError("saIdNumber") ? styles.inputError : ""
-              }`}
-            />
-            <label
-              className={styles.floatingLabel}
-              aria-required="true"
-              htmlFor="register-saIdNumber"
-            >
-              SA ID Number
-            </label>
-          </div>
-          {shouldShowError("saIdNumber") && (
-            <p className={styles.errorText}>{currentErrors.saIdNumber}</p>
-          )}
-        </div>
-
-        <div className={styles.inputRow}>
-          <div className={styles.inputWrapper} style={{ flex: 1 }}>
-            <div className={styles.floatingLabelGroup}>
-              <input
-                type="password"
-                name="password"
-                id="register-password"
-                placeholder=" "
-                value={form.password}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                required
-                autoComplete="new-password"
-                aria-invalid={!!shouldShowError("password")}
-                className={`${styles.inputField} ${
-                  shouldShowError("password") ? styles.inputError : ""
-                }`}
-              />
-              <label
-                className={styles.floatingLabel}
-                aria-required="true"
-                htmlFor="register-password"
-              >
-                Password
-              </label>
-            </div>
-            {shouldShowError("password") && (
-              <p className={styles.errorText}>{currentErrors.password}</p>
-            )}
-          </div>
-
-          <div className={styles.inputWrapper} style={{ flex: 1 }}>
-            <div className={styles.floatingLabelGroup}>
-              <input
-                type="password"
-                name="passwordConfirm"
-                id="register-passwordConfirm"
-                placeholder=" "
-                value={form.passwordConfirm}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                required
-                autoComplete="new-password"
-                aria-invalid={!!shouldShowError("passwordConfirm")}
-                className={`${styles.inputField} ${
-                  shouldShowError("passwordConfirm") ? styles.inputError : ""
-                } ${shouldShowError("password") ? styles.inputError : ""}`}
-              />
-              <label
-                className={styles.floatingLabel}
-                aria-required="true"
-                htmlFor="register-passwordConfirm"
-              >
-                Confirm Password
-              </label>
-            </div>
-            {shouldShowError("passwordConfirm") && (
-              <p className={styles.errorText}>
-                {currentErrors.passwordConfirm}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* ✅ Password strength (visual only) */}
-        <div className={styles.passwordStrengthBar}>
-          <div
-            className={styles.passwordStrengthBarFill}
-            style={{
-              width: `${(passwordStrength / 5) * 100}%`,
-              background:
-                passwordStrength <= 1
-                  ? "linear-gradient(90deg, #e63946 60%, #fbbf24 100%)"
-                  : passwordStrength <= 3
-                  ? "linear-gradient(90deg, #fbbf24 40%, #10b981 100%)"
-                  : "linear-gradient(90deg, #10b981 80%, #22d3ee 100%)",
-            }}
+          <InputBox
+            type="text"
+            name="lastName"
+            label="Last Name"
+            value={form.lastName}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={shouldShowError("lastName") ? currentErrors.lastName : undefined}
+            required
+            autoComplete="family-name"
           />
         </div>
-        <div className={styles.passwordStrengthLabel}>
-          {passwordStrength <= 1 ? (
-            <span style={{ color: "#e63946" }}>Weak</span>
-          ) : passwordStrength <= 3 ? (
-            <span style={{ color: "#fbbf24" }}>Okay</span>
-          ) : (
-            <span style={{ color: "#10b981" }}>Strong</span>
-          )}
-        </div>
+
+        <InputBox
+          type="email"
+          name="email"
+          label="Email Address"
+          value={form.email}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          error={shouldShowError("email") ? currentErrors.email : undefined}
+          required
+          autoComplete="email"
+        />
+
+        <InputBox
+          type="text"
+          name="saIdNumber"
+          label="SA ID Number"
+          value={form.saIdNumber}
+          onChange={handleChange}
+          error={shouldShowError("saIdNumber") ? currentErrors.saIdNumber : undefined}
+          required
+        />
+
+        <InputBox
+          type={showPassword ? "text" : "password"}
+          name="password"
+          label="Password"
+          value={form.password}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          error={shouldShowError("password") ? currentErrors.password : undefined}
+          required
+          autoComplete="new-password"
+          rightIcon={{
+            icon: showPassword ? "🙈" : "👁️",
+            onClick: () => setShowPassword(!showPassword),
+            label: showPassword ? "Hide password" : "Show password"
+          }}
+        />
+        {!shouldShowError("password") && form.password && (
+          <div className={styles.passwordStrength}>
+            <div
+              className={styles.strengthBar}
+              style={{
+                width: `${(passwordStrength / 5) * 100}%`,
+                background: passwordStrength <= 1 
+                  ? "#e63946" 
+                  : passwordStrength <= 3 
+                    ? "#fbbf24" 
+                    : "#10b981"
+              }}
+            />
+            <div className={styles.passwordStrengthLabel}>
+              {passwordStrength <= 1 
+                ? "Weak" 
+                : passwordStrength <= 3 
+                  ? "Okay" 
+                  : "Strong"
+              }
+            </div>
+          </div>
+        )}
+
+        <InputBox
+          type={showConfirmPassword ? "text" : "password"}
+          name="passwordConfirm"
+          label="Confirm Password"
+          value={form.passwordConfirm}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          error={shouldShowError("passwordConfirm") ? currentErrors.passwordConfirm : undefined}
+          required
+          autoComplete="new-password"
+          rightIcon={{
+            icon: showConfirmPassword ? "🙈" : "👁️",
+            onClick: () => setShowConfirmPassword(!showConfirmPassword),
+            label: showConfirmPassword ? "Hide password" : "Show password"
+          }}
+        />
       </div>
 
       <div className={styles.buttonGroup}>
