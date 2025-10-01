@@ -26,7 +26,7 @@ function AppContent() {
   // Find the first matching route (exact match)
   const currentRoute = routes.find((r) => r.path === location.pathname);
   const showNavbar = currentRoute ? currentRoute.showNavbar !== false : true;
-  const showFooter = currentRoute ? currentRoute.showFooter !== false : true;
+  const _showFooter = currentRoute ? currentRoute.showFooter !== false : true;
   const isLanding = location.pathname === "/";
   return (
     <div className={styles.appRoot}>
