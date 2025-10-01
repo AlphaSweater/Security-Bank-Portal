@@ -14,6 +14,7 @@ const routes = [
     showInNav: false,
     isPrivate: false,
     showNavbar: false,
+    showFooter: false,
   },
   {
     path: "/auth",
@@ -22,6 +23,7 @@ const routes = [
     showInNav: false,
     isPrivate: false,
     showNavbar: false,
+    showFooter: false,
   },
   {
     path: "/dashboard",

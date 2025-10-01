@@ -11,7 +11,16 @@
   min-height: 0; /* allows children to shrink properly */
   display: flex;
   flex-direction: column;
-  padding: 2.5rem 2rem;
+  padding: 2.5rem 2rem 0 2rem;
+}
+
+/* Full-bleed layout for pages like LandingPage (no inner padding) */
+.contentFullBleed {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0; /* remove container padding */
 }
 
 .contentContainer > * {
