@@ -26,12 +26,14 @@ function AppContent() {
   // Find the first matching route (exact match)
   const currentRoute = routes.find((r) => r.path === location.pathname);
   const showNavbar = currentRoute ? currentRoute.showNavbar !== false : true;
+  const showFooter = currentRoute ? currentRoute.showFooter !== false : true;
+  const isLanding = location.pathname === "/";
   return (
     <div className={styles.appRoot}>
       <header>{showNavbar && <Navbar />}</header>
 
       <PageTransition locationKey={location.key}>
-        <main className={styles.contentContainer}>
+        <main className={isLanding ? styles.contentFullBleed : styles.contentContainer}>
           <Routes location={location}>
             {routes.map((route) => (
               <Route
@@ -43,13 +45,6 @@ function AppContent() {
           </Routes>
         </main>
       </PageTransition>
-
-      <footer className={styles.footer}>
-        <small>
-          &copy; {new Date().getFullYear()} Security Bank Portal &mdash; All
-          rights reserved.
-        </small>
-      </footer>
     </div>
   );
 }

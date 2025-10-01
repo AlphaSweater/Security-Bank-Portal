@@ -148,7 +148,7 @@ function LoginForm({ onSwap }) {
           name="email"
           label="Email Address"
           value={form.email}
-          onChange={(val) => handleChange({ target: { name: "email", value: val } })}
+          onChange={handleChange}
           onBlur={handleBlur}
           error={shouldShowError("email") ? currentErrors.email : undefined}
           required
@@ -160,7 +160,7 @@ function LoginForm({ onSwap }) {
           name="password"
           label="Password"
           value={form.password}
-          onChange={(val) => handleChange({ target: { name: "password", value: val } })}
+          onChange={handleChange}
           onBlur={handleBlur}
           error={shouldShowError("password") ? currentErrors.password : undefined}
           required
