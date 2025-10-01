@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 // Components
 import InputBox from "../Common/InputBox/InputBox";
+import Button from "../Common/Button/Button";
 
 // Internal Imports
 import { useForm } from "./useForm";
@@ -168,17 +169,24 @@ function LoginForm({ onSwap }) {
       </div>
 
       <div className={styles.buttonGroup}>
-        <button
+        <Button
           type="submit"
-          className={styles.primaryButton}
+          variant="primary"
+          fullWidth
+          loading={loading}
           disabled={submitAttempted && Object.keys(currentErrors).length > 0}
         >
           {loading ? "Logging in..." : "Log In"}
-        </button>
+        </Button>
         <p>
-          <button type="button" onClick={onSwap} className={styles.switchLink}>
+          <Button 
+            type="button" 
+            variant="text" 
+            onClick={onSwap} 
+            className={styles.switchLink}
+          >
             Need an account? Sign Up
-          </button>
+          </Button>
         </p>
       </div>
     </form>
@@ -398,17 +406,24 @@ function RegisterForm({ onSwap }) {
       </div>
 
       <div className={styles.buttonGroup}>
-        <button
+        <Button
           type="submit"
-          className={styles.primaryButton}
-          disabled={submitAttempted && Object.keys(currentErrors).length > 0}
+          variant="primary"
+          fullWidth
+          loading={loading}
+          disabled={submitAttempted && (Object.keys(currentErrors).length > 0 || !form.termsAndConditions || passwordStrength < 3)}
         >
           {loading ? "Signing up..." : "Sign Up"}
-        </button>
+        </Button>
         <p>
-          <button type="button" onClick={onSwap} className={styles.switchLink}>
+          <Button 
+            type="button" 
+            variant="text" 
+            onClick={onSwap} 
+            className={styles.switchLink}
+          >
             Already have an account? Log In
-          </button>
+          </Button>
         </p>
       </div>
     </form>
