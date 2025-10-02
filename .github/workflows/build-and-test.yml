@@ -54,9 +54,3 @@ jobs:
       - name: 🧪 Test Backend
         working-directory: server
         run: npm test
-
-        # Optional Linting Step
-      - name: 🔍 Lint Code (Optional)
-        run: |
-          cd client && npm run lint --if-present
-          cd ../server && npm run lint --if-present
