@@ -1,6 +1,13 @@
 // External Dependencies
 import { useNavigate } from "react-router-dom";
-import { FiShield, FiZap, FiCreditCard, FiSmartphone, FiLock, FiGlobe } from 'react-icons/fi';
+import {
+  FiShield,
+  FiZap,
+  FiCreditCard,
+  FiSmartphone,
+  FiLock,
+  FiGlobe,
+} from "react-icons/fi";
 
 // Components
 import Button from "../../components/Common/Button/Button";
@@ -14,43 +21,44 @@ import styles from "./LandingPage.module.css";
 
 function LandingPage() {
   const navigate = useNavigate();
-  
+
   const handleGetStarted = () => navigate("/auth");
   const scrollToFeatures = () => {
-    document.getElementById('features').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById("features").scrollIntoView({ behavior: "smooth" });
   };
 
   const features = [
     {
       icon: <FiShield size={32} />,
       title: "Bank-Level Security",
-      description: "256-bit encryption and real-time fraud monitoring to protect your accounts."
+      description:
+        "256-bit encryption and real-time fraud monitoring to protect your accounts.",
     },
     {
       icon: <FiZap size={32} />,
       title: "Lightning Fast Transfers",
-      description: "Instant money transfers that take seconds, not hours."
+      description: "Instant money transfers that take seconds, not hours.",
     },
     {
       icon: <FiCreditCard size={32} />,
       title: "Virtual Cards",
-      description: "Generate secure virtual cards for online shopping."
+      description: "Generate secure virtual cards for online shopping.",
     },
     {
       icon: <FiSmartphone size={32} />,
       title: "Mobile Banking",
-      description: "Full banking capabilities right at your fingertips."
+      description: "Full banking capabilities right at your fingertips.",
     },
     {
       icon: <FiLock size={32} />,
       title: "Biometric Login",
-      description: "Secure access with fingerprint or face recognition."
+      description: "Secure access with fingerprint or face recognition.",
     },
     {
       icon: <FiGlobe size={32} />,
       title: "Global Support",
-      description: "24/7 customer support, no matter where you are."
-    }
+      description: "24/7 customer support, no matter where you are.",
+    },
   ];
 
   return (
@@ -62,8 +70,8 @@ function LandingPage() {
           <span className={styles.logoText}>Security Bank</span>
         </div>
         <div className={styles.navButtons}>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="medium"
             onClick={() => navigate("/auth")}
             className={styles.navSignIn}
@@ -78,27 +86,42 @@ function LandingPage() {
         <div className={styles.heroGradient}></div>
         <div className={styles.heroContent}>
           <div className={styles.heroText}>
-            <h1>Banking <span className={styles.highlight}>Reimagined</span> for the Digital Age</h1>
+            <h1>
+              Banking <span className={styles.highlight}>Reimagined</span> for
+              the Digital Age
+            </h1>
             <p className={styles.subtitle}>
-              Experience the future of secure banking with our cutting-edge platform. 
-              Where advanced security meets unparalleled convenience.
+              Experience the future of secure banking with our cutting-edge
+              platform. Where advanced security meets unparalleled convenience.
             </p>
             <div className={styles.ctaContainer}>
-              <Button 
-                variant="primary" 
+              <Button
+                variant="primary"
                 size="large"
                 onClick={handleGetStarted}
                 className={styles.ctaButton}
               >
                 Open Account
               </Button>
-              <button 
+              <button
                 onClick={scrollToFeatures}
                 className={styles.secondaryCta}
               >
                 <span>Learn More</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M5 12H19M19 12L12 5M19 12L12 19"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </button>
             </div>
@@ -144,7 +167,9 @@ function LandingPage() {
       <section id="features" className={styles.features}>
         <div className={styles.container}>
           <h2>Why Choose Security Bank?</h2>
-          <p className={styles.sectionSubtitle}>Experience banking that works as hard as you do</p>
+          <p className={styles.sectionSubtitle}>
+            Experience banking that works as hard as you do
+          </p>
           <div className={styles.featuresGrid}>
             {features.map((feature, index) => (
               <div key={index} className={styles.featureCard}>
@@ -161,9 +186,11 @@ function LandingPage() {
       <section className={styles.ctaSection}>
         <div className={styles.container}>
           <h2>Ready to get started?</h2>
-          <p>Join thousands of customers who trust us with their banking needs.</p>
-          <Button 
-            variant="primary" 
+          <p>
+            Join thousands of customers who trust us with their banking needs.
+          </p>
+          <Button
+            variant="primary"
             size="large"
             onClick={handleGetStarted}
             className={styles.ctaButton}
