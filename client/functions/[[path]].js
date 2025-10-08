@@ -59,7 +59,7 @@ export const onRequest = async ({ request, env, next }) => {
   }
 
   const rawCookie = request.headers.get("cookie") || "";
-  const SESSION_COOKIE_NAME = (env.SESSION_COOKIE_NAME || "sid").toLowerCase();
+  const SESSION_COOKIE_NAME = env.SESSION_COOKIE_NAME;
   const sessionCookie = rawCookie
     .split(";")
     .map((s) => s.trim())

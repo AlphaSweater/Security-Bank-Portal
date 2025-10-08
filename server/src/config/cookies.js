@@ -18,6 +18,7 @@ export function baseCookie() {
     secure: true, // HTTPS only
     sameSite: "lax", // allow some cross-site usage for our subdomains
     domain: cookieDomain(), // undefined on localhost
+    path: "/", // root path
   };
 }
 
