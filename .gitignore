@@ -1,0 +1,16 @@
+# Ignore all certs and .certs directory at repo root
+certs/*
+!certs/.gitkeep
+.certs/
+
+# Node.js dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
