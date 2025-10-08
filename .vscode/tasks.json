@@ -20,9 +20,27 @@
       "problemMatcher": []
     },
     {
+      "label": "Run Client Fast",
+      "type": "shell",
+      "command": "npm run dev:fast",
+      "options": {
+        "cwd": "${workspaceFolder}/client"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "Run Both",
       "type": "shell",
       "command": "npm run bothDev",
+      "options": {
+        "cwd": "${workspaceFolder}/server"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Both Fast",
+      "type": "shell",
+      "command": "npm run bothDev:fast",
       "options": {
         "cwd": "${workspaceFolder}/server"
       },
