@@ -159,10 +159,10 @@ function DashboardPage() {
           <div className={styles.card}>
             <h3>Quick Actions</h3>
             <div className={styles.quickActions}>
-              <button className={styles.actionButton}>
+              <Link to="/transaction" className={styles.actionButton}>
                 <FiDollarSign />
                 <span>Transfer Money</span>
-              </button>
+              </Link>
               <button className={styles.actionButton}>
                 <FiCreditCard />
                 <span>Pay Bills</span>

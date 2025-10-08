@@ -11,6 +11,8 @@ const Button = ({
   loading = false,
   disabled = false,
   className = '',
+  icon: Icon,
+  iconPosition = 'left',
   ...props
 }) => {
   const buttonClasses = [
@@ -21,6 +23,42 @@ const Button = ({
     className,
   ].join(' ').trim();
 
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <span className={styles.button__loading}>
+          <span className={styles.button__spinner} />
+          <span className="sr-only">Loading...</span>
+        </span>
+      );
+    }
+
+    if (!Icon) {
+      return children;
+    }
+
+    const iconElement = React.isValidElement(Icon) 
+      ? React.cloneElement(Icon, { className: styles.button__icon })
+      : <Icon className={styles.button__icon} />;
+
+    if (iconPosition === 'right') {
+      return (
+        <>
+          {children}
+          {iconElement}
+        </>
+      );
+    }
+
+    // Default to left position
+    return (
+      <>
+        {iconElement}
+        {children}
+      </>
+    );
+  };
+
   return (
     <button
       type={type}
@@ -28,14 +66,7 @@ const Button = ({
       disabled={disabled || loading}
       {...props}
     >
-      {loading ? (
-        <span className={styles.button__loading}>
-          <span className={styles.button__spinner} />
-          <span className="sr-only">Loading...</span>
-        </span>
-      ) : (
-        children
-      )}
+      {renderContent()}
     </button>
   );
 };
@@ -48,6 +79,8 @@ Button.propTypes = {
   fullWidth: PropTypes.bool,
   loading: PropTypes.bool,
   disabled: PropTypes.bool,
+  icon: PropTypes.oneOfType([PropTypes.element, PropTypes.func]),
+  iconPosition: PropTypes.oneOf(['left', 'right']),
   className: PropTypes.string,
 };
 

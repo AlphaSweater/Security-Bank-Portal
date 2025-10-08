@@ -2,6 +2,7 @@
 import LandingPage from "../pages/LandingPage";
 import AuthPage from "../pages/AuthPage";
 import DashboardPage from "../pages/DashboardPage";
+import TransactionPage from "../pages/TransactionPage/TransactionPage";
 import PrivateRoute from "./PrivateRoute";
 
 // Route meta: label for nav, element, auth, showInNav
@@ -36,6 +37,19 @@ const routes = [
     showInNav: true,
     isPrivate: true,
     showNavbar: true,
+  },
+  {
+    path: "/transaction",
+    label: "Transaction",
+    element: (
+      <PrivateRoute>
+        <TransactionPage />
+      </PrivateRoute>
+    ),
+    showInNav: false,  // Set to false since we're accessing it from the dashboard
+    isPrivate: true,
+    showNavbar: true,
+    showFooter: true,
   },
   // Add more routes as needed
 ];
