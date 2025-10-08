@@ -8,7 +8,6 @@ const logger = getLogger(import.meta.url);
 
 // ─────────── Env / Constants ───────────
 const {
-  APP_DOMAIN = "localhost",
   CORS_ORIGINS = "",
   NODE_ENV = "development",
   TRUST_PROXY,
@@ -24,10 +23,10 @@ const ALLOWED_ORIGINS = Object.freeze(
 const ALLOWED_ORIGIN_SET = new Set(ALLOWED_ORIGINS);
 
 const NO_STORE_HEADERS = Object.freeze({
-  // "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-  // Pragma: "no-cache",
-  // Expires: "0",
-  // "Surrogate-Control": "no-store",
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+  Pragma: "no-cache",
+  Expires: "0",
+  "Surrogate-Control": "no-store",
 });
 
 // ─────────── CSRF Skip Config ───────────
@@ -91,7 +90,7 @@ export default function setupSecurity(app) {
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: [
       "Content-Type",
-      "X-Csrf-Token",
+      "X-CSRF-Token",
       "X-Requested-With",
       "Authorization",
     ],
