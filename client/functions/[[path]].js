@@ -1,19 +1,18 @@
 /**
- * Global route gate for Cloudflare Pages.
- *
- * - Intercepts all HTML navigations.
- * - Public routes are always allowed.
- * - Everything else is protected by default.
- * - Supports future role-based restrictions.
+ * Global route gate for Cloudflare Pages (HTML only).
+ * - Allows public routes.
+ * - Gates all other HTML routes via backend session probe.
+ * - Optional role-based route enforcement.
  */
 
 export const onRequest = async ({ request, env, next }) => {
   const url = new URL(request.url);
   const path = url.pathname;
 
-  /* --------------------------------------------------------
-   * Skip non-HTML requests (assets, etc.)
-   * -------------------------------------------------------- */
+  // We skip API paths entirely (the client calls these for the backend)
+  if (path.startsWith("/api/")) return next();
+
+  // We only intercept top-level HTML navigations
   const isAsset = /\.(js|css|png|jpg|jpeg|webp|svg|ico|map|woff2?|ttf)$/i.test(
     path
   );
@@ -26,78 +25,71 @@ export const onRequest = async ({ request, env, next }) => {
 
   if (!isHtmlNav) return next();
 
-  /* --------------------------------------------------------
-   * Route access configuration
-   * -------------------------------------------------------- */
+  // Route config
   const ROUTES = {
     public: [
-      /^\/$/, // Home
+      /^\/$/, // landing page
       /^\/login(\/|$)/,
       /^\/register(\/|$)/,
       /^\/about(\/|$)/,
       /^\/privacy(\/|$)/,
+      /^\/unauthorized(\/|$)/, // optional info page
     ],
 
-    // Optional: role-protected routes
     roles: {
       admin: [/^\/admin(\/|$)/],
-      manager: [/^\/reports(\/|$)/],
-      user: [/^\/dashboard(\/|$)/],
+      employee: [/^\/reports(\/|$)/],
+      customer: [/^\/dashboard(\/|$)/],
     },
   };
 
-  /* --------------------------------------------------------
-   * Determine route type
-   * -------------------------------------------------------- */
-  const isPublic = ROUTES.public.some((rx) => rx.test(path));
-  if (isPublic) return next();
+  // 3) Allow public
+  if (ROUTES.public.some((rx) => rx.test(path))) return next();
 
-  // By default, everything else requires authentication
-  const requiresAuth = true;
+  // 4) Everything else requires auth
+  const apiBase = env.VITE_API_BASE_URL;
 
-  /* --------------------------------------------------------
-   * Check session via backend API
-   * -------------------------------------------------------- */
-  if (requiresAuth) {
-    try {
-      const probe = await fetch(`${env.API_BASE}/api/auth/sessionCheck`, {
-        method: "GET",
-        headers: {
-          cookie: request.headers.get("cookie") || "",
-          "x-forwarded-for": request.headers.get("cf-connecting-ip") || "",
-        },
-        redirect: "manual",
-      });
+  try {
+    const probe = await fetch(`${apiBase}/api/auth/sessionCheck`, {
+      method: "GET",
+      headers: {
+        cookie: request.headers.get("cookie") || "",
+        "x-forwarded-for": request.headers.get("cf-connecting-ip") || "",
+      },
+      redirect: "manual",
+    });
 
-      // Valid session
-      if (probe.status === 200) {
-        // (Optional) check roles if backend returns them
+    if (probe.status === 200) {
+      // Optional role handling
+      let userRole = null;
+      const ctype = probe.headers.get("content-type") || "";
+      if (ctype.includes("application/json")) {
         const body = await probe.json().catch(() => ({}));
-        const userRole = body.role || null;
-
-        // If route is role-protected, ensure the user qualifies
-        if (userRole && ROUTES.roles[userRole]) {
-          const restricted = Object.entries(ROUTES.roles).find(
-            ([role, patterns]) => patterns.some((rx) => rx.test(path))
-          );
-
-          if (restricted && restricted[0] !== userRole) {
-            return Response.redirect(`${url.origin}/unauthorized`, 302);
-          }
-        }
-
-        return next();
+        userRole = body.role || null;
       }
-    } catch (err) {
-      console.error("Session check failed:", err);
-    }
 
-    // If we reach here, session is invalid or failed
-    return Response.redirect(`${url.origin}/login`, 302);
+      // If this path is role-restricted, ensure user has the matching role
+      const matchedRole = Object.entries(ROUTES.roles).find(([, patterns]) =>
+        patterns.some((rx) => rx.test(path))
+      );
+      if (matchedRole) {
+        const [requiredRole] = matchedRole;
+        if (!userRole || userRole !== requiredRole) {
+          return Response.redirect(
+            new URL("/unauthorized", url).toString(),
+            302
+          );
+        }
+      }
+
+      // Auth (and role, if any) OK → allow
+      return next();
+    }
+  } catch (err) {
+    // fall through to fail-closed
+    console.error("Session check failed:", err);
   }
 
-  /* --------------------------------------------------------
-   * Fallback (shouldn't be hit normally)
-   * -------------------------------------------------------- */
-  return next();
+  // 5) Unauthed or probe failed → go to login
+  return Response.redirect(new URL("/login", url).toString(), 302);
 };
