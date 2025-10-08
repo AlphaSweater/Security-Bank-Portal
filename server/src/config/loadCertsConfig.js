@@ -6,7 +6,7 @@ import { getLogger } from "#utils/logger.js";
 const logger = getLogger(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const certsDir = path.resolve(__dirname, "..", "..", "certs");
+const certsDir = path.resolve(__dirname, "..", "..", "..", "certs");
 
 export async function loadCerts() {
   const certKeyFile = process.env.CERT_KEY || "server.key";

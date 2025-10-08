@@ -1,0 +1,13 @@
+# wrangler.toml — local dev config for Cloudflare Pages + Functions
+name = "security-bank-portal"
+compatibility_date = "2025-10-07"
+
+# --- Environment variables ---
+[vars]
+VITE_API_BASE_URL = "https://localhost:5000"
+
+# --- Local development config ---
+[dev]
+ip = "localhost"
+port = 8788
+local_protocol = "https"

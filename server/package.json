@@ -18,6 +18,7 @@
     "start": "node src/server.js",
     "dev": "concurrently -n server -c green \"nodemon src/server.js\"",
     "bothDev": "concurrently -n server,client -c green,cyan \"nodemon src/server.js\" \"npm run dev --prefix ../client\"",
+    "bothDev:fast": "concurrently -n server,client -c green,cyan \"nodemon src/server.js\" \"npm run dev:fast --prefix ../client\"",
     "build": "node -c src/server.js && echo 'Server validation complete'",
     "test": "vitest",
     "test:ui": "vitest --ui"
