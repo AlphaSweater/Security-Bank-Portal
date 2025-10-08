@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Cloudflare Wrangler
+.wrangler/
+
 # Editor directories and files
 .idea
 .DS_Store
