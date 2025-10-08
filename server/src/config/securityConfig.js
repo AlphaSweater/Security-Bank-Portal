@@ -13,8 +13,6 @@ const {
   TRUST_PROXY,
 } = process.env;
 
-const isProd = NODE_ENV === "production";
-
 const ALLOWED_ORIGINS = Object.freeze(
   CORS_ORIGINS.split(",")
     .map((s) => s.trim())
@@ -114,15 +112,13 @@ export default function setupSecurity(app) {
     return next(err);
   });
 
-  // Origin logging only in non-prod
-  if (!isProd) {
-    app.use((req, _res, next) => {
-      if (req.headers.origin) {
-        logger.debug(`[security] Incoming Origin: ${req.headers.origin}`);
-      }
-      next();
-    });
-  }
+  // Origin logging
+  app.use((req, _res, next) => {
+    if (req.headers.origin) {
+      logger.debug(`[security] Incoming Origin: ${req.headers.origin}`);
+    }
+    next();
+  });
 
   // CSRF protection (skip for configured routes)
   app.use((req, res, next) => {

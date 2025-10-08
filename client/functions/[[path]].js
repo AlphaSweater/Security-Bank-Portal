@@ -10,12 +10,10 @@ export const onRequest = async ({ request, env, next }) => {
 
   // 0) Passthrough for API and static assets
   if (path.startsWith("/api/")) {
-    // Not an error, but log for traceability
-    // console.log("Passthrough: API route", path);
+    console.log("Passthrough: API route", path);
     return next();
   }
   if (/\.(js|css|png|jpg|jpeg|webp|svg|ico|map|woff2?|ttf)$/i.test(path)) {
-    // console.log("Passthrough: static asset", path);
     return next();
   }
 
@@ -26,7 +24,6 @@ export const onRequest = async ({ request, env, next }) => {
     request.method === "GET" &&
     (accepts.includes("text/html") || secDest === "document");
   if (!isHtmlNav) {
-    // console.error("Blocked: Not a top-level HTML navigation", { method: request.method, accepts, secDest, path });
     return next();
   }
 
@@ -48,7 +45,6 @@ export const onRequest = async ({ request, env, next }) => {
 
   // Public paths allowed
   if (ROUTES.public.some((rx) => rx.test(path))) {
-    // console.log("Public route allowed", path);
     return next();
   }
 
@@ -63,7 +59,7 @@ export const onRequest = async ({ request, env, next }) => {
   }
 
   const rawCookie = request.headers.get("cookie") || "";
-  const SESSION_COOKIE_NAME = (env.SESSION_COOKIE_NAME || "sid").toLowerCase();
+  const SESSION_COOKIE_NAME = env.SESSION_COOKIE_NAME;
   const sessionCookie = rawCookie
     .split(";")
     .map((s) => s.trim())
@@ -79,6 +75,7 @@ export const onRequest = async ({ request, env, next }) => {
   // 3) Probe API (GET, CSRF-free)
   let probe;
   try {
+    console.log("Probing session with cookie", { sessionCookie });
     probe = await fetch(`${apiBase}/api/auth/sessionCheck`, {
       method: "GET",
       headers: {
