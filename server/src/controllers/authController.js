@@ -15,6 +15,7 @@ const logger = getLogger(import.meta.url);
 // POST /auth/login
 export async function login(req, res, next) {
   // All fields are already validated and stripped by middleware
+  res.set({ "Cache-Control": "no-store" });
   const { email, password } = req.body;
   try {
     const user = await authService.authenticateUser({ email, password });
@@ -31,6 +32,7 @@ export async function login(req, res, next) {
 // POST /auth/register
 export async function register(req, res, next) {
   // All fields are already validated and stripped by middleware
+  res.set({ "Cache-Control": "no-store" });
   const { firstName, lastName, saIdNumber, email, password } = req.body;
   try {
     await authService.registerNewUser({
@@ -51,6 +53,7 @@ export async function register(req, res, next) {
 
 // POST /auth/logout
 export async function logout(req, res) {
+  res.set({ "Cache-Control": "no-store" });
   try {
     await destroySession(req, res);
     return res.json({ message: "Logged out" });
@@ -61,42 +64,66 @@ export async function logout(req, res) {
 
 // GET /auth/session
 export async function sessionCheck(req, res) {
-  logger.debugAsync("Session check requested");
+  // Never cache this probe
+  res.set({
+    "Cache-Control": "no-store",
+  });
+
   try {
-    // Fetch session first (we can't validate active user without userId)
+    // 1) Fetch session
     const session = await fetchSession(req);
     if (!session || !session.userId) {
-      logger.debugAsync("No valid session or userId in session store");
       return res.status(401).json({ authenticated: false });
     }
 
-    // Start active user check immediately after we have userId
-    const activePromise = isActiveUser(session.userId);
-
-    // Await the active check (extendable: Promise.all if we add more parallel tasks later)
-    const active = await activePromise;
-
+    // 2) Check active user by id from session (with a 3s safety timeout)
+    let timeoutHit = false;
+    const active = await withTimeout(isActiveUser(session.userId), 3000, () => {
+      timeoutHit = true;
+    });
+    if (timeoutHit) {
+      // Timeout-specific response
+      return res.status(503).json({
+        authenticated: false,
+        message: "Session check timed out. Please try again.",
+      });
+    }
     if (!active) {
-      // Invalidate session fully now – user is no longer active
       try {
         await destroySession(req, res);
       } catch (destroyErr) {
         logger.warnAsync(
-          `Failed destroying session for inactive user ${session.userId}: ${destroyErr.message}`
+          `destroySession failed for ${session.userId}: ${destroyErr.message}`
         );
       }
-      logger.debugAsync(
-        `Rejected session for inactive userId ${session.userId}`
-      );
       return res.status(401).json({ authenticated: false });
     }
 
-    // All good – authenticated & active
-    return res.json({ authenticated: true, role: session.role });
+    // 3) OK
+    return res.status(200).json({ authenticated: true, role: session.role });
   } catch (err) {
+    // Safer for the gate: fail closed on unexpected errors
     logger.warnAsync(`Session check failed: ${err.message}`);
-    return res
-      .status(500)
-      .json({ authenticated: false, message: "Session check failed" });
+    return res.status(401).json({ authenticated: false });
   }
+}
+
+// ---- Helpers ----
+
+// Small utility to bound latency on external checks
+function withTimeout(promise, ms, onTimeout) {
+  let timeoutId;
+  const timeoutPromise = new Promise((resolve) => {
+    timeoutId = setTimeout(() => {
+      if (onTimeout) onTimeout();
+      resolve(false);
+    }, ms);
+  });
+  return Promise.race([
+    promise.then((result) => {
+      clearTimeout(timeoutId);
+      return result;
+    }),
+    timeoutPromise,
+  ]);
 }
