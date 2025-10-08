@@ -80,7 +80,6 @@ export const onRequest = async ({ request, env, next }) => {
       method: "GET",
       headers: {
         cookie: sessionCookie, // forward only the session cookie
-        "x-pages-probe": "1",
       },
       redirect: "manual",
     });
