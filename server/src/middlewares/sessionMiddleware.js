@@ -1,16 +1,16 @@
 import expressSession from "express-session";
 import { RedisStore } from "connect-redis";
 import redisClientPromise from "#config/redisConfig.js";
+import { sessionCookieOptions } from "#config/cookies.js";
 import { getLogger } from "#utils/logger.js";
 
 const logger = getLogger(import.meta.url);
 
 // Async function to create and return session middleware
 export default async function session() {
-  const appDomain = process.env.APP_DOMAIN || "localhost";
-  const sessionCookieName = process.env.SESSION_COOKIE_NAME;
-  const sessionSecret = process.env.SESSION_SECRET;
-  if (!sessionSecret) {
+  const { SESSION_COOKIE_NAME = "sid", SESSION_SECRET } = process.env;
+
+  if (!SESSION_SECRET) {
     logger.warnAsync(
       "SESSION_SECRET is not set. Using default value (insecure for production)."
     );
@@ -30,16 +30,10 @@ export default async function session() {
 
   return expressSession({
     store,
-    name: sessionCookieName || "sid",
-    secret: sessionSecret || "default_secret",
+    name: SESSION_COOKIE_NAME || "sid",
+    secret: SESSION_SECRET || "default_secret",
     resave: false,
     saveUninitialized: false,
-    cookie: {
-      httpOnly: true, // Only sent over HTTP(S), not accessible via JS
-      secure: true, // Only sent over HTTPS
-      sameSite: "lax", // Using lax to allow our subdomains share cookies
-      domain: `.${appDomain}`,
-      maxAge: 1000 * 60 * 30, // 30 min session timeout
-    },
+    cookie: sessionCookieOptions(), // 30 min default,
   });
 }

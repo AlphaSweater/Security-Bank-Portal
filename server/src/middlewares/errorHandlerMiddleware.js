@@ -5,7 +5,6 @@ const logger = getLogger(import.meta.url);
 /**
  * Centralized error handling middleware for Express.
  * Logs error details and sends appropriate HTTP responses.
- * Handles CSRF token errors specifically.
  */
 export default function errorHandler(err, req, res, next) {
   logger.error(
@@ -19,10 +18,6 @@ export default function errorHandler(err, req, res, next) {
     },
     err.message || "Unhandled error"
   );
-
-  if (err.code === "EBADCSRFTOKEN") {
-    return res.status(403).json({ message: "Invalid CSRF token" });
-  }
 
   return res.status(err.status || 500).json({
     error: err.message || "Internal Server Error",

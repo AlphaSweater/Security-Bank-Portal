@@ -1,41 +1,35 @@
 /**
- * Global route gate for Cloudflare Pages (HTML only).
- * - Allows public routes.
- * - Gates all other HTML routes via backend session probe.
- * - Optional role-based route enforcement.
+ * Global HTML route gate for Cloudflare Pages.
+ * - Lets public routes through.
+ * - Probes API with the session cookie for protected routes.
+ * - Optional role-based enforcement.
  */
-
 export const onRequest = async ({ request, env, next }) => {
   const url = new URL(request.url);
   const path = url.pathname;
 
-  // We skip API paths entirely (the client calls these for the backend)
+  // 0) Passthrough for API and static assets
   if (path.startsWith("/api/")) return next();
+  if (/\.(js|css|png|jpg|jpeg|webp|svg|ico|map|woff2?|ttf)$/i.test(path))
+    return next();
 
-  // We only intercept top-level HTML navigations
-  const isAsset = /\.(js|css|png|jpg|jpeg|webp|svg|ico|map|woff2?|ttf)$/i.test(
-    path
-  );
+  // Guard only top-level HTML navigations
   const accepts = request.headers.get("accept") || "";
   const secDest = request.headers.get("sec-fetch-dest") || "";
   const isHtmlNav =
     request.method === "GET" &&
-    !isAsset &&
     (accepts.includes("text/html") || secDest === "document");
-
   if (!isHtmlNav) return next();
 
-  // Route config
+  // 1) Routes
   const ROUTES = {
     public: [
-      /^\/$/, // landing page
-      /^\/login(\/|$)/,
-      /^\/register(\/|$)/,
+      /^\/$/,
+      /^\/auth(\/|$)/,
       /^\/about(\/|$)/,
       /^\/privacy(\/|$)/,
-      /^\/unauthorized(\/|$)/, // optional info page
+      /^\/unauthorized(\/|$)/,
     ],
-
     roles: {
       admin: [/^\/admin(\/|$)/],
       employee: [/^\/reports(\/|$)/],
@@ -43,53 +37,92 @@ export const onRequest = async ({ request, env, next }) => {
     },
   };
 
-  // 3) Allow public
+  // Public paths allowed
   if (ROUTES.public.some((rx) => rx.test(path))) return next();
 
-  // 4) Everything else requires auth
+  // 2) Env + cookie extraction
   const apiBase = env.VITE_API_BASE_URL;
 
+  if (!apiBase) {
+    console.error("Missing env.VITE_API_BASE_URL");
+    const loginUrl = new URL("/auth", url);
+    loginUrl.searchParams.set("next", path + url.search);
+    return Response.redirect(loginUrl.toString(), 302);
+  }
+
+  const rawCookie = request.headers.get("cookie") || "";
+  const SESSION_COOKIE_NAME = (env.SESSION_COOKIE_NAME || "sid").toLowerCase();
+  const sessionCookie = rawCookie
+    .split(";")
+    .map((s) => s.trim())
+    .find((c) => c.toLowerCase().startsWith(`${SESSION_COOKIE_NAME}=`));
+
+  if (!sessionCookie) {
+    const loginUrl = new URL("/auth", url);
+    loginUrl.searchParams.set("next", path + url.search);
+    return Response.redirect(loginUrl.toString(), 302);
+  }
+
+  // 3) Probe API (GET, CSRF-free)
+  let probe;
   try {
-    const probe = await fetch(`${apiBase}/api/auth/sessionCheck`, {
+    probe = await fetch(`${apiBase}/api/auth/sessionCheck`, {
       method: "GET",
       headers: {
-        cookie: request.headers.get("cookie") || "",
+        cookie: sessionCookie, // forward only the session cookie
+        "x-pages-probe": "1",
         "x-forwarded-for": request.headers.get("cf-connecting-ip") || "",
+        "user-agent": request.headers.get("user-agent") || "",
       },
       redirect: "manual",
     });
-
-    if (probe.status === 200) {
-      // Optional role handling
-      let userRole = null;
-      const ctype = probe.headers.get("content-type") || "";
-      if (ctype.includes("application/json")) {
-        const body = await probe.json().catch(() => ({}));
-        userRole = body.role || null;
-      }
-
-      // If this path is role-restricted, ensure user has the matching role
-      const matchedRole = Object.entries(ROUTES.roles).find(([, patterns]) =>
-        patterns.some((rx) => rx.test(path))
-      );
-      if (matchedRole) {
-        const [requiredRole] = matchedRole;
-        if (!userRole || userRole !== requiredRole) {
-          return Response.redirect(
-            new URL("/unauthorized", url).toString(),
-            302
-          );
-        }
-      }
-
-      // Auth (and role, if any) OK → allow
-      return next();
-    }
   } catch (err) {
-    // fall through to fail-closed
-    console.error("Session check failed:", err);
+    console.error("Session probe failed:", err);
+    const loginUrl = new URL("/auth", url);
+    loginUrl.searchParams.set("next", path + url.search);
+    return Response.redirect(loginUrl.toString(), 302);
   }
 
-  // 5) Unauthed or probe failed → go to login
-  return Response.redirect(new URL("/login", url).toString(), 302);
+  // 4) Handle probe result
+  if (probe.ok) {
+    // Role gate (optional)
+    const matchedRole = Object.entries(ROUTES.roles).find(([, patterns]) =>
+      patterns.some((rx) => rx.test(path))
+    );
+    if (!matchedRole) return next();
+
+    let role = null;
+    try {
+      if (
+        (probe.headers.get("content-type") || "").includes("application/json")
+      ) {
+        const body = await probe.clone().json();
+        role = body?.role ?? null;
+      }
+    } catch {
+      // ignore parse errors
+    }
+
+    const [requiredRole] = matchedRole;
+    if (!role || role !== requiredRole) {
+      return Response.redirect(new URL("/unauthorized", url).toString(), 302);
+    }
+    return next();
+  }
+
+  // Unauthed or redirected by API => go to /auth with next
+  if (
+    probe.status === 401 ||
+    probe.status === 403 ||
+    (probe.status >= 300 && probe.status < 400)
+  ) {
+    const loginUrl = new URL("/auth", url);
+    loginUrl.searchParams.set("next", path + url.search);
+    return Response.redirect(loginUrl.toString(), 302);
+  }
+
+  console.error("Unexpected sessionCheck status:", probe.status);
+  const loginUrl = new URL("/auth", url);
+  loginUrl.searchParams.set("next", path + url.search);
+  return Response.redirect(loginUrl.toString(), 302);
 };

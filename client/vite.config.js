@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  base: "./",
+  base: "/",
   plugins: [react()],
   resolve: {
     alias: {
@@ -20,8 +20,8 @@ export default defineConfig({
     host: "localhost",
     port: 5173,
     https: {
-      key: "../server/certs/localhost.key",
-      cert: "../server/certs/localhost.crt",
+      key: "../certs/localhost.key",
+      cert: "../certs/localhost.crt",
     },
   },
 });

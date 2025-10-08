@@ -36,7 +36,7 @@ export async function registerNewUser({
     saIdNumber,
     email,
     passwordHash,
-    role: "user", // default role
+    role: "customer", // default role
     createdAt: new Date(),
   };
 
