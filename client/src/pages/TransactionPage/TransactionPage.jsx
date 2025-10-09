@@ -313,20 +313,22 @@ const TransactionPage = () => {
                 <div className={styles.formGroup}>
                   <label>Beneficiary Type</label>
                   <div className={styles.segmentedControl}>
-                    <button
+                    <Button
                       type="button"
-                      className={`${styles.segment} ${formData.beneficiaryType === 'person' ? styles.active : ''}`}
+                      variant={formData.beneficiaryType === 'person' ? 'primary' : 'outline'}
                       onClick={() => setFormData({...formData, beneficiaryType: 'person'})}
+                      className={`${styles.segment} ${formData.beneficiaryType === 'person' ? styles.active : ''}`}
                     >
                       Person
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
-                      className={`${styles.segment} ${formData.beneficiaryType === 'business' ? styles.active : ''}`}
+                      variant={formData.beneficiaryType === 'business' ? 'primary' : 'outline'}
                       onClick={() => setFormData({...formData, beneficiaryType: 'business'})}
+                      className={`${styles.segment} ${formData.beneficiaryType === 'business' ? styles.active : ''}`}
                     >
                       Business
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
