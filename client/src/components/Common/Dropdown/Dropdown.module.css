@@ -1,0 +1,190 @@
+.dropdownContainer {
+  margin-bottom: 1.75rem;
+  position: relative;
+  width: 100%;
+  background-color: var(--color-surface-solid);
+  border-radius: var(--radius-md);
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.75rem;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: color 0.3s var(--ease-out-quint);
+}
+
+.dropdownWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.dropdownButton {
+  appearance: none;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background-color: var(--dropdown-bg, var(--color-surface-solid-dark, #0f172a)) !important;
+  background-clip: padding-box;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all 0.3s var(--ease-out-quint);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  z-index: 2;
+}
+
+.dropdownButton:focus {
+  outline: none;
+  border-color: var(--color-primary-start);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.dropdownButton:hover:not(:disabled) {
+  border-color: var(--color-primary-start);
+}
+
+.dropdownButton.error {
+  border-color: var(--color-error);
+}
+
+.dropdownButton.disabled {
+  background-color: var(--color-surface-disabled);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.selectedValue {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 0.5rem;
+}
+
+.arrow {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 0.3s var(--ease-out-quint);
+  flex-shrink: 0;
+}
+
+.arrowUp {
+  transform: rotate(180deg);
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 2000;
+  max-height: 300px;
+  margin-top: 0.25rem;
+  background-color: var(--dropdown-bg, var(--color-surface-solid-dark, #0f172a)) !important;
+  background: var(--dropdown-bg, var(--color-surface-solid-dark, #0f172a)) !important;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  overflow-y: auto;
+  animation: fadeIn 0.2s ease-out;
+  transform-origin: top;
+  padding: 0.5rem 0;
+  /* Force solid background */
+  background-image: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
+  /* Ensure text is readable */
+  color: var(--color-text-primary);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdownItem {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-out-quint);
+  color: var(--color-text-primary) !important;
+  background-color: var(--dropdown-bg, var(--color-surface-solid-dark, #0f172a)) !important;
+  display: block;
+  text-align: left;
+  width: 100%;
+  border: none;
+  font-size: 0.95rem;
+}
+
+.dropdownItem:hover {
+  background-color: var(--color-surface-solid) !important;
+  color: var(--color-primary-start) !important;
+}
+
+.dropdownItem.selected {
+  background-color: var(--color-surface-solid) !important;
+  color: var(--color-primary-start) !important;
+  font-weight: 600;
+  border-left: 3px solid var(--color-primary-start);
+}
+
+.arrow {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 0.3s var(--ease-out-quint);
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.arrowUp {
+  transform: rotate(180deg);
+}
+
+.selectedValue {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 0.5rem;
+}
+
+.dropdownItem.selected {
+  background-color: var(--color-surface-selected);
+  color: var(--color-primary-start);
+  font-weight: 500;
+}
+
+.noOptions {
+  padding: 0.75rem 1rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  text-align: center;
+}
+
+.errorMessage {
+  margin-top: 0.5rem;
+  color: var(--color-error);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .dropdownMenu {
+    max-height: 200px;
+  }
+}
