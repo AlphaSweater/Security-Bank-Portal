@@ -24,7 +24,7 @@ export async function createTransaction(req, res) {
   }
 }
 
-// GET /api/transactions/my
+// GET /api/users/me/transactions (moved to userController)
 export async function getMyTransactions(req, res) {
   res.set({ "Cache-Control": "no-store" });
   const userId = req.session?.userId;
@@ -52,13 +52,15 @@ export async function getAllPending(req, res) {
 // PATCH /api/transactions/status
 export async function setTransactionStatus(req, res) {
   res.set({ "Cache-Control": "no-store" });
-  const { _id, status } = req.body; // validated by Joi
-  const employeeId = req.session?.userId;
+  const { id } = req.params; // validated by params schema
+  const { status, reviewReason } = req.body; // validated by body schema
+  const employeeId = req.session?.userId; // source of truth for reviewer
   try {
     const result = await updateTxnStatus({
-      id: _id,
+      id,
       status,
       reviewerUserId: employeeId,
+      reviewReason,
     });
     if (result.matched === 0) {
       return res.status(404).json({ message: "Transaction not found" });

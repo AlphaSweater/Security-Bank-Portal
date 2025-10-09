@@ -11,14 +11,7 @@ import * as transactionValidation from "#utils/validation/transactionValidation.
 
 const router = express.Router();
 
-// Helper: inject session userId into body for create route
-function attachUserId(req, _res, next) {
-  // Ensure userId is taken from authenticated session, not client input
-  req.body = { ...req.body, userId: String(req.session.userId) };
-  next();
-}
-
-// Create a new transaction (customer)
+// POST /api/transactions — create transaction (customer)
 router.post(
   "/",
   addRateLimiter(GeneralLimiter, ExcessLimiter),
@@ -28,15 +21,13 @@ router.post(
   asyncHandler(transactionController.createTransaction)
 );
 
-// Get my transactions (customer)
-router.get(
-  "/my",
-  addRateLimiter(GeneralLimiter),
-  requireAuth,
-  asyncHandler(transactionController.getMyTransactions)
-);
+// Helper: inject session userId into body
+function attachUserId(req, _res, next) {
+  req.body = { ...req.body, userId: String(req.session.userId) };
+  next();
+}
 
-// Get all pending transactions (employee/admin)
+// GET /api/transactions/pending — list pending (employee/admin)
 router.get(
   "/pending",
   addRateLimiter(GeneralLimiter),
@@ -45,12 +36,15 @@ router.get(
   asyncHandler(transactionController.getAllPending)
 );
 
-// Update transaction status (employee/admin)
+// PATCH /api/transactions/:id/status — update status (employee/admin)
 router.patch(
-  "/status",
+  "/:id/status",
   addRateLimiter(GeneralLimiter, ExcessLimiter),
   requireAuth,
   requireRole("employee", "admin"),
+  validateData(transactionValidation.transactionIdSchema, {
+    target: "params",
+  }),
   validateData(transactionValidation.updateTransactionStatusSchema),
   asyncHandler(transactionController.setTransactionStatus)
 );

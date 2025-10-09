@@ -31,11 +31,17 @@ export async function listPendingTransactions() {
 /**
  * Updates a transaction status and reviewer.
  */
-export async function updateTransactionStatus({ id, status, reviewerUserId }) {
+export async function updateTransactionStatus({
+  id,
+  status,
+  reviewerUserId,
+  reviewReason,
+}) {
   const result = await transactionRepo.updateTransactionStatus(
     id,
     status,
-    reviewerUserId
+    reviewerUserId,
+    reviewReason
   );
   return {
     matched: result.matchedCount || 0,

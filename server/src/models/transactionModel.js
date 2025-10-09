@@ -12,7 +12,8 @@ export async function insertTransaction(doc) {
 
   const transaction = {
     ...doc,
-    status: doc.status || "pending",
+    userId: ObjectId.createFromHexString(String(doc.userId)),
+    status: "pending",
     createdAtTimeZone: doc.createdAtTimeZone, // IANA zone for display
     createdAtEpoch,
     statusUpdatedAtEpoch,
@@ -33,7 +34,12 @@ export async function getPendingTransactions() {
 }
 
 // Update transaction status and metadata
-export async function updateTransactionStatus(id, status, employeeId) {
+export async function updateTransactionStatus(
+  id,
+  status,
+  employeeId,
+  reviewReason
+) {
   const nowEpoch = epochSecondsNow();
   return await collection().updateOne(
     { _id: ObjectId.createFromHexString(id) },
@@ -44,6 +50,7 @@ export async function updateTransactionStatus(id, status, employeeId) {
         reviewedBy: employeeId
           ? ObjectId.createFromHexString(employeeId)
           : null,
+        reviewReason: reviewReason ?? null,
       },
     }
   );

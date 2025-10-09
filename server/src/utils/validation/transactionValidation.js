@@ -171,13 +171,20 @@ export const createTransactionSchema = Joi.object({
   destinationBankSwift: swiftBic("SWIFT/BIC").required(),
   destinationAccountNumber: accountNumber().required(),
 
-  // Status (defaults to pending on create; allow explicit set if you need)
-  status: Joi.string()
-    .valid("pending", "approved", "rejected")
-    .default("pending")
+  // Optional client timezone for display (IANA zone)
+  createdAtTimeZone: Joi.string()
+    .trim()
+    .pattern(/^[A-Za-z_]+\/[A-Za-z_]+(?:\/[A-Za-z_]+)?$/)
     .messages({
-      "any.only": "Status must be pending, approved, or rejected",
+      "string.base": "Time zone must be text",
+      "string.pattern.base":
+        "Time zone must be a valid IANA zone (e.g., Africa/Johannesburg)",
     }),
+
+  // For security: status on create is server-controlled
+  status: Joi.forbidden().messages({
+    "any.unknown": "Status cannot be set on create",
+  }),
 })
   .options({ stripUnknown: true, abortEarly: false })
   .meta({ schemaName: "transaction:create" });
@@ -192,13 +199,30 @@ export const updateTransactionStatusSchema = Joi.object({
       "any.only": "Status must be pending, approved, or rejected",
       "any.required": "Status is required",
     }),
+  reviewReason: Joi.string().trim().max(300).allow("").messages({
+    "string.base": "Review reason must be text",
+    "string.max": "Review reason must be 300 characters or fewer",
+  }),
 })
   .options({ stripUnknown: true, abortEarly: false })
   .meta({ schemaName: "transaction:updateStatus" });
 
+// Reusable factory for Transaction ID schemas (params/body variants)
+const makeTransactionIdSchema = (fieldKey, schemaName) =>
+  Joi.object({
+    [fieldKey]: objectId("Transaction ID").required(),
+  })
+    .options({ stripUnknown: true, abortEarly: false })
+    .meta({ schemaName });
+
+// --- Params: /transactions/:id ---
+export const transactionIdSchema = makeTransactionIdSchema(
+  "id",
+  "transaction:params"
+);
+
 // --- Query/Lookup schema (optional) ---
-export const getTransactionSchema = Joi.object({
-  _id: objectId("Transaction ID").required(),
-})
-  .options({ stripUnknown: true, abortEarly: false })
-  .meta({ schemaName: "transaction:get" });
+export const getTransactionSchema = makeTransactionIdSchema(
+  "_id",
+  "transaction:get"
+);

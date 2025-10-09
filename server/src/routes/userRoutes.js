@@ -8,12 +8,13 @@ import { GeneralLimiter } from "#config/rateLimitConfig.js";
 
 const router = express.Router();
 
-// Protected dashboard route
+// Get my transactions
 router.get(
-  "/dashboard",
+  "/me/transactions",
   addRateLimiter(GeneralLimiter),
   requireAuth,
-  asyncHandler(userController.getDashboard)
+  requireRole("customer"),
+  asyncHandler(userController.getMyTransactions)
 );
 
 export default router;
