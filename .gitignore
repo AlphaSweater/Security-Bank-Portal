@@ -1,5 +1,5 @@
 # Ignore all certs and .certs directory at repo root
-certs/*
+certs/**
 !certs/.gitkeep
 .certs/
 
