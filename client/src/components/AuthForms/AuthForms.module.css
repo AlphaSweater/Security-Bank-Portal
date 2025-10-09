@@ -131,6 +131,18 @@
   padding: 0.5rem 0;
 }
 
+.inputRow {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.inputRow > * {
+  flex: 1;
+  min-width: 0; /* Prevents flex items from overflowing */
+}
+
 .inputWrapper {
   display: flex;
   flex-direction: column;
