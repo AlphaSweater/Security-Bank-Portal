@@ -14,14 +14,15 @@
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  max-width: 100%;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 900px;
   margin: 2rem auto;
   border-radius: var(--radius-xl);
   overflow: hidden;
   position: relative;
   min-height: 580px;
   max-height: 90vh;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .contentRow > * {
@@ -92,16 +93,14 @@
    Forms Area
    ============================= */
 .formsArea {
-  width: 390px;
+  flex: 1;
   z-index: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  overflow-y: auto; /* Enable vertical scrolling */
-  overflow-x: hidden; /* Hide horizontal overflow */
-  padding: 2rem 1.5rem;
+  overflow: hidden; /* Hide scrollbar by default */
   position: relative;
-  transition: all 0.3s ease;
+  
   border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
   border-left: 2px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.06);
@@ -112,27 +111,40 @@
     rgba(255, 255, 255, 0.1),
     rgba(255, 255, 255, 0.02)
   );
+  
+  /* Smooth scrolling for WebKit browsers */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .contentRow {
-    flex-direction: column;
-    max-width: 100%;
-    border-radius: 0;
-    margin: 0;
-    min-height: 100vh;
-    max-height: none;
-  }
-  .heroArea {
-    width: 100%;
-    padding: 2rem 1rem;
-  }
-  .formsArea {
-    border-radius: 0;
-    border-left: none;
-    border-top: 2px solid rgba(255, 255, 255, 0.1);
-  }
+/* Form content wrapper */
+.formsArea > div {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  padding: 2rem;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for WebKit browsers */
+.formsArea > div::-webkit-scrollbar {
+  width: 6px;
+}
+
+.formsArea > div::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.formsArea > div::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  border: none;
+}
+
+.formsArea > div::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
 /* =============================
