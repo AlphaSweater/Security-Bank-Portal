@@ -220,7 +220,150 @@
 }
 
 /* Style the select dropdown */
-.formGroup select {
+/* Custom Dropdown Styles */
+/* Amount container */
+.amountContainer {
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Amount input wrapper */
+.amountInput {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  position: relative;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-solid-dark);
+  transition: all 0.3s var(--ease-out-quint);
+  height: 48px;
+  box-sizing: border-box;
+}
+
+.amountInput:focus-within {
+  border-color: var(--color-primary-start);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.currencySymbol {
+  padding: 0 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+}
+
+.amountField {
+  flex: 1;
+  padding: 0 0.75rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  outline: none;
+  height: 100%;
+  width: 100%;
+  font-family: var(--font-family-base);
+}
+
+.amountField::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+.currencyDropdownWrapper {
+  width: 200px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  /* Elevate the dropdown stack above action buttons */
+  z-index: 10001;
+  /* Create a new stacking context */
+  transform: translateZ(0);
+}
+
+.currencyDropdown {
+  height: 48px;
+  width: 100%;
+  position: relative;
+}
+
+.currencyDropdown :global(.dropdownButton):hover {
+  border-color: var(--color-primary-start) !important;
+}
+
+.currencyDropdown :global(.dropdownMenu) {
+  width: 100%;
+  min-width: 100%;
+  right: 0;
+  position: absolute; /* Must be absolute to overlay content */
+  z-index: 10000 !important; /* Higher than action buttons */
+  background: var(--dropdown-bg, var(--color-surface-solid-dark, #0f172a)) !important;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-top: 0.25rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  left: auto;
+  background-image: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
+}
+
+.formGroup .dropdownButton {
+  background: var(--color-surface-solid) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 0.75rem 1rem !important;
+  color: var(--color-text-primary) !important;
+  text-align: left;
+  transition: all 0.3s var(--ease-out-quint);
+}
+
+.formGroup .dropdownButton:hover {
+  border-color: var(--color-primary-start) !important;
+}
+
+.formGroup .dropdownMenu {
+  width: 100%;
+  background: var(--dropdown-bg, var(--color-surface-solid-dark, #0f172a)) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+  margin-top: 0.25rem;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.formGroup .dropdownItem {
+  color: var(--color-text-primary) !important;
+  padding: 0.5rem 1rem !important;
+}
+
+.formGroup .dropdownItem:hover {
+  background: var(--color-surface-hover) !important;
+  color: var(--color-primary-start) !important;
+}
+
+/* Ensure proper z-index for dropdowns */
+.dropdownContainer {
+  position: relative;
+  z-index: 10;
+}
+
+/* Fix for transparent background */
+.dropdownButton, 
+.dropdownMenu {
+  background-color: var(--color-surface-solid) !important;
+  background: var(--color-surface-solid) !important;
+}
+
+/* Hide the original select element */
+select {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -840,26 +983,14 @@
 }
 
 .paymentMethod {
-  display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.paymentOption {
-  display: flex;
-  align-items: center;
-  padding: 1.25rem 1.5rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all 0.3s var(--ease-out-quint);
-  position: relative;
-  overflow: hidden;
-}
-
-.paymentOption::before {
-  content: '';
+.payme.nextButton {
+  margin-top: 1.5rem;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
   position: absolute;
   top: 0;
   left: 0;
