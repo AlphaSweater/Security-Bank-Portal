@@ -4,6 +4,9 @@ import Button from "../../components/Common/Button/Button";
 import Dropdown from "../../components/Common/Dropdown/Dropdown";
 import styles from "./TransactionPage.module.css";
 import Footer from "../../components/Footer/Footer";
+import Notification from "../../components/Common/Notification/Notification";
+import { apiRequest } from "../../utils/apiUtil";
+import { createTransactionSchema } from "../../utils/validation/transactionValidation";
 
 const TransactionPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -97,7 +100,7 @@ const TransactionPage = () => {
     // userId is injected server-side; do not send from client
   });
 
-  // Validate against server schema with userId made optional for client-side checks
+  // Validate against server schema with userId optional client-side
   const validateMapped = (mapped) => {
     const schema = createTransactionSchema.fork(["userId"], (s) =>
       s.optional()
@@ -106,19 +109,23 @@ const TransactionPage = () => {
       abortEarly: false,
       stripUnknown: true,
     });
-
     if (!error) return { errors: null, value };
-
     const details = error.details || [];
     const errMap = {};
     details.forEach((d) => {
       if (d.path && d.path.length) {
         const key = d.path[0];
-        // keep only the first error per key for UI simplicity
         if (!errMap[key]) errMap[key] = d.message;
       }
     });
     return { errors: errMap, value };
+  };
+
+  // Re-run validation when inputs change
+  const runValidation = (nextForm) => {
+    const mapped = mapUiToApi(nextForm);
+    const { errors: errMap } = validateMapped(mapped);
+    setErrors(errMap || {});
   };
 
   // Step-specific field lists in API schema keys
@@ -244,23 +251,24 @@ const TransactionPage = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
+    const next = {
+      ...formData,
       [name]:
         type === "checkbox"
           ? checked
           : name === "swiftBic"
           ? value.toUpperCase()
           : value,
-    }));
+    };
+    setFormData(next);
+    runValidation(next);
   };
 
   // Handle dropdown changes
   const handleDropdownChange = (name) => (value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    const next = { ...formData, [name]: value };
+    setFormData(next);
+    runValidation(next);
   };
 
   const nextStep = () => {
@@ -456,7 +464,7 @@ const TransactionPage = () => {
                         value={formData.amount}
                         onChange={handleChange}
                         placeholder="0.00"
-                        min="1"
+                        min="0.01"
                         step="0.01"
                         required
                         className={styles.amountField}
@@ -506,20 +514,25 @@ const TransactionPage = () => {
                     <Button
                       type="button"
                       variant={
-                        formData.beneficiaryType === "person"
+                        formData.beneficiaryType === "individual"
                           ? "primary"
                           : "outline"
                       }
-                      onClick={() =>
-                        setFormData({ ...formData, beneficiaryType: "person" })
-                      }
+                      onClick={() => {
+                        const next = {
+                          ...formData,
+                          beneficiaryType: "individual",
+                        };
+                        setFormData(next);
+                        runValidation(next);
+                      }}
                       className={`${styles.segment} ${
-                        formData.beneficiaryType === "person"
+                        formData.beneficiaryType === "individual"
                           ? styles.active
                           : ""
                       }`}
                     >
-                      Person
+                      Individual
                     </Button>
                     <Button
                       type="button"
@@ -528,12 +541,14 @@ const TransactionPage = () => {
                           ? "primary"
                           : "outline"
                       }
-                      onClick={() =>
-                        setFormData({
+                      onClick={() => {
+                        const next = {
                           ...formData,
                           beneficiaryType: "business",
-                        })
-                      }
+                        };
+                        setFormData(next);
+                        runValidation(next);
+                      }}
                       className={`${styles.segment} ${
                         formData.beneficiaryType === "business"
                           ? styles.active
@@ -543,6 +558,7 @@ const TransactionPage = () => {
                       Business
                     </Button>
                   </div>
+                  <FieldError apiKey="beneficiaryType" />
                 </div>
 
                 <div className={styles.formGroup}>
@@ -614,6 +630,7 @@ const TransactionPage = () => {
                     onChange={handleDropdownChange("destinationCountry")}
                     placeholder="Select a country"
                     required
+                    error={errors.destinationCountryCode || ""}
                   />
                 </div>
 
