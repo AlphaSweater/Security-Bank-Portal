@@ -14,12 +14,14 @@
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  justify-content: flex-start;
-
+  max-width: 100%;
+  margin: 2rem auto;
   border-radius: var(--radius-xl);
   overflow: hidden;
   position: relative;
   min-height: 580px;
+  max-height: 90vh;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .contentRow > * {
@@ -90,30 +92,46 @@
    Forms Area
    ============================= */
 .formsArea {
-  flex: 1;
+  width: 390px;
   z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  transition: box-shadow var(--transition-base), opacity var(--transition-slow),
-    width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto; /* Enable vertical scrolling */
+  padding: 2rem 1.5rem;
   position: relative;
-
+  transition: all 0.3s ease;
   border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
   border-left: 2px solid rgba(255, 255, 255, 0.1);
-
-  /* 🌌 Glass effect for dark gradient background */
   background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(20px) saturate(140%);
   -webkit-backdrop-filter: blur(20px) saturate(140%);
-
-  /* Subtle gradient overlay for depth */
   background-image: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.1),
     rgba(255, 255, 255, 0.02)
   );
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .contentRow {
+    flex-direction: column;
+    max-width: 100%;
+    border-radius: 0;
+    margin: 0;
+    min-height: 100vh;
+    max-height: none;
+  }
+  .heroArea {
+    width: 100%;
+    padding: 2rem 1rem;
+  }
+  .formsArea {
+    border-radius: 0;
+    border-left: none;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+  }
 }
 
 /* =============================

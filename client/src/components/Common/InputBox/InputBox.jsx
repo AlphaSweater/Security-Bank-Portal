@@ -24,17 +24,14 @@ const InputBox = forwardRef(({
 
   const handleChange = (e) => {
     if (!onChange) return;
-    
     // If we get a direct value (not an event), create a synthetic event
     if (typeof e !== 'object' || !e.target) {
       e = { target: { name, value: e } };
     }
-    
     // Ensure the name is set from props if not in the event
     if (!e.target.name && name) {
       e.target.name = name;
     }
-    
     // Pass the event to the parent
     onChange(e);
   };
