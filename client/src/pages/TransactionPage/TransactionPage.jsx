@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/Common/Button/Button';
+import Dropdown from '../../components/Common/Dropdown/Dropdown';
 import styles from './TransactionPage.module.css';
 import Footer from '../../components/Footer/Footer';
 
@@ -16,6 +17,29 @@ const TransactionPage = () => {
     AUD: { USD: 0.65, EUR: 0.61, GBP: 0.53, JPY: 97.20, CAD: 0.88, ZAR: 12.10 },
     ZAR: { USD: 0.053, EUR: 0.050, GBP: 0.044, JPY: 8.00, CAD: 0.072, AUD: 0.083 }
   };
+
+  // Currency options for the dropdown
+  const currencyOptions = useMemo(() => [
+    { value: 'USD', label: 'US Dollar (USD)' },
+    { value: 'EUR', label: 'Euro (EUR)' },
+    { value: 'GBP', label: 'British Pound (GBP)' },
+    { value: 'JPY', label: 'Japanese Yen (JPY)' },
+    { value: 'CAD', label: 'Canadian Dollar (CAD)' },
+    { value: 'AUD', label: 'Australian Dollar (AUD)' },
+    { value: 'ZAR', label: 'South African Rand (ZAR)' },
+  ], []);
+
+  // Country options for the dropdown
+  const countryOptions = useMemo(() => [
+    { value: 'US', label: 'United States' },
+    { value: 'GB', label: 'United Kingdom' },
+    { value: 'DE', label: 'Germany' },
+    { value: 'FR', label: 'France' },
+    { value: 'JP', label: 'Japan' },
+    { value: 'CA', label: 'Canada' },
+    { value: 'AU', label: 'Australia' },
+    { value: 'ZA', label: 'South Africa' },
+  ], []);
 
   const [formData, setFormData] = useState({
     // Step 1: Amount & Currency
@@ -128,6 +152,14 @@ const TransactionPage = () => {
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : name === 'swiftBic' ? value.toUpperCase() : value,
+    }));
+  };
+
+  // Handle dropdown changes
+  const handleDropdownChange = (name) => (value) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
     }));
   };
 
@@ -252,43 +284,40 @@ const TransactionPage = () => {
 
                 <div className={styles.formGroup}>
                   <label htmlFor="amount">Amount</label>
-                  <div className={styles.amountInput}>
-                    <div className={styles.currencySymbol}>
-                      {formData.currency === 'USD' ? '$' :
-                       formData.currency === 'EUR' ? '€' :
-                       formData.currency === 'GBP' ? '£' :
-                       formData.currency === 'JPY' ? '¥' :
-                       formData.currency === 'CAD' ? '$' :
-                       formData.currency === 'AUD' ? '$' : ''}
+                  <div className={styles.amountContainer}>
+                    <div className={styles.amountInput}>
+                      <div className={styles.currencySymbol}>
+                        {formData.currency === 'USD' ? '$' :
+                         formData.currency === 'EUR' ? '€' :
+                         formData.currency === 'GBP' ? '£' :
+                         formData.currency === 'JPY' ? '¥' :
+                         formData.currency === 'CAD' ? '$' :
+                         formData.currency === 'AUD' ? '$' :
+                         formData.currency === 'ZAR' ? 'R' : ''}
+                      </div>
+                      <input
+                        id="amount"
+                        type="number"
+                        name="amount"
+                        value={formData.amount}
+                        onChange={handleChange}
+                        placeholder="0.00"
+                        min="1"
+                        step="0.01"
+                        required
+                        className={styles.amountField}
+                        aria-label="Amount to transfer"
+                      />
                     </div>
-                    <input
-                      id="amount"
-                      type="number"
-                      name="amount"
-                      value={formData.amount}
-                      onChange={handleChange}
-                      placeholder="0.00"
-                      min="1"
-                      step="0.01"
-                      required
-                      className={styles.amountField}
-                      aria-label="Amount to transfer"
-                      style={{paddingLeft: '2.5rem'}}
-                    />
-                    <select
-                      name="currency"
-                      value={formData.currency}
-                      onChange={handleChange}
-                      className={styles.inputField}
-                      aria-label="Select currency"
-                    >
-                      <option value="USD">USD - US Dollar</option>
-                      <option value="EUR">EUR - Euro</option>
-                      <option value="GBP">GBP - British Pound</option>
-                      <option value="JPY">JPY - Japanese Yen</option>
-                      <option value="CAD">CAD - Canadian Dollar</option>
-                      <option value="AUD">AUD - Australian Dollar</option>
-                    </select>
+                    <div className={styles.currencyDropdownWrapper}>
+                      <Dropdown
+                        id="currency"
+                        value={formData.currency}
+                        options={currencyOptions}
+                        onChange={handleDropdownChange('currency')}
+                        className={styles.currencyDropdown}
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -313,20 +342,22 @@ const TransactionPage = () => {
                 <div className={styles.formGroup}>
                   <label>Beneficiary Type</label>
                   <div className={styles.segmentedControl}>
-                    <button
+                    <Button
                       type="button"
-                      className={`${styles.segment} ${formData.beneficiaryType === 'person' ? styles.active : ''}`}
+                      variant={formData.beneficiaryType === 'person' ? 'primary' : 'outline'}
                       onClick={() => setFormData({...formData, beneficiaryType: 'person'})}
+                      className={`${styles.segment} ${formData.beneficiaryType === 'person' ? styles.active : ''}`}
                     >
                       Person
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
-                      className={`${styles.segment} ${formData.beneficiaryType === 'business' ? styles.active : ''}`}
+                      variant={formData.beneficiaryType === 'business' ? 'primary' : 'outline'}
                       onClick={() => setFormData({...formData, beneficiaryType: 'business'})}
+                      className={`${styles.segment} ${formData.beneficiaryType === 'business' ? styles.active : ''}`}
                     >
                       Business
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -376,24 +407,14 @@ const TransactionPage = () => {
 
                 <div className={styles.formGroup}>
                   <label htmlFor="destinationCountry">Destination Country</label>
-                  <select
+                  <Dropdown
                     id="destinationCountry"
-                    name="destinationCountry"
                     value={formData.destinationCountry}
-                    onChange={handleChange}
-                    className={styles.inputField}
+                    options={countryOptions}
+                    onChange={handleDropdownChange('destinationCountry')}
+                    placeholder="Select a country"
                     required
-                  >
-                    <option value="">Select a country</option>
-                    <option value="US">United States (USD)</option>
-                    <option value="GB">United Kingdom (GBP)</option>
-                    <option value="CA">Canada (CAD)</option>
-                    <option value="AU">Australia (AUD)</option>
-                    <option value="DE">Germany (EUR)</option>
-                    <option value="FR">France (EUR)</option>
-                    <option value="JP">Japan (JPY)</option>
-                    <option value="ZA">South Africa (ZAR)</option>
-                  </select>
+                  />
                 </div>
 
                 <div className={styles.formGroup}>
