@@ -142,7 +142,7 @@ function DashboardPage() {
           <div className={styles.card}>
             <div className={styles.cardHeader}>
               <h3>Recent Transactions</h3>
-              <Link to="/transactions" className={styles.viewAll}>
+              <Link className={styles.viewAll}>
                 View All
               </Link>
             </div>
