@@ -13,10 +13,10 @@ const Footer = () => {
             <span>Security Bank</span>
           </div>
           <div className={styles.footerLinks}>
-            <Link to="/privacy" className={styles.footerLink}>Privacy Policy</Link>
-            <Link to="/terms" className={styles.footerLink}>Terms of Service</Link>
-            <Link to="/security" className={styles.footerLink}>Security</Link>
-            <Link to="/contact" className={styles.footerLink}>Contact Us</Link>
+            <Link className={styles.footerLink}>Privacy Policy</Link>
+            <Link className={styles.footerLink}>Terms of Service</Link>
+            <Link className={styles.footerLink}>Security</Link>
+            <Link className={styles.footerLink}>Contact Us</Link>
           </div>
           <div className={styles.copyrightContainer}>
             <p className={styles.copyright}>
