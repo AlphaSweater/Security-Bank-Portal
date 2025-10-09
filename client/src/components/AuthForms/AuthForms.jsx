@@ -155,17 +155,27 @@ function LoginForm({ onSwap }) {
           autoComplete="email"
         />
 
-        <InputBox
-          type="password"
-          name="password"
-          label="Password"
-          value={form.password}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          error={shouldShowError("password") ? currentErrors.password : undefined}
-          required
-          autoComplete="current-password"
-        />
+        <div className={styles.passwordContainer}>
+          <InputBox
+            type="password"
+            name="password"
+            label="Password"
+            value={form.password}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={shouldShowError("password") ? currentErrors.password : undefined}
+            required
+            autoComplete="current-password"
+          />
+          <Button 
+            type="button"
+            variant="text" 
+            onClick={() => window.location.href = '/auth/forgot-password'}
+            className={styles.forgotPasswordLink}
+          >
+            Forgot Password?
+          </Button>
+        </div>
       </div>
 
       <div className={styles.buttonGroup}>
@@ -178,7 +188,8 @@ function LoginForm({ onSwap }) {
         >
           {loading ? "Logging in..." : "Log In"}
         </Button>
-        <p>
+        
+        <div className={styles.linksContainer}>
           <Button 
             type="button" 
             variant="text" 
@@ -187,7 +198,7 @@ function LoginForm({ onSwap }) {
           >
             Need an account? Sign Up
           </Button>
-        </p>
+        </div>
       </div>
     </form>
   );

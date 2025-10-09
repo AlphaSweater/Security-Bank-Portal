@@ -135,9 +135,37 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  margin-bottom: 0.5rem;
 }
 
-.inputRow {
+.passwordContainer {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+/* Forgot password link */
+.forgotPasswordLink {
+  display: block;
+  text-align: right;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  margin: 0.5rem 0 0 0;
+  padding: 0.25rem 0;
+  width: 100%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.forgotPasswordLink:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+/* Test reset password link */
+.testResetLink {
   display: flex;
   gap: 0.6rem;
   margin: 0;
