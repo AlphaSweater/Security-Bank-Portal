@@ -1,6 +1,5 @@
 .inputContainer {
   width: 100%;
-  margin-bottom: 1.5rem;
   position: relative;
   /* inherit page/container background so the notch matches */
   background-color: inherit;
