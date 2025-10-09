@@ -202,7 +202,7 @@ export const createTransactionSchema = Joi.object({
   destinationBankSwift: swiftBic("SWIFT/BIC").required(),
   destinationAccountNumber: accountNumber().required(),
 
-  // Optional client timezone for display (IANA zone) — required by tests
+  // Optional client timezone for display
   createdAtTimeZone: timeZoneIana("Time zone").required(),
 
   // For security: status on create is server-controlled
