@@ -65,7 +65,7 @@ export const RateLimitKeyGenerators = {
 // ---------------- General API traffic ----------------
 // Balanced for authenticated dashboard/API usage. Keeps UX smooth while
 // damping noisy or scripted clients. Session+IP reduces false sharing.
-export const GeneralRateLimiter = Object.freeze({
+export const GeneralLimiter = Object.freeze({
   windowMs: 15 * 60 * 1000, // 15 min window
   max: 120, // ~8 req/min sustained; fine for SPA/API usage
   delayAfter: 60, // start slowing after normal bursty use
@@ -76,7 +76,7 @@ export const GeneralRateLimiter = Object.freeze({
 });
 
 // ---------------- Global IP excess guard ----------------
-export const ExcessRateLimiter = Object.freeze({
+export const ExcessLimiter = Object.freeze({
   windowMs: 15 * 60 * 1000, // 15 min
   max: 80, // global backstop per IP (protects shared NAT but blocks scraping)
   delayAfter: 40, // start slowing earlier for spikes
@@ -99,7 +99,7 @@ export const EmailTargetLimiter = Object.freeze({
 });
 
 // ---------------- Auth flows ----------------
-export const AuthRateLimiter = Object.freeze({
+export const AuthFlowLimiter = Object.freeze({
   windowMs: 15 * 60 * 1000, // 15 min
   max: 8, // moderate envelope for auth flows
   delayAfter: 2, // get protective quickly
@@ -111,7 +111,7 @@ export const AuthRateLimiter = Object.freeze({
 });
 
 // ---------------- Login-specific ----------------
-export const LoginRateLimiter = Object.freeze({
+export const LoginLimiter = Object.freeze({
   windowMs: 120 * 60 * 1000, // 2 hours
   max: 5, // widely accepted control: 5 failed logins per 2 hours
   delayAfter: 1, // start slowing right after the first failure
@@ -132,16 +132,4 @@ export const PasswordResetLimiter = Object.freeze({
   skipSuccessfulRequests: true,
   key: RateLimitKeys.EMAIL,
   message: "Too many password reset attempts. Please wait and try again later.",
-});
-
-// ---------------- OTP / code resend ----------------
-export const OTPResendLimiter = Object.freeze({
-  windowMs: 30 * 60 * 1000, // 30 min
-  max: 3,
-  delayAfter: 1,
-  delayMs: 7000,
-  maxDelayMs: 30000,
-  skipSuccessfulRequests: true,
-  key: RateLimitKeys.EMAIL_IP,
-  message: "Too many code requests. Please wait a few minutes before retrying.",
 });

@@ -8,22 +8,24 @@ import { RateLimitKeyGenerators } from "../config/rateLimitConfig.js";
  *
  * Usage:
  *   import { addRateLimiter } from "./middlewares/rateLimitMiddleware.js";
- *   import { AuthRateLimiter } from "./config/rateLimitConfig.js";
+ *   import { LoginLimiter, EmailTargetLimiter } from "./config/rateLimitConfig.js";
  *
- *   router.post("/auth/login", addRateLimiter(AuthRateLimiter));
+ *   router.post("/auth/login", addRateLimiter(LoginLimiter, EmailTargetLimiter));
  */
 
-export function addRateLimiter(...profiles) {
+export function addRateLimiter(...limiterProfiles) {
   // Support passing profiles either as separate args or a single array
-  if (profiles.length === 1 && Array.isArray(profiles[0])) {
-    profiles = profiles[0];
+  if (limiterProfiles.length === 1 && Array.isArray(limiterProfiles[0])) {
+    limiterProfiles = limiterProfiles[0];
   }
-  if (profiles.length > 1) {
-    // Compose all limiters into one, with skip-OPTIONS logic
-    const all = profiles.map((p) => addRateLimiter(p));
-    return skipOptions(compose(all));
+  // If multiple profiles exist recursively call addRateLimiter
+  if (limiterProfiles.length > 1) {
+    // Combine all limiters into one middleware
+    const all = limiterProfiles.map((p) => addRateLimiter(p));
+    return skipOptions(combineMiddleware(all));
   }
-  const profile = profiles[0] || {};
+
+  const limiterProfile = limiterProfiles[0] || {};
 
   // ─────────── Defaults ───────────
   const DEFAULTS = {
@@ -37,7 +39,7 @@ export function addRateLimiter(...profiles) {
     skipSuccessfulRequests: false,
   };
 
-  const config = { ...DEFAULTS, ...profile };
+  const config = { ...DEFAULTS, ...limiterProfile };
 
   // Use centralized key generators from config
   const keyGenerator =
@@ -79,7 +81,7 @@ export function addRateLimiter(...profiles) {
   });
 
   // Compose speed and limiter, and skip OPTIONS
-  return skipOptions(compose([speed, limiter]));
+  return skipOptions(combineMiddleware([speed, limiter]));
 }
 
 // ===== Helpers =====
@@ -91,7 +93,7 @@ function skipOptions(middleware) {
 }
 
 // Helper: compose multiple middleware functions into one
-function compose(middlewares) {
+function combineMiddleware(middlewares) {
   return function (req, res, next) {
     let i = 0;
     function runNext(err) {
