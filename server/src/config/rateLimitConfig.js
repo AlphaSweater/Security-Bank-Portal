@@ -63,6 +63,7 @@ export const RateLimitKeyGenerators = {
 };
 
 // ---------------- General API traffic ----------------
+// 120 req / 15 min (~0.13 req/s), delay after 60th: +250ms/req up to 3s
 // Balanced for authenticated dashboard/API usage. Keeps UX smooth while
 // damping noisy or scripted clients. Session+IP reduces false sharing.
 export const GeneralLimiter = Object.freeze({
@@ -76,22 +77,24 @@ export const GeneralLimiter = Object.freeze({
 });
 
 // ---------------- Global IP excess guard ----------------
+// 80 req / 5 min (~0.27 req/s), delay after 40th: +300ms/req up to 10s
 export const ExcessLimiter = Object.freeze({
-  windowMs: 15 * 60 * 1000, // 15 min
+  windowMs: 5 * 60 * 1000, // 5 min
   max: 80, // global backstop per IP (protects shared NAT but blocks scraping)
   delayAfter: 40, // start slowing earlier for spikes
-  delayMs: 600, // +600ms per overage
+  delayMs: 300, // +300ms per overage
   maxDelayMs: 10000, // up to 10s when clearly abusive
   key: RateLimitKeys.IP,
   message: "Too many requests from this IP. Please slow down.",
 });
 
 // ---------------- Targeted account protection ----------------
+// 5 req / 30 min (~0.0028 req/s), delay after 2nd: +1s/req up to 30s
 export const EmailTargetLimiter = Object.freeze({
   windowMs: 30 * 60 * 1000, // 30 min
   max: 5, // standard: 5 attempts per 30 min per identity
   delayAfter: 2, // protect quickly
-  delayMs: 5000, // strong backoff to deter enumeration/brute force
+  delayMs: 1000, // strong backoff to deter enumeration/brute force
   maxDelayMs: 30000, // up to 30s when abusive
   key: RateLimitKeys.EMAIL,
   message:
@@ -99,11 +102,12 @@ export const EmailTargetLimiter = Object.freeze({
 });
 
 // ---------------- Auth flows ----------------
+// 8 req / 15 min (~0.0089 req/s), delay after 2nd: +500ms/req up to 15s
 export const AuthFlowLimiter = Object.freeze({
   windowMs: 15 * 60 * 1000, // 15 min
   max: 8, // moderate envelope for auth flows
   delayAfter: 2, // get protective quickly
-  delayMs: 2000, // stronger backoff
+  delayMs: 500, // stronger backoff
   maxDelayMs: 15000,
   skipSuccessfulRequests: true, // only penalize failures
   key: RateLimitKeys.EMAIL_IP,
@@ -111,11 +115,12 @@ export const AuthFlowLimiter = Object.freeze({
 });
 
 // ---------------- Login-specific ----------------
+// 5 req / 2 hr (~0.00069 req/s), delay after 1st: +1s/req up to 20s
 export const LoginLimiter = Object.freeze({
   windowMs: 120 * 60 * 1000, // 2 hours
   max: 5, // widely accepted control: 5 failed logins per 2 hours
   delayAfter: 1, // start slowing right after the first failure
-  delayMs: 3000, // aggressive backoff to frustrate brute-force
+  delayMs: 1000, // aggressive backoff to frustrate brute-force
   maxDelayMs: 20000,
   skipSuccessfulRequests: true, // success isn't penalized
   key: RateLimitKeys.EMAIL_IP,
@@ -123,6 +128,7 @@ export const LoginLimiter = Object.freeze({
 });
 
 // ---------------- Password reset ----------------
+// 5 req / 30 min (~0.0028 req/s), delay after 2nd: +5s/req up to 30s
 export const PasswordResetLimiter = Object.freeze({
   windowMs: 30 * 60 * 1000, // 30 min
   max: 5,
