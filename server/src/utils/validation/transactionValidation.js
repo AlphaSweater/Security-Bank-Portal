@@ -110,6 +110,37 @@ const accountNumber = (label = "Destination account number") =>
       "string.pattern.base": `${label} may include letters, numbers, spaces, and hyphens`,
     });
 
+// --- Time zone (IANA) ---
+// Uses Intl.supportedValuesOf when available; falls back to a conservative IANA-like pattern.
+const _supportedTimeZones =
+  typeof Intl !== "undefined" && typeof Intl.supportedValuesOf === "function"
+    ? new Set(Intl.supportedValuesOf("timeZone"))
+    : null;
+
+const timeZoneIana = (label = "Time zone") => {
+  const schema = Joi.string()
+    .trim()
+    .custom((value, helpers) => {
+      if (_supportedTimeZones) {
+        if (!_supportedTimeZones.has(value)) {
+          return helpers.error("string.timezone");
+        }
+        return value;
+      }
+      // Fallback pattern when we can't enumerate zones
+      const pattern = /^[A-Za-z_]+\/[A-Za-z_]+(?:\/[A-Za-z_]+)?$/;
+      if (!pattern.test(value)) {
+        return helpers.error("string.timezone");
+      }
+      return value;
+    });
+  return schema.messages({
+    "string.base": `${label} must be text`,
+    "string.empty": `${label} is required`,
+    "string.timezone": `${label} must be a valid IANA zone (e.g. Africa/Johannesburg)`,
+  });
+};
+
 // --- Amount (money, > 0) ---
 const moneyAmount = (label = "Amount", { max = 999_999_999_999_999 } = {}) =>
   Joi.number()
@@ -171,15 +202,8 @@ export const createTransactionSchema = Joi.object({
   destinationBankSwift: swiftBic("SWIFT/BIC").required(),
   destinationAccountNumber: accountNumber().required(),
 
-  // Optional client timezone for display (IANA zone)
-  createdAtTimeZone: Joi.string()
-    .trim()
-    .pattern(/^[A-Za-z_]+\/[A-Za-z_]+(?:\/[A-Za-z_]+)?$/)
-    .messages({
-      "string.base": "Time zone must be text",
-      "string.pattern.base":
-        "Time zone must be a valid IANA zone (e.g., Africa/Johannesburg)",
-    }),
+  // Optional client timezone for display (IANA zone) — required by tests
+  createdAtTimeZone: timeZoneIana("Time zone").required(),
 
   // For security: status on create is server-controlled
   status: Joi.forbidden().messages({
