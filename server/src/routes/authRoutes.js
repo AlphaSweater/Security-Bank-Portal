@@ -5,31 +5,37 @@ import * as userValidation from "#utils/validation/userValidation.js";
 import { asyncHandler } from "#utils/asyncHandler.js";
 import { addRateLimiter } from "#middlewares/rateLimitMiddleware.js";
 import {
-  AuthRateLimiter,
-  AuthLoginRateLimiter,
+  AuthFlowLimiter,
+  LoginLimiter,
+  EmailTargetLimiter,
+  ExcessLimiter,
 } from "#config/rateLimitConfig.js";
 
 const router = express.Router();
 
 // GET endpoints to check authentication status
-router.get("/sessionCheck", asyncHandler(authController.sessionCheck));
+router.get(
+  "/sessionCheck",
+  addRateLimiter(ExcessLimiter),
+  asyncHandler(authController.sessionCheck)
+);
 
 // POST endpoints for authentication
 router.post(
   "/login",
-  ...addRateLimiter(AuthLoginRateLimiter),
+  addRateLimiter(LoginLimiter, EmailTargetLimiter, ExcessLimiter),
   validateData(userValidation.loginUserSchema),
   asyncHandler(authController.login)
 );
 router.post(
   "/register",
-  ...addRateLimiter(AuthRateLimiter),
+  addRateLimiter(AuthFlowLimiter, ExcessLimiter),
   validateData(userValidation.registerUserSchema),
   asyncHandler(authController.register)
 );
 router.post(
   "/logout",
-  ...addRateLimiter(AuthRateLimiter),
+  addRateLimiter(AuthFlowLimiter, ExcessLimiter),
   asyncHandler(authController.logout)
 );
 
