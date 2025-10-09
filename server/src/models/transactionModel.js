@@ -1,48 +1,70 @@
 import { getDB } from "#config/db.js";
 import { ObjectId } from "mongodb";
+import { epochSecondsNow } from "#utils/timeUtil.js";
 
 const collection = () => getDB().collection("transactions");
 
+// Insert a new transaction (expects validated fields)
 export async function insertTransaction(doc) {
-  return await collection().insertOne(doc);
+  // Canonical timestamps: server "now" in UTC epoch seconds
+  const createdAtEpoch = epochSecondsNow();
+  const statusUpdatedAtEpoch = createdAtEpoch;
+
+  const transaction = {
+    ...doc,
+    status: doc.status || "pending",
+    createdAtTimeZone: doc.createdAtTimeZone, // IANA zone for display
+    createdAtEpoch,
+    statusUpdatedAtEpoch,
+  };
+  return await collection().insertOne(transaction);
 }
 
+// Get all transactions for a user (by userId as string)
 export async function getTransactionsByUserId(userId) {
   return await collection()
     .find({ userId: ObjectId.createFromHexString(userId) })
     .toArray();
 }
 
+// Get all pending transactions
 export async function getPendingTransactions() {
   return await collection().find({ status: "pending" }).toArray();
 }
 
+// Update transaction status and metadata
 export async function updateTransactionStatus(id, status, employeeId) {
+  const nowEpoch = epochSecondsNow();
   return await collection().updateOne(
     { _id: ObjectId.createFromHexString(id) },
     {
       $set: {
         status,
+        statusUpdatedAtEpoch: nowEpoch,
         reviewedBy: employeeId
           ? ObjectId.createFromHexString(employeeId)
           : null,
-        reviewedAt: new Date(),
       },
     }
   );
 }
 
-// ------------------------------
-// Transaction Document Structure
-// ------------------------------
+// Transaction Document (simplified)
 // {
 //   _id: ObjectId,
-//   userId: ObjectId (FK to users collection),
+//   userId: ObjectId,
 //   amount: Number,
-//   currency: "ZAR",
-//   destination: String,
+//   currencyCode: String, // e.g., "USD"
+//   beneficiaryType: "Individual" | "Business",
+//   beneficiaryFullName: String,
+//   beneficiaryNote?: String,
+//   destinationCountryCode: String, // e.g., "US"
+//   destinationBankName: String,
+//   destinationBankSwift: String,
+//   destinationAccountNumber: String,
 //   status: "pending" | "approved" | "rejected",
-//   createdAt: ISODate,
-//   reviewedBy: ObjectId (FK employeeId, nullable),
-//   reviewedAt: ISODate (nullable)
+//   createdAtEpoch: Number, // UTC seconds
+//   statusUpdatedAtEpoch: Number, // UTC seconds
+//   createdAtTimeZone?: String, // IANA zone for display
+//   reviewedBy?: ObjectId,
 // }
