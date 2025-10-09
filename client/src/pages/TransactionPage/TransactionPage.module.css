@@ -129,7 +129,7 @@
 .formContainer {
   background: var(--color-surface-solid-dark);
   border-radius: var(--radius-lg);
-  padding: 2.5rem;
+  padding: 2rem;
   box-shadow: var(--shadow-card);
   backdrop-filter: blur(10px);
   border: 1px solid var(--color-border);
@@ -137,7 +137,8 @@
   transition: transform 0.3s var(--ease-out-quint), box-shadow 0.3s var(--ease-out-quint);
   position: relative;
   z-index: 2;
-  /* Remove min-height to prevent footer overlap */
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .formContainer:hover {
@@ -201,7 +202,7 @@
 .formGroup select,
 .formGroup textarea {
   width: 100%;
-  padding: 0.9rem 1.25rem;
+  padding: 0.8rem 1rem;
   background: var(--color-surface-solid-dark);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -210,6 +211,7 @@
   transition: all 0.3s var(--ease-out-quint);
   font-family: var(--font-family-base);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
 }
 
 /* Ensure input text is visible */
@@ -218,7 +220,7 @@
   opacity: 0.7;
 }
 
-/* Style the select dropdown arrow */
+/* Style the select dropdown */
 .formGroup select {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
@@ -226,6 +228,36 @@
   background-position: right 1rem center;
   background-size: 1em;
   padding-right: 2.5rem;
+  color: var(--color-text-primary);
+}
+
+/* Style the dropdown options */
+.formGroup select option {
+  background: var(--color-surface-solid-dark);
+  color: var(--color-text-primary);
+  padding: 0.5rem 1rem;
+}
+
+/* Fix for Firefox */
+@-moz-document url-prefix() {
+  .formGroup select {
+    text-indent: 0.01px;
+    text-overflow: '';
+  }
+  .formGroup select option {
+    padding: 0.5rem 1rem;
+  }
+}
+
+/* For IE11 */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  .formGroup select::-ms-expand {
+    display: none;
+  }
+  .formGroup select:focus::-ms-value {
+    background: transparent;
+    color: var(--color-text-primary);
+  }
 }
 
 .formGroup input::placeholder,
@@ -248,15 +280,525 @@
   color: var(--color-primary-start);
 }
 
+/* Segmented Control */
+.segmentedControl {
+  display: flex;
+  background: var(--color-surface-solid-darker);
+  border-radius: var(--radius-md);
+  padding: 6px;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.segment {
+  flex: 1;
+  padding: 0.85rem 1.25rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  border-radius: calc(var(--radius-md) - 6px);
+  position: relative;
+  z-index: 1;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+}
+
+.segment.active {
+  background: linear-gradient(135deg, var(--color-primary-start), var(--color-primary-end));
+  color: white;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+  font-weight: 600;
+  transform: translateY(-1px);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+/* Add a subtle hover effect */
+.segment:not(.active):hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-primary);
+}
+
+/* Segment pulse animation */
+@keyframes segmentPulse {
+  0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(99, 102, 241, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+
+.segment.active {
+  animation: segmentPulse 1.5s infinite;
+}
+
+/* Review Section */
+.reviewSection {
+  background: var(--color-surface-solid-darker);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  border: 1px solid var(--color-border);
+}
+
+.reviewSection h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.reviewGrid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.reviewItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-border-light);
+  align-items: flex-start;
+}
+
+.reviewItem:last-child {
+  border-bottom: none;
+}
+
+.reviewLabel {
+  color: var(--color-text-muted);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.reviewValue {
+  color: var(--color-text-primary);
+  text-align: right;
+  max-width: 60%;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.totalAmount {
+  margin-top: 1rem;
+  padding-top: 1.25rem;
+  border-top: 2px solid var(--color-border);
+}
+
+.totalAmount .reviewLabel,
+.totalAmount .reviewValue {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* Make the exchange rate more subtle */
+.reviewItem:nth-child(3) .reviewValue {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.reviewDivider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 1.5rem 0;
+}
+
+.bankDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bankFlag {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.bankFlag span[class^="fi-"] {
+  width: 24px;
+  height: 18px;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+  background-size: cover;
+}
+
+.messagePreview {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-primary);
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+/* Amount input and currency selector */
+.amountInput {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.amountInputWrapper {
+  position: relative;
+  flex: 1;
+}
+
+.currencySymbol {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-primary);
+  font-weight: 500;
+  pointer-events: none;
+  z-index: 2;
+  min-width: 3rem;
+  padding-right: 0.5rem;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 3.5rem;
+}
+
+.amountField {
+  width: 100%;
+  padding: 0.9rem 1.25rem 0.9rem 4rem;
+  background: var(--color-surface-solid-dark);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 1.1rem;
+  color: var(--color-text-primary);
+  transition: all 0.3s var(--ease-out-quint);
+  font-family: var(--font-family-base);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.amountField:focus {
+  outline: none;
+  border-color: var(--color-primary-start);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.currencySelect {
+  min-width: 180px;
+  padding: 0.9rem 2.5rem 0.9rem 1rem;
+  background: var(--color-surface-solid-dark);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1em;
+  transition: all 0.3s var(--ease-out-quint);
+}
+
+/* Style the dropdown options */
+.currencySelect option {
+  background: var(--color-surface-solid-darker);
+  color: var(--color-text-primary);
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: none;
+}
+
+/* Style the dropdown when it's open */
+.currencySelect:focus {
+  outline: none;
+  border-color: var(--color-primary-start);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  background-color: var(--color-surface-solid-dark);
+  color: var(--color-text-primary);
+}
+
+/* Ensure the dropdown arrow is visible */
+.currencySelect::-ms-expand {
+  display: none;
+}
+
+/* Style the dropdown list */
+.currencySelect option {
+  background: var(--color-surface-solid-darker);
+  color: var(--color-text-primary);
+  padding: 0.75rem 1rem;
+}
+
+/* For WebKit browsers */
+.currencySelect option:checked,
+.currencySelect option:checked:focus {
+  background: var(--color-primary) !important;
+  color: white !important;
+}
+
+/* For Firefox */
+@-moz-document url-prefix() {
+  .currencySelect {
+    color: var(--color-text-primary);
+    background-color: var(--color-surface-solid-dark);
+  }
+  .currencySelect option {
+    background: var(--color-surface-solid-darker);
+    color: var(--color-text-primary);
+  }
+  .currencySelect option:checked,
+  .currencySelect option:checked:focus {
+    background: var(--color-primary) !important;
+    color: white !important;
+  }
+}
+
+/* For IE11 */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  .currencySelect {
+    color: var(--color-text-primary);
+    background-color: var(--color-surface-solid-dark);
+  }
+  .currencySelect option {
+    background: var(--color-surface-solid-darker);
+    color: var(--color-text-primary);
+  }
+}
+
+/* Reset the closed state styles */
+.currencySelect {
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-solid-dark);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Ensure the selected option is visible in the dropdown */
+.currencySelect option[value][selected] {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* Hover state for dropdown options */
+.currencySelect option:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* Info Box */
+.infoBox {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.infoRow:last-child {
+  margin-bottom: 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border-light);
+}
+
+/* Terms & OTP */
+.termsContainer {
+  margin: 2.5rem 0 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-light);
+}
+
+.checkboxContainer {
+  display: flex;
+  align-items: flex-start;
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.checkboxContainer input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: relative;
+  height: 20px;
+  width: 20px;
+  min-width: 20px;
+  background-color: var(--color-surface-solid-darker);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  margin-right: 12px;
+  margin-top: 2px;
+  transition: all 0.2s ease;
+}
+
+.checkboxContainer:hover input ~ .checkmark {
+  border-color: var(--color-primary);
+}
+
+.checkboxContainer input:checked ~ .checkmark {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 7px;
+  top: 3px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkboxContainer input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.otpContainer {
+  margin: 2rem 0;
+}
+
+.otpInput {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  margin: 0.5rem 0 1rem;
+  font-size: 1.25rem;
+  letter-spacing: 0.5em;
+  text-align: center;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface-solid-darker);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+}
+
+.otpButton {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
+  transition: opacity 0.2s ease;
+}
+
+.otpButton:hover {
+  opacity: 0.8;
+}
+
+/* Notice Box */
+.noticeBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: var(--radius-md);
+  color: #f59e0b;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-top: 1.5rem;
+}
+
+.noticeBox svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #f59e0b;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .amountInput {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .amountInput input,
+  .amountInput select {
+    width: 100%;
+    max-width: 100%;
+    flex: none;
+  }
+  
+  .formContainer {
+    padding: 1.5rem;
+  }
+  
+  .reviewItem {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .reviewValue {
+    text-align: left;
+    max-width: 100%;
+  }
+  
+  .reviewSection {
+    padding: 1rem;
+  }
+  
+  .termsContainer {
+    padding: 1rem;
+  }
+}
+
 .amountInput {
   display: flex;
   align-items: center;
   position: relative;
+  gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .amountInput input {
-  padding-left: 2.5rem;
-  flex: 1;
+  padding: 0.8rem 1rem 0.8rem 2.5rem;
+  flex: 1 1 auto;
+  min-width: 200px;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.amountInput select {
+  flex: 0 0 auto;
+  min-width: 120px;
+  max-width: 140px;
+  padding: 0.8rem 1rem;
+  box-sizing: border-box;
 }
 
 .currencySymbol {
