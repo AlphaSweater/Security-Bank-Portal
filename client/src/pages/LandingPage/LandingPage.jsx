@@ -101,7 +101,7 @@ function LandingPage() {
                 onClick={handleGetStarted}
                 className={styles.ctaButton}
               >
-                Open Account
+                Continue
               </Button>
               <button
                 onClick={scrollToFeatures}
