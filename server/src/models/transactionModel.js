@@ -1,4 +1,4 @@
-import { getDB } from "#config/db.js";
+import { getDB } from "#config/mongoDBConfig.js";
 import { ObjectId } from "mongodb";
 import { epochSecondsNow } from "#utils/timeUtil.js";
 
