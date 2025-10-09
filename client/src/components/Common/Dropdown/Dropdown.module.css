@@ -1,5 +1,4 @@
 .dropdownContainer {
-  margin-bottom: 1.75rem;
   position: relative;
   width: 100%;
   background-color: var(--color-surface-solid);
@@ -27,7 +26,10 @@
   font-size: 1rem;
   line-height: 1.5;
   color: var(--color-text-primary);
-  background-color: var(--dropdown-bg, var(--color-surface-solid-dark, #0f172a)) !important;
+  background-color: var(
+    --dropdown-bg,
+    var(--color-surface-solid-dark, #0f172a)
+  ) !important;
   background-clip: padding-box;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -88,11 +90,18 @@
   z-index: 2000;
   max-height: 300px;
   margin-top: 0.25rem;
-  background-color: var(--dropdown-bg, var(--color-surface-solid-dark, #0f172a)) !important;
-  background: var(--dropdown-bg, var(--color-surface-solid-dark, #0f172a)) !important;
+  background-color: var(
+    --dropdown-bg,
+    var(--color-surface-solid-dark, #0f172a)
+  ) !important;
+  background: var(
+    --dropdown-bg,
+    var(--color-surface-solid-dark, #0f172a)
+  ) !important;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   overflow-y: auto;
   animation: fadeIn 0.2s ease-out;
   transform-origin: top;
@@ -122,7 +131,10 @@
   cursor: pointer;
   transition: all 0.2s var(--ease-out-quint);
   color: var(--color-text-primary) !important;
-  background-color: var(--dropdown-bg, var(--color-surface-solid-dark, #0f172a)) !important;
+  background-color: var(
+    --dropdown-bg,
+    var(--color-surface-solid-dark, #0f172a)
+  ) !important;
   display: block;
   text-align: left;
   width: 100%;

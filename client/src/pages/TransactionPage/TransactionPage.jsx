@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/Common/Button/Button";
 import Dropdown from "../../components/Common/Dropdown/Dropdown";
@@ -8,61 +8,61 @@ import Notification from "../../components/Common/Notification/Notification";
 import { apiRequest } from "../../utils/apiUtil";
 import { createTransactionSchema } from "../../utils/validation/transactionValidation";
 
+// -----------------------------------------------------------------------------
+// Constants and helpers (outside component for clarity)
+// -----------------------------------------------------------------------------
+const exchangeRates = {
+  USD: { EUR: 0.94, GBP: 0.82, JPY: 149.5, CAD: 1.36, AUD: 1.55, ZAR: 18.75 },
+  EUR: { USD: 1.06, GBP: 0.87, JPY: 159.2, CAD: 1.45, AUD: 1.65, ZAR: 19.95 },
+  GBP: { USD: 1.22, EUR: 1.15, JPY: 183.5, CAD: 1.66, AUD: 1.89, ZAR: 22.9 },
+  JPY: {
+    USD: 0.0067,
+    EUR: 0.0063,
+    GBP: 0.0055,
+    CAD: 0.0091,
+    AUD: 0.0103,
+    ZAR: 0.125,
+  },
+  CAD: { USD: 0.74, EUR: 0.69, GBP: 0.6, JPY: 110.5, AUD: 1.14, ZAR: 13.8 },
+  AUD: { USD: 0.65, EUR: 0.61, GBP: 0.53, JPY: 97.2, CAD: 0.88, ZAR: 12.1 },
+  ZAR: { USD: 0.053, EUR: 0.05, GBP: 0.044, JPY: 8.0, CAD: 0.072, AUD: 0.083 },
+};
+
+const currencyOptions = [
+  { value: "USD", label: "US Dollar (USD)" },
+  { value: "EUR", label: "Euro (EUR)" },
+  { value: "GBP", label: "British Pound (GBP)" },
+  { value: "JPY", label: "Japanese Yen (JPY)" },
+  { value: "CAD", label: "Canadian Dollar (CAD)" },
+  { value: "AUD", label: "Australian Dollar (AUD)" },
+  { value: "ZAR", label: "South African Rand (ZAR)" },
+];
+
+const countryOptions = [
+  { value: "US", label: "United States" },
+  { value: "GB", label: "United Kingdom" },
+  { value: "DE", label: "Germany" },
+  { value: "FR", label: "France" },
+  { value: "JP", label: "Japan" },
+  { value: "CA", label: "Canada" },
+  { value: "AU", label: "Australia" },
+  { value: "ZA", label: "South Africa" },
+];
+
+const currencySymbols = {
+  ZAR: "R",
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+  JPY: "¥",
+  CAD: "$",
+  AUD: "$",
+};
+const getCurrencySymbol = (code) => currencySymbols[code] || code;
+
 const TransactionPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  // Exchange rates (as of October 2024, these would typically come from an API in production)
-  const exchangeRates = {
-    USD: { EUR: 0.94, GBP: 0.82, JPY: 149.5, CAD: 1.36, AUD: 1.55, ZAR: 18.75 },
-    EUR: { USD: 1.06, GBP: 0.87, JPY: 159.2, CAD: 1.45, AUD: 1.65, ZAR: 19.95 },
-    GBP: { USD: 1.22, EUR: 1.15, JPY: 183.5, CAD: 1.66, AUD: 1.89, ZAR: 22.9 },
-    JPY: {
-      USD: 0.0067,
-      EUR: 0.0063,
-      GBP: 0.0055,
-      CAD: 0.0091,
-      AUD: 0.0103,
-      ZAR: 0.125,
-    },
-    CAD: { USD: 0.74, EUR: 0.69, GBP: 0.6, JPY: 110.5, AUD: 1.14, ZAR: 13.8 },
-    AUD: { USD: 0.65, EUR: 0.61, GBP: 0.53, JPY: 97.2, CAD: 0.88, ZAR: 12.1 },
-    ZAR: {
-      USD: 0.053,
-      EUR: 0.05,
-      GBP: 0.044,
-      JPY: 8.0,
-      CAD: 0.072,
-      AUD: 0.083,
-    },
-  };
-
-  // Currency options for the dropdown
-  const currencyOptions = useMemo(
-    () => [
-      { value: "USD", label: "US Dollar (USD)" },
-      { value: "EUR", label: "Euro (EUR)" },
-      { value: "GBP", label: "British Pound (GBP)" },
-      { value: "JPY", label: "Japanese Yen (JPY)" },
-      { value: "CAD", label: "Canadian Dollar (CAD)" },
-      { value: "AUD", label: "Australian Dollar (AUD)" },
-      { value: "ZAR", label: "South African Rand (ZAR)" },
-    ],
-    []
-  );
-
-  // Country options for the dropdown
-  const countryOptions = useMemo(
-    () => [
-      { value: "US", label: "United States" },
-      { value: "GB", label: "United Kingdom" },
-      { value: "DE", label: "Germany" },
-      { value: "FR", label: "France" },
-      { value: "JP", label: "Japan" },
-      { value: "CA", label: "Canada" },
-      { value: "AU", label: "Australia" },
-      { value: "ZA", label: "South Africa" },
-    ],
-    []
-  );
+  // Options are declared at module scope for clarity
 
   const [formData, setFormData] = useState({
     // Step 1: Amount & Currency
@@ -283,23 +283,6 @@ const TransactionPage = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Redirect to dashboard after successful submission
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleMakePayment = () => {
     setShowConfirmModal(true);
   };
@@ -358,18 +341,10 @@ const TransactionPage = () => {
     return noErrors;
   };
 
-  // Helper to render an inline error for a given API field key
+  // Helper to render an inline error under fields
   const FieldError = ({ apiKey }) =>
     errors && errors[apiKey] ? (
-      <div
-        style={{
-          color: "var(--color-danger)",
-          fontSize: "0.85rem",
-          marginTop: 6,
-        }}
-      >
-        {errors[apiKey]}
-      </div>
+      <div className={styles.errorText}>{errors[apiKey]}</div>
     ) : null;
 
   return (
@@ -437,25 +412,20 @@ const TransactionPage = () => {
                 </p>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="amount">Amount</label>
+                  <label
+                    htmlFor="amount"
+                    className={errors.amount ? styles.labelError : ""}
+                  >
+                    Amount
+                  </label>
                   <div className={styles.amountContainer}>
-                    <div className={styles.amountInput}>
+                    <div
+                      className={`${styles.amountInput} ${
+                        errors.amount ? styles.inputError : ""
+                      }`}
+                    >
                       <div className={styles.currencySymbol}>
-                        {formData.currency === "USD"
-                          ? "$"
-                          : formData.currency === "EUR"
-                          ? "€"
-                          : formData.currency === "GBP"
-                          ? "£"
-                          : formData.currency === "JPY"
-                          ? "¥"
-                          : formData.currency === "CAD"
-                          ? "$"
-                          : formData.currency === "AUD"
-                          ? "$"
-                          : formData.currency === "ZAR"
-                          ? "R"
-                          : ""}
+                        {getCurrencySymbol(formData.currency)}
                       </div>
                       <input
                         id="amount"
@@ -467,7 +437,9 @@ const TransactionPage = () => {
                         min="0.01"
                         step="0.01"
                         required
-                        className={styles.amountField}
+                        className={`${styles.amountField} ${
+                          errors.amount ? styles.inputError : ""
+                        }`}
                         aria-label="Amount to transfer"
                       />
                     </div>
@@ -478,11 +450,11 @@ const TransactionPage = () => {
                         options={currencyOptions}
                         onChange={handleDropdownChange("currency")}
                         className={styles.currencyDropdown}
+                        error={errors.currencyCode || ""}
                       />
                     </div>
                   </div>
                   <FieldError apiKey="amount" />
-                  <FieldError apiKey="currencyCode" />
                 </div>
 
                 <div className={styles.formGroup}>
@@ -509,8 +481,16 @@ const TransactionPage = () => {
                 </p>
 
                 <div className={styles.formGroup}>
-                  <label>Beneficiary Type</label>
-                  <div className={styles.segmentedControl}>
+                  <label
+                    className={errors.beneficiaryType ? styles.labelError : ""}
+                  >
+                    Beneficiary Type
+                  </label>
+                  <div
+                    className={`${styles.segmentedControl} ${
+                      errors.beneficiaryType ? styles.segmentedControlError : ""
+                    }`}
+                  >
                     <Button
                       type="button"
                       variant={
@@ -562,7 +542,12 @@ const TransactionPage = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="beneficiaryName">
+                  <label
+                    htmlFor="beneficiaryName"
+                    className={
+                      errors.beneficiaryFullName ? styles.labelError : ""
+                    }
+                  >
                     {formData.beneficiaryType === "individual"
                       ? "Full Name"
                       : "Business Name"}
@@ -579,7 +564,9 @@ const TransactionPage = () => {
                         : "Legal business name"
                     }
                     required
-                    className={styles.inputField}
+                    className={`${styles.inputField} ${
+                      errors.beneficiaryFullName ? styles.inputError : ""
+                    }`}
                   />
                   <FieldError apiKey="beneficiaryFullName" />
                 </div>
@@ -620,7 +607,12 @@ const TransactionPage = () => {
                 </p>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="destinationCountry">
+                  <label
+                    htmlFor="destinationCountry"
+                    className={
+                      errors.destinationCountryCode ? styles.labelError : ""
+                    }
+                  >
                     Destination Country
                   </label>
                   <Dropdown
@@ -635,7 +627,14 @@ const TransactionPage = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="bankName">Bank Name</label>
+                  <label
+                    htmlFor="bankName"
+                    className={
+                      errors.destinationBankName ? styles.labelError : ""
+                    }
+                  >
+                    Bank Name
+                  </label>
                   <input
                     id="bankName"
                     type="text"
@@ -644,7 +643,9 @@ const TransactionPage = () => {
                     onChange={handleChange}
                     placeholder="Start typing to search bank"
                     required
-                    className={styles.inputField}
+                    className={`${styles.inputField} ${
+                      errors.destinationBankName ? styles.inputError : ""
+                    }`}
                     list="bankSuggestions"
                   />
                   <datalist id="bankSuggestions">
@@ -663,7 +664,14 @@ const TransactionPage = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="swiftBic">SWIFT/BIC Code</label>
+                  <label
+                    htmlFor="swiftBic"
+                    className={
+                      errors.destinationBankSwift ? styles.labelError : ""
+                    }
+                  >
+                    SWIFT/BIC Code
+                  </label>
                   <input
                     id="swiftBic"
                     type="text"
@@ -672,7 +680,9 @@ const TransactionPage = () => {
                     onChange={handleChange}
                     placeholder="e.g., CHASUS33XXX"
                     required
-                    className={styles.inputField}
+                    className={`${styles.inputField} ${
+                      errors.destinationBankSwift ? styles.inputError : ""
+                    }`}
                     style={{ textTransform: "uppercase" }}
                     maxLength={11}
                   />
@@ -686,7 +696,14 @@ const TransactionPage = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="accountNumber">Account Number</label>
+                  <label
+                    htmlFor="accountNumber"
+                    className={
+                      errors.destinationAccountNumber ? styles.labelError : ""
+                    }
+                  >
+                    Account Number
+                  </label>
                   <input
                     id="accountNumber"
                     type="text"
@@ -695,7 +712,9 @@ const TransactionPage = () => {
                     onChange={handleChange}
                     placeholder="Enter account number"
                     required
-                    className={styles.inputField}
+                    className={`${styles.inputField} ${
+                      errors.destinationAccountNumber ? styles.inputError : ""
+                    }`}
                     inputMode="numeric"
                   />
                   <FieldError apiKey="destinationAccountNumber" />

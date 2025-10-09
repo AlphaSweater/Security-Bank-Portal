@@ -1,5 +1,5 @@
 .transactionPage::before {
-  content: '';
+  content: "";
   position: fixed;
   top: 0;
   left: 0;
@@ -83,7 +83,11 @@
 }
 
 .step.active .stepNumber {
-  background: linear-gradient(135deg, var(--color-primary-start) 0%, var(--color-primary-end) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-start) 0%,
+    var(--color-primary-end) 100%
+  );
   color: var(--color-text-primary);
   transform: translateY(-5px) scale(1.1);
   box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
@@ -108,9 +112,9 @@
   flex: 1;
   height: 2px;
   background: linear-gradient(
-    to right, 
-    var(--color-primary-start) 0%, 
-    var(--color-primary-end) 50%, 
+    to right,
+    var(--color-primary-start) 0%,
+    var(--color-primary-end) 50%,
     var(--color-surface-solid-dark) 50%
   );
   background-size: 200% 100%;
@@ -134,7 +138,8 @@
   backdrop-filter: blur(10px);
   border: 1px solid var(--color-border);
   margin-top: 2rem;
-  transition: transform 0.3s var(--ease-out-quint), box-shadow 0.3s var(--ease-out-quint);
+  transition: transform 0.3s var(--ease-out-quint),
+    box-shadow 0.3s var(--ease-out-quint);
   position: relative;
   z-index: 2;
   /* Remove min-height to prevent footer overlap */
@@ -173,13 +178,17 @@
 }
 
 .stepContent h2::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 0;
   width: 60px;
   height: 4px;
-  background: linear-gradient(90deg, var(--color-primary-start), var(--color-primary-end));
+  background: linear-gradient(
+    90deg,
+    var(--color-primary-start),
+    var(--color-primary-end)
+  );
   border-radius: 2px;
 }
 
@@ -213,6 +222,12 @@
   box-sizing: border-box;
 }
 
+/* Error state for inputs */
+.inputError {
+  border-color: var(--color-error) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important; /* red glow */
+}
+
 /* Ensure input text is visible */
 .formGroup input::placeholder {
   color: var(--color-text-muted);
@@ -224,7 +239,7 @@
 /* Amount container */
 .amountContainer {
   display: flex;
-  align-items: stretch;
+  align-self: center;
   gap: 0.75rem;
   width: 100%;
   max-width: 100%;
@@ -242,6 +257,11 @@
   transition: all 0.3s var(--ease-out-quint);
   height: 48px;
   box-sizing: border-box;
+}
+
+.amountInput.inputError {
+  border-color: var(--color-error) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
 }
 
 .amountInput:focus-within {
@@ -304,11 +324,15 @@
   right: 0;
   position: absolute; /* Must be absolute to overlay content */
   z-index: 10000 !important; /* Higher than action buttons */
-  background: var(--dropdown-bg, var(--color-surface-solid-dark, #0f172a)) !important;
+  background: var(
+    --dropdown-bg,
+    var(--color-surface-solid-dark, #0f172a)
+  ) !important;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   margin-top: 0.25rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   left: auto;
   background-image: none !important;
   -webkit-backdrop-filter: none !important;
@@ -332,7 +356,10 @@
 
 .formGroup .dropdownMenu {
   width: 100%;
-  background: var(--dropdown-bg, var(--color-surface-solid-dark, #0f172a)) !important;
+  background: var(
+    --dropdown-bg,
+    var(--color-surface-solid-dark, #0f172a)
+  ) !important;
   border: 1px solid var(--color-border) !important;
   border-radius: var(--radius-md) !important;
   margin-top: 0.25rem;
@@ -356,7 +383,7 @@
 }
 
 /* Fix for transparent background */
-.dropdownButton, 
+.dropdownButton,
 .dropdownMenu {
   background-color: var(--color-surface-solid) !important;
   background: var(--color-surface-solid) !important;
@@ -384,7 +411,7 @@ select {
 @-moz-document url-prefix() {
   .formGroup select {
     text-indent: 0.01px;
-    text-overflow: '';
+    text-overflow: "";
   }
   .formGroup select option {
     padding: 0.5rem 1rem;
@@ -406,6 +433,19 @@ select {
 .formGroup textarea::placeholder {
   color: var(--color-text-muted);
   opacity: 0.7;
+}
+
+/* Error label color */
+.labelError {
+  color: var(--color-error) !important;
+}
+
+/* Inline error text styling */
+.errorText {
+  margin-top: 0.5rem;
+  color: var(--color-error);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
 }
 
 .formGroup input:focus,
@@ -434,6 +474,11 @@ select {
   transition: all 0.3s ease;
 }
 
+.segmentedControlError {
+  border-color: var(--color-error) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+}
+
 .segment {
   flex: 1;
   padding: 0.85rem 1.25rem;
@@ -452,7 +497,11 @@ select {
 }
 
 .segment.active {
-  background: linear-gradient(135deg, var(--color-primary-start), var(--color-primary-end));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-start),
+    var(--color-primary-end)
+  );
   color: white;
   box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
   font-weight: 600;
@@ -468,9 +517,15 @@ select {
 
 /* Segment pulse animation */
 @keyframes segmentPulse {
-  0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
-  70% { box-shadow: 0 0 0 6px rgba(99, 102, 241, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(99, 102, 241, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+  }
 }
 
 .segment.active {
@@ -594,7 +649,6 @@ select {
 .amountInput {
   display: flex;
   gap: 0.75rem;
-  margin-bottom: 1rem;
   position: relative;
 }
 
@@ -893,32 +947,32 @@ select {
     flex-direction: column;
     gap: 0.75rem;
   }
-  
+
   .amountInput input,
   .amountInput select {
     width: 100%;
     max-width: 100%;
     flex: none;
   }
-  
+
   .formContainer {
     padding: 1.5rem;
   }
-  
+
   .reviewItem {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .reviewValue {
     text-align: left;
     max-width: 100%;
   }
-  
+
   .reviewSection {
     padding: 1rem;
   }
-  
+
   .termsContainer {
     padding: 1rem;
   }
@@ -927,7 +981,6 @@ select {
 .amountInput {
   display: flex;
   gap: 1rem;
-  margin-bottom: 1rem;
   position: relative;
   width: 100%;
   box-sizing: border-box;
@@ -1038,13 +1091,17 @@ select {
 }
 
 .reviewSection::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--color-primary-start), var(--color-primary-end));
+  background: linear-gradient(
+    90deg,
+    var(--color-primary-start),
+    var(--color-primary-end)
+  );
 }
 
 .reviewSection h3 {
@@ -1167,8 +1224,13 @@ select {
 
 /* Animations */
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 /* Responsive adjustments */
