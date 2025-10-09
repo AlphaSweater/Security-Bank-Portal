@@ -6,30 +6,128 @@ import Footer from '../../components/Footer/Footer';
 
 const TransactionPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  // Exchange rates (as of October 2024, these would typically come from an API in production)
+  const exchangeRates = {
+    USD: { EUR: 0.94, GBP: 0.82, JPY: 149.50, CAD: 1.36, AUD: 1.55, ZAR: 18.75 },
+    EUR: { USD: 1.06, GBP: 0.87, JPY: 159.20, CAD: 1.45, AUD: 1.65, ZAR: 19.95 },
+    GBP: { USD: 1.22, EUR: 1.15, JPY: 183.50, CAD: 1.66, AUD: 1.89, ZAR: 22.90 },
+    JPY: { USD: 0.0067, EUR: 0.0063, GBP: 0.0055, CAD: 0.0091, AUD: 0.0103, ZAR: 0.125 },
+    CAD: { USD: 0.74, EUR: 0.69, GBP: 0.60, JPY: 110.50, AUD: 1.14, ZAR: 13.80 },
+    AUD: { USD: 0.65, EUR: 0.61, GBP: 0.53, JPY: 97.20, CAD: 0.88, ZAR: 12.10 },
+    ZAR: { USD: 0.053, EUR: 0.050, GBP: 0.044, JPY: 8.00, CAD: 0.072, AUD: 0.083 }
+  };
+
   const [formData, setFormData] = useState({
+    // Step 1: Amount & Currency
     amount: '',
     currency: 'USD',
-    recipientName: '',
-    accountNumber: '',
+    // Step 2: Beneficiary
+    beneficiaryType: 'person', // 'person' or 'business'
+    beneficiaryName: '',
+    message: '',
+    // Step 3: Bank & Account
+    destinationCountry: '',
     bankName: '',
-    swiftCode: '',
+    swiftBic: '',
+    accountNumber: '',
+    // Step 4: Review
+    agreeTerms: false,
   });
+
+  // Format currency with symbol
+  const formatCurrency = (amount, currencyCode) => {
+    const currencySymbols = {
+      'USD': '$',
+      'EUR': '€',
+      'GBP': '£',
+      'JPY': '¥',
+      'CAD': '$',
+      'AUD': '$',
+      'ZAR': 'R'
+    };
+    const symbol = currencySymbols[currencyCode] || currencyCode;
+    const amountValue = parseFloat(amount) || 0;
+    return `${symbol}${amountValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  // Calculate converted amount based on destination country
+  const getConvertedAmount = () => {
+    if (!formData.amount || !formData.destinationCountry) return null;
+
+    const countryToCurrency = {
+      'US': 'USD',
+      'GB': 'GBP',
+      'DE': 'EUR',
+      'FR': 'EUR',
+      'JP': 'JPY',
+      'CA': 'CAD',
+      'AU': 'AUD',
+      'ZA': 'ZAR'
+    };
+
+    const targetCurrency = countryToCurrency[formData.destinationCountry] || 'EUR';
+    
+    // If source and target currencies are the same, no conversion needed
+    if (formData.currency === targetCurrency) {
+      return {
+        amount: parseFloat(formData.amount) || 0,
+        currency: targetCurrency,
+        rate: 1,
+        formattedAmount: formatCurrency(formData.amount || 0, targetCurrency),
+        formattedRate: formatCurrency(1, targetCurrency)
+      };
+    }
+
+    // Get the exchange rate from source to target currency
+    const rate = exchangeRates[formData.currency]?.[targetCurrency];
+    
+    // If direct rate not found, try to find a path through USD
+    let calculatedRate = rate;
+    if (!rate && formData.currency !== 'USD' && targetCurrency !== 'USD') {
+      const toUsdRate = exchangeRates[formData.currency]?.USD;
+      const fromUsdRate = exchangeRates.USD?.[targetCurrency];
+      if (toUsdRate && fromUsdRate) {
+        calculatedRate = toUsdRate * fromUsdRate;
+      }
+    }
+
+    // If still no rate, default to 1 (shouldn't happen with our currency set)
+    if (!calculatedRate) {
+      console.warn(`No exchange rate found from ${formData.currency} to ${targetCurrency}`);
+      calculatedRate = 1;
+    }
+
+    const amount = parseFloat(formData.amount) * calculatedRate;
+
+    return {
+      amount: amount,
+      currency: targetCurrency,
+      rate: calculatedRate,
+      inverseRate: 1 / calculatedRate,
+      formattedAmount: formatCurrency(amount, targetCurrency),
+      formattedRate: formatCurrency(calculatedRate, targetCurrency),
+      formattedInverseRate: formatCurrency(1 / calculatedRate, formData.currency)
+    };
+  };
+
+  const convertedAmount = getConvertedAmount();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const navigate = useNavigate();
 
   const steps = [
-    { number: 1, title: 'Amount & Sender', description: 'Transfer amount and your bank details' },
-    { number: 2, title: 'Recipient', description: 'Recipient information' },
-    { number: 3, title: 'Review', description: 'Confirm your transfer' }
+    { number: 1, title: 'Amount & Currency', description: 'Enter transfer amount' },
+    { number: 2, title: 'Beneficiary', description: 'Recipient details' },
+    { number: 3, title: 'Bank & Account', description: 'Bank information' },
+    { number: 4, title: 'Review & Confirm', description: 'Verify all details' }
   ];
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === 'checkbox' ? checked : name === 'swiftBic' ? value.toUpperCase() : value,
     }));
   };
 
@@ -92,9 +190,17 @@ const TransactionPage = () => {
       case 1:
         return formData.amount && parseFloat(formData.amount) > 0 && formData.currency;
       case 2:
-        return formData.recipientName && formData.accountNumber && formData.bankName && formData.swiftCode;
+        return formData.beneficiaryName &&
+              (formData.beneficiaryType === 'business' || formData.beneficiaryName.split(' ').length >= 2);
       case 3:
-        return true; // Review step is always valid
+        return formData.destinationCountry &&
+              formData.bankName &&
+              formData.swiftBic &&
+              formData.accountNumber &&
+              formData.swiftBic.length >= 8 &&
+              formData.swiftBic.length <= 11;
+      case 4:
+        return formData.agreeTerms;
       default:
         return false;
     }
@@ -139,15 +245,22 @@ const TransactionPage = () => {
           <div className={styles.stepContent}>
             {currentStep === 1 && (
               <div>
-                <h2>Transfer Amount</h2>
+                <h2>Amount & Currency</h2>
                 <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-                  Enter the amount you want to transfer and your bank's SWIFT code.
+                  Enter the amount you want to transfer and select the currency.
                 </p>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="amount">Amount to Transfer</label>
+                  <label htmlFor="amount">Amount</label>
                   <div className={styles.amountInput}>
-                    <span className={styles.currencySymbol}>$</span>
+                    <div className={styles.currencySymbol}>
+                      {formData.currency === 'USD' ? '$' :
+                       formData.currency === 'EUR' ? '€' :
+                       formData.currency === 'GBP' ? '£' :
+                       formData.currency === 'JPY' ? '¥' :
+                       formData.currency === 'CAD' ? '$' :
+                       formData.currency === 'AUD' ? '$' : ''}
+                    </div>
                     <input
                       id="amount"
                       type="number"
@@ -160,60 +273,175 @@ const TransactionPage = () => {
                       required
                       className={styles.amountField}
                       aria-label="Amount to transfer"
+                      style={{paddingLeft: '2.5rem'}}
                     />
                     <select
                       name="currency"
                       value={formData.currency}
                       onChange={handleChange}
-                      className={styles.currencySelect}
+                      className={styles.inputField}
                       aria-label="Select currency"
                     >
-                      <option value="USD">USD</option>
-                      <option value="EUR">EUR</option>
-                      <option value="GBP">GBP</option>
+                      <option value="USD">USD - US Dollar</option>
+                      <option value="EUR">EUR - Euro</option>
+                      <option value="GBP">GBP - British Pound</option>
+                      <option value="JPY">JPY - Japanese Yen</option>
+                      <option value="CAD">CAD - Canadian Dollar</option>
+                      <option value="AUD">AUD - Australian Dollar</option>
                     </select>
                   </div>
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Your Bank's SWIFT Code</label>
-                  <div style={{
-                    padding: '1rem',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--color-border)',
-                    fontSize: '1.1rem',
-                    fontWeight: '600',
-                    textAlign: 'center'
-                  }}>
-                    CHASUS33XXX
+                  <div className={styles.infoBox}>
+                    <div className={styles.infoRow}>
+                      <span>Estimated delivery:</span>
+                      <span>1-2 business days</span>
+                    </div>
                   </div>
-                  <small style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>
-                    This is your bank's SWIFT/BIC code for international transfers
-                  </small>
                 </div>
               </div>
             )}
 
             {currentStep === 2 && (
               <div>
-                <h2>Recipient Details</h2>
+                <h2>Beneficiary Details</h2>
                 <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-                  Enter the recipient's information exactly as it appears on their bank account.
+                  Enter the recipient's personal or business information.
                 </p>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="recipientName">Recipient's Full Name</label>
+                  <label>Beneficiary Type</label>
+                  <div className={styles.segmentedControl}>
+                    <button
+                      type="button"
+                      className={`${styles.segment} ${formData.beneficiaryType === 'person' ? styles.active : ''}`}
+                      onClick={() => setFormData({...formData, beneficiaryType: 'person'})}
+                    >
+                      Person
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.segment} ${formData.beneficiaryType === 'business' ? styles.active : ''}`}
+                      onClick={() => setFormData({...formData, beneficiaryType: 'business'})}
+                    >
+                      Business
+                    </button>
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="beneficiaryName">
+                    {formData.beneficiaryType === 'person' ? 'Full Name' : 'Business Name'}
+                  </label>
                   <input
-                    id="recipientName"
+                    id="beneficiaryName"
                     type="text"
-                    name="recipientName"
-                    value={formData.recipientName}
+                    name="beneficiaryName"
+                    value={formData.beneficiaryName}
                     onChange={handleChange}
-                    placeholder="As it appears on bank account"
+                    placeholder={formData.beneficiaryType === 'person' 
+                      ? 'First and last name' 
+                      : 'Legal business name'}
                     required
                     className={styles.inputField}
                   />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="message">Message to Beneficiary (Optional)</label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    placeholder="Add a message to the beneficiary"
+                    rows="3"
+                    className={styles.inputField}
+                    style={{ resize: 'vertical', minHeight: '80px' }}
+                  />
+                  <small style={{ color: 'var(--color-text-muted)' }}>
+                    Maximum 140 characters
+                  </small>
+                </div>
+              </div>
+            )}
+
+            {currentStep === 3 && (
+              <div>
+                <h2>Bank & Account Details</h2>
+                <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
+                  Enter the recipient's bank information.
+                </p>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="destinationCountry">Destination Country</label>
+                  <select
+                    id="destinationCountry"
+                    name="destinationCountry"
+                    value={formData.destinationCountry}
+                    onChange={handleChange}
+                    className={styles.inputField}
+                    required
+                  >
+                    <option value="">Select a country</option>
+                    <option value="US">United States (USD)</option>
+                    <option value="GB">United Kingdom (GBP)</option>
+                    <option value="CA">Canada (CAD)</option>
+                    <option value="AU">Australia (AUD)</option>
+                    <option value="DE">Germany (EUR)</option>
+                    <option value="FR">France (EUR)</option>
+                    <option value="JP">Japan (JPY)</option>
+                    <option value="ZA">South Africa (ZAR)</option>
+                  </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="bankName">Bank Name</label>
+                  <input
+                    id="bankName"
+                    type="text"
+                    name="bankName"
+                    value={formData.bankName}
+                    onChange={handleChange}
+                    placeholder="Start typing to search bank"
+                    required
+                    className={styles.inputField}
+                    list="bankSuggestions"
+                  />
+                  <datalist id="bankSuggestions">
+                    <option value="Chase Bank" />
+                    <option value="Bank of America" />
+                    <option value="Wells Fargo" />
+                    <option value="Citibank" />
+                    <option value="HSBC" />
+                    <option value="Barclays" />
+                    <option value="Deutsche Bank" />
+                    <option value="BNP Paribas" />
+                    <option value="Santander" />
+                    <option value="UBS" />
+                  </datalist>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="swiftBic">SWIFT/BIC Code</label>
+                  <input
+                    id="swiftBic"
+                    type="text"
+                    name="swiftBic"
+                    value={formData.swiftBic}
+                    onChange={handleChange}
+                    placeholder="e.g., CHASUS33XXX"
+                    required
+                    className={styles.inputField}
+                    style={{ textTransform: 'uppercase' }}
+                    maxLength={11}
+                  />
+                  <small style={{ color: 'var(--color-text-muted)' }}>
+                    {formData.swiftBic.length < 8 || formData.swiftBic.length > 11 
+                      ? 'SWIFT/BIC must be 8 or 11 characters' 
+                      : '8 or 11 characters, letters and numbers only'}
+                  </small>
                 </div>
 
                 <div className={styles.formGroup}>
@@ -230,41 +458,12 @@ const TransactionPage = () => {
                     inputMode="numeric"
                   />
                 </div>
-
-                <div className={styles.formGroup}>
-                  <label htmlFor="bankName">Bank Name</label>
-                  <input
-                    id="bankName"
-                    type="text"
-                    name="bankName"
-                    value={formData.bankName}
-                    onChange={handleChange}
-                    placeholder="Recipient's bank name"
-                    required
-                    className={styles.inputField}
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label htmlFor="swiftCode">SWIFT/BIC Code</label>
-                  <input
-                    id="swiftCode"
-                    type="text"
-                    name="swiftCode"
-                    value={formData.swiftCode}
-                    onChange={handleChange}
-                    placeholder="e.g., CHASUS33XXX"
-                    required
-                    className={styles.inputField}
-                    style={{ textTransform: 'uppercase' }}
-                  />
-                </div>
               </div>
             )}
 
-            {currentStep === 3 && (
+            {currentStep === 4 && (
               <div>
-                <h2>Review Your Transfer</h2>
+                <h2>Review & Confirm</h2>
                 <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
                   Please review all details before confirming your transfer.
                 </p>
@@ -272,53 +471,93 @@ const TransactionPage = () => {
                 <div className={styles.reviewSection}>
                   <h3>Transfer Summary</h3>
 
-                  <div style={{ display: 'grid', gap: '1rem' }}>
-                    <div className={styles.reviewItem} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Amount:</span>
-                      <span style={{ fontWeight: '600' }}>
-                        {formData.currency} {parseFloat(formData.amount || 0).toLocaleString()}
+                  <div className={styles.reviewGrid}>
+                    <div className={styles.reviewItem}>
+                      <span className={styles.reviewLabel}>You send</span>
+                      <span className={styles.reviewValue}>
+                        {formatCurrency(formData.amount || 0, formData.currency)}
                       </span>
                     </div>
 
-                    <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)' }} />
+                    {convertedAmount && (
+                      <>
+                        <div className={styles.reviewItem}>
+                          <span className={styles.reviewLabel}>Recipient gets</span>
+                          <span className={styles.reviewValue}>
+                            {formatCurrency(convertedAmount.amount, convertedAmount.currency)}
+                          </span>
+                        </div>
 
-                    <div className={styles.reviewItem} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Recipient:</span>
-                      <span style={{ fontWeight: '600' }}>{formData.recipientName}</span>
+                        <div className={styles.reviewItem}>
+                          <span className={styles.reviewLabel}>Exchange rate</span>
+                          <span className={styles.reviewValue}>
+                            {formatCurrency(1, formData.currency)} = {formatCurrency(convertedAmount.rate, convertedAmount.currency)}
+                          </span>
+                        </div>
+                      </>
+                    )}
+
+                    <div className={`${styles.reviewItem} ${styles.totalAmount}`}>
+                      <span className={styles.reviewLabel}>Total amount to debit</span>
+                      <span className={styles.reviewValue}>
+                        {formatCurrency(formData.amount || 0, formData.currency)}
+                      </span>
                     </div>
 
-                    <div className={styles.reviewItem} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Account Number:</span>
-                      <span style={{ fontWeight: '600' }}>{formData.accountNumber}</span>
+                    <div className={styles.reviewDivider} />
+
+                    <div className={styles.reviewItem}>
+                      <span className={styles.reviewLabel}>Beneficiary</span>
+                      <span className={styles.reviewValue}>
+                        {formData.beneficiaryName}
+                        {formData.message && (
+                          <div className={styles.messagePreview}>
+                            <span style={{ fontWeight: 500 }}>Message:</span> {formData.message}
+                          </div>
+                        )}
+                      </span>
                     </div>
 
-                    <div className={styles.reviewItem} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Bank Name:</span>
-                      <span style={{ fontWeight: '600' }}>{formData.bankName}</span>
-                    </div>
-
-                    <div className={styles.reviewItem} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>SWIFT Code:</span>
-                      <span style={{ fontWeight: '600' }}>{formData.swiftCode}</span>
-                    </div>
-
-                    <div className={styles.reviewItem} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>From Bank:</span>
-                      <span style={{ fontWeight: '600' }}>CHASUS33XXX</span>
+                    <div className={styles.reviewItem}>
+                      <span className={styles.reviewLabel}>Bank Details</span>
+                      <div className={styles.bankDetails}>
+                        <div className={styles.bankFlag}>
+                          {formData.destinationCountry && (
+                            <span className={`fi fi-${formData.destinationCountry.toLowerCase()}`}></span>
+                          )}
+                          <span>{formData.destinationCountry}</span>
+                        </div>
+                        <div>{formData.bankName}</div>
+                        <div>SWIFT/BIC: {formData.swiftBic}</div>
+                        <div>Account: ••••{formData.accountNumber.slice(-4)}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div style={{
-                  background: 'rgba(255, 193, 7, 0.1)',
-                  border: '1px solid #ffc107',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '1rem',
-                  marginTop: '1.5rem'
-                }}>
-                  <p style={{ margin: 0, color: '#856404', fontSize: '0.9rem' }}>
-                    <strong>Important:</strong> Please double-check all details. International transfers cannot be reversed once processed.
-                  </p>
+                <div className={styles.termsContainer}>
+                  <label className={styles.checkboxContainer}>
+                    <input
+                      type="checkbox"
+                      name="agreeTerms"
+                      checked={formData.agreeTerms}
+                      onChange={handleChange}
+                      required
+                    />
+                    <span className={styles.checkmark}></span>
+                    <span>I confirm that the information provided is accurate and I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer">Terms & Conditions</a>.</span>
+                  </label>
+                </div>
+
+                <div className={styles.noticeBox}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 8V12" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 16H12.01" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <div>
+                    <strong>Important:</strong> Please verify all details before confirming. International transfers cannot be reversed once processed.
+                  </div>
                 </div>
               </div>
             )}
@@ -375,7 +614,7 @@ const TransactionPage = () => {
         <div className={styles.modalOverlay}>
           <div className={styles.modal}>
             <h3>Confirm Payment</h3>
-            <p>Are you sure you want to make this payment of <strong>{formData.currency} {parseFloat(formData.amount || 0).toLocaleString()}</strong> to <strong>{formData.recipientName}</strong>?</p>
+            <p>Are you sure you want to make this payment of <strong>{formatCurrency(formData.amount || 0, formData.currency)}</strong> to <strong>{formData.beneficiaryName}</strong>?</p>
             <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
               This action cannot be undone. Please make sure all details are correct.
             </p>
