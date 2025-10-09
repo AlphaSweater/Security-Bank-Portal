@@ -89,16 +89,16 @@ export const ExcessLimiter = Object.freeze({
 });
 
 // ---------------- Targeted account protection ----------------
-// 5 req / 30 min (~0.0028 req/s), delay after 2nd: +1s/req up to 30s
+// 10 req / 30 min (~0.0056 req/s), delay after 2nd: +1s/req up to 30s
 export const EmailTargetLimiter = Object.freeze({
   windowMs: 30 * 60 * 1000, // 30 min
-  max: 5, // standard: 5 attempts per 30 min per identity
+  max: 10, // standard: 10 attempts per 30 min per identity
   delayAfter: 2, // protect quickly
   delayMs: 1000, // strong backoff to deter enumeration/brute force
   maxDelayMs: 30000, // up to 30s when abusive
   key: RateLimitKeys.EMAIL,
   message:
-    "Too many attempts for this account. Please wait a while and try again.",
+    "Too many attempts for this account. Please wait a while and try again. Or contact the bank support team if this was not you.",
 });
 
 // ---------------- Auth flows ----------------
@@ -115,13 +115,13 @@ export const AuthFlowLimiter = Object.freeze({
 });
 
 // ---------------- Login-specific ----------------
-// 5 req / 2 hr (~0.00069 req/s), delay after 1st: +1s/req up to 20s
+// 5 req / 30 min (~0.0028 req/s), delay after 2nd: +1s/req up to 30s
 export const LoginLimiter = Object.freeze({
-  windowMs: 120 * 60 * 1000, // 2 hours
-  max: 5, // widely accepted control: 5 failed logins per 2 hours
-  delayAfter: 1, // start slowing right after the first failure
-  delayMs: 1000, // aggressive backoff to frustrate brute-force
-  maxDelayMs: 20000,
+  windowMs: 30 * 60 * 1000, // 30 min
+  max: 5, // standard: 5 attempts per 30 min per identity
+  delayAfter: 2, // protect quickly
+  delayMs: 1000, // strong backoff to deter enumeration/brute force
+  maxDelayMs: 30000, // up to 30s when abusive
   skipSuccessfulRequests: true, // success isn't penalized
   key: RateLimitKeys.EMAIL_IP,
   message: "Too many login attempts. Please wait before trying again.",
