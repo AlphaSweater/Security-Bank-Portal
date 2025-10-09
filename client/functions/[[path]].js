@@ -32,6 +32,8 @@ export const onRequest = async ({ request, env, next }) => {
     public: [
       /^\/$/,
       /^\/auth(\/|$)/,
+      /^\/auth\/forgot-password(\/|$)/,
+      /^\/auth\/reset-password(\/|$)/,
       /^\/about(\/|$)/,
       /^\/privacy(\/|$)/,
       /^\/unauthorized(\/|$)/,
