@@ -1,4 +1,5 @@
 // External Dependencies
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   FiArrowUpRight,
@@ -10,6 +11,7 @@ import {
 
 // Components
 import Footer from "../../components/Footer/Footer";
+import { apiRequest } from "../../utils/apiUtil";
 
 // Styles
 import styles from "./DashboardPage.module.css";
@@ -106,12 +108,61 @@ function TransactionItem({ transaction }) {
 }
 
 function DashboardPage() {
+  const [wipOpen, setWipOpen] = useState(false);
+  const [wipMessage, setWipMessage] = useState(
+    "This feature is a work in progress and will be implemented later."
+  );
+  const [profileName, setProfileName] = useState("");
+  const [welcomeLoading, setWelcomeLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadProfile() {
+      try {
+        const data = await apiRequest("/api/users/me");
+        if (cancelled) return;
+        const user = data?.user;
+        const first = user?.firstName;
+        const last = user?.lastName;
+        const full = [first, last].filter(Boolean).join(" ").trim();
+        setProfileName(full || "User");
+      } catch (e) {
+        // Keep a graceful fallback if profile fetch fails
+        setProfileName("User");
+      } finally {
+        if (!cancelled) setWelcomeLoading(false);
+      }
+    }
+    loadProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function openWip(message) {
+    if (message) setWipMessage(message);
+    setWipOpen(true);
+  }
+
+  function closeWip() {
+    setWipOpen(false);
+  }
+
   return (
     <div className={styles.pageWrapper}>
       <main className={styles.mainContent}>
         <div className={styles.pageHeader}>
           <h1 className={styles.heading}>Dashboard</h1>
-          <div className={styles.welcome}>Welcome back, Demo User! 👋</div>
+          <div className={styles.welcome} aria-live="polite">
+            {welcomeLoading ? (
+              "Welcome back, …"
+            ) : (
+              <>
+                Welcome back,{" "}
+                <span className={styles.welcomeName}>{profileName}</span>! 👋
+              </>
+            )}
+          </div>
         </div>
 
         <div className={styles.statsGrid}>
@@ -142,9 +193,15 @@ function DashboardPage() {
           <div className={styles.card}>
             <div className={styles.cardHeader}>
               <h3>Recent Transactions</h3>
-              <Link className={styles.viewAll}>
+              <button
+                type="button"
+                className={styles.viewAll}
+                onClick={() =>
+                  openWip("The full transactions list is coming soon.")
+                }
+              >
                 View All
-              </Link>
+              </button>
             </div>
             <div className={styles.transactionsList}>
               {accountData.recentTransactions.map((transaction) => (
@@ -163,11 +220,19 @@ function DashboardPage() {
                 <FiDollarSign />
                 <span>Transfer Money</span>
               </Link>
-              <button className={styles.actionButton}>
+              <button
+                type="button"
+                onClick={() => openWip("Bill payments are a work in progress.")}
+                className={styles.actionButton}
+              >
                 <FiCreditCard />
                 <span>Pay Bills</span>
               </button>
-              <button className={styles.actionButton}>
+              <button
+                type="button"
+                onClick={() => openWip("Investments will be available soon.")}
+                className={styles.actionButton}
+              >
                 <FiTrendingUp />
                 <span>Investments</span>
               </button>
@@ -175,6 +240,36 @@ function DashboardPage() {
           </div>
         </div>
       </main>
+      {wipOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Work in progress message"
+          className={styles.modalOverlay}
+          onClick={closeWip}
+        >
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h4 className={styles.modalTitle}>Coming soon</h4>
+              <button
+                onClick={closeWip}
+                aria-label="Close"
+                className={styles.modalCloseButton}
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <p>{wipMessage}</p>
+            </div>
+            <div className={styles.modalFooter}>
+              <button onClick={closeWip} className={styles.modalPrimaryButton}>
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <Footer />
     </div>
   );
