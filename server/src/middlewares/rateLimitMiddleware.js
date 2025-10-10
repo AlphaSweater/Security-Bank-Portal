@@ -1,17 +1,22 @@
+//======================================================================================
+//Group 2 - Group Members:
+//======================================================================================
+// Chad Fairlie ST10269509
+// Dhiren Ruthenavelu ST10256859
+// Kayla Ferreira ST10259527
+// Nathan Teixeira ST10249266
+//======================================================================================
+//References:
+//======================================================================================
+// ChatGPT assisted by in the creation of this middleware by providing information and
+// demonstrating best practices for rate limiting in Express.js.
+// All AI responses were thoroughly review and cross referenced to ensure accuracy and
+// academic integrity.
+//======================================================================================
+
 import rateLimit from "express-rate-limit";
 import slowDown from "express-slow-down";
 import { RateLimitKeyGenerators } from "../config/rateLimitConfig.js";
-
-/**
- * Build our rate limiter (slowDown + rateLimit) from config profile.
- * Always returns a single middleware function.
- *
- * Usage:
- *   import { addRateLimiter } from "./middlewares/rateLimitMiddleware.js";
- *   import { LoginLimiter, EmailTargetLimiter } from "./config/rateLimitConfig.js";
- *
- *   router.post("/auth/login", addRateLimiter(LoginLimiter, EmailTargetLimiter));
- */
 
 export function addRateLimiter(...limiterProfiles) {
   // Support passing profiles either as separate args or a single array

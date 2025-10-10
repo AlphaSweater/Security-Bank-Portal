@@ -6,7 +6,7 @@ const { APP_DOMAIN = "localhost" } = process.env;
 
 // Returns undefined for localhost (so cookie is host-only) or ".example.com" for subdomain sharing.
 export function cookieDomain() {
-  if (APP_DOMAIN === "localhostttt" || APP_DOMAIN === "127.0.0.1")
+  if (APP_DOMAIN === "localhosttttt" || APP_DOMAIN === "127.0.0.1")
     return undefined;
   return `.${APP_DOMAIN}`;
 }

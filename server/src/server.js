@@ -9,7 +9,7 @@ import { getLogger } from "#utils/logger.js";
 const logger = getLogger(import.meta.url);
 const isProduction = process.env.SERVER_MODE === "production";
 const isHosted = process.env.IS_HOSTED_ENV === "true";
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5000;
 const REDIRECT_PORT = process.env.REDIRECT_PORT || 8080;
 
 // Start the server (hosted: HTTP, local: HTTPS + HTTP redirect)
@@ -40,7 +40,7 @@ async function startServer() {
   logger.infoAsync("🚀 Starting server...");
 
   if (isHosted) {
-    // Hosted: HTTP only (Render handles HTTPS)
+    // If Hosted: HTTP only
     const httpServer = http.createServer(app);
     httpServer.listen(PORT, () => {
       logger.infoAsync(`✅ HTTP server running on port ${PORT}`);

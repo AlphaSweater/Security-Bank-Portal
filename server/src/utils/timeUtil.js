@@ -1,3 +1,19 @@
+//======================================================================================
+//Group 2 - Group Members:
+//======================================================================================
+// Chad Fairlie ST10269509
+// Dhiren Ruthenavelu ST10256859
+// Kayla Ferreira ST10259527
+// Nathan Teixeira ST10249266
+//======================================================================================
+//References:
+//======================================================================================
+// ChatGPT assisted by in the creation of this utility file by providing information
+// regarding best practises of time and date handling in JavaScript.
+// All AI responses were thoroughly review and cross referenced to ensure accuracy and
+// academic integrity.
+//======================================================================================
+
 // Current UTC epoch seconds (integer).
 export function epochSecondsNow() {
   return Math.floor(Date.now() / 1000);
