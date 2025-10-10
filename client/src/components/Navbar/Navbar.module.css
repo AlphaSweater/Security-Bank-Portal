@@ -80,34 +80,48 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
-  display: none;
+  display: flex;
   flex-direction: column;
   min-width: 160px;
   max-width: 90vw;
   padding: 0.5rem;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.15s;
+  transform: translateY(-4px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
   z-index: 10;
   overflow-x: auto;
   box-sizing: border-box;
 }
 
 .dropdownOpen {
-  display: flex;
   opacity: 1;
   pointer-events: auto;
+  visibility: visible;
+  transform: translateY(0);
 }
 
-.dropdown a {
+.dropdownItem {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
   text-decoration: none;
   color: var(--color-text-primary);
+  font: inherit;
   padding: 0.5rem 0.75rem;
   border-radius: var(--radius-sm);
-  transition: background var(--transition-fast);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
 
-.dropdown a:hover {
+.dropdownItem:hover,
+.dropdownItem:focus {
+  outline: none;
   background: var(--color-surface);
 }
 
