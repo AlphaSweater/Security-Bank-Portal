@@ -1,3 +1,20 @@
+//======================================================================================
+//Group 2 - Group Members:
+//======================================================================================
+// Chad Fairlie ST10269509
+// Dhiren Ruthenavelu ST10256859
+// Kayla Ferreira ST10259527
+// Nathan Teixeira ST10249266
+//======================================================================================
+//References:
+//======================================================================================
+// ChatGPT assisted by providing information regarding best practises of security and
+// JavaScript.
+// As well as on occasion upgrading or improving existing code segments.
+// All AI responses were thoroughly review and cross referenced to ensure accuracy and
+// academic integrity.
+//======================================================================================
+
 import Joi from "joi";
 
 // =========================

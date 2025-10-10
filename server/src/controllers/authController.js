@@ -14,8 +14,8 @@ const logger = getLogger(import.meta.url);
 
 // POST /auth/login
 export async function login(req, res, next) {
-  // All fields are already validated and stripped by middleware
   res.set({ "Cache-Control": "no-store" });
+  // All fields are already validated and stripped by middleware
   const { email, password } = req.body;
   try {
     const user = await authService.authenticateUser({ email, password });

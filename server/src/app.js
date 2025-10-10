@@ -14,11 +14,15 @@ const logger = getLogger(import.meta.url);
 logger.info("Initializing Express app...");
 const app = express();
 
+app.set("trust proxy", 1); // Trust first proxy
+
 // Register core middleware
 logger.info("Registering core middleware");
-app.set("trust proxy", 1); // Trust first proxy (like Render, Heroku, etc.)
+
 app.use(express.json({ limit: "1mb" })); // Parse JSON bodies, 1mb limit
+
 app.use(cookieParser()); // Parse cookies
+
 app.use(await session()); // Set up session management
 
 // Log incoming requests (development only)

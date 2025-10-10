@@ -1,9 +1,20 @@
-import { ipKeyGenerator } from "express-rate-limit";
+//======================================================================================
+//Group 2 - Group Members:
+//======================================================================================
+// Chad Fairlie ST10269509
+// Dhiren Ruthenavelu ST10256859
+// Kayla Ferreira ST10259527
+// Nathan Teixeira ST10249266
+//======================================================================================
+//References:
+//======================================================================================
+// ChatGPT assisted by in the creation of these configurations by providing information
+// regarding best practises of rate limiting in Express.js.
+// All AI responses were thoroughly review and cross referenced to ensure accuracy and
+// academic integrity.
+//======================================================================================
 
-// ───────────────── Rate Limiting Profiles ─────────────────
-// These presets aim for fair use under normal use
-// while sharply degrading abusive patterns (rotation attacks, brute-force).
-// Tune per route: use "GeneralLimiter" for most read APIs, stricter ones for auth and high-risk endpoints.
+import { ipKeyGenerator } from "express-rate-limit";
 
 // ---------------- Keys & Key Generators ----------------
 export const RateLimitKeys = Object.freeze({

@@ -1,3 +1,20 @@
+//======================================================================================
+//Group 2 - Group Members:
+//======================================================================================
+// Chad Fairlie ST10269509
+// Dhiren Ruthenavelu ST10256859
+// Kayla Ferreira ST10259527
+// Nathan Teixeira ST10249266
+//======================================================================================
+//References:
+//======================================================================================
+// ChatGPT greatly assisted in the creation and setup of these tests by providing
+// demo data as well as guidance on best practices for testing with Vitest.
+// Additionally helping with improving the quality as well as the coverage of the tests.
+// All AI responses were thoroughly review and cross referenced to ensure accuracy and
+// academic integrity.
+//======================================================================================
+
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { validateData } from "#middlewares/validationMiddleware.js";
 import * as transactionValidation from "#utils/validation/transactionValidation.js";

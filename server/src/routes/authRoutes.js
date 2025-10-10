@@ -28,12 +28,14 @@ router.post(
   validateData(userValidation.loginUserSchema),
   asyncHandler(authController.login)
 );
+
 router.post(
   "/register",
   addRateLimiter(AuthFlowLimiter, ExcessLimiter),
   validateData(userValidation.registerUserSchema),
   asyncHandler(authController.register)
 );
+
 router.post(
   "/logout",
   addRateLimiter(AuthFlowLimiter, ExcessLimiter),
