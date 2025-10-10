@@ -12,41 +12,18 @@ import {
 // Components
 import Footer from "../../components/Footer/Footer";
 import { apiRequest } from "../../utils/apiUtil";
+import TransactionItem from "../../components/Common/TransactionItem";
 
 // Styles
 import styles from "./DashboardPage.module.css";
 
-// Mock data - replace with actual data from your API
-const accountData = {
-  balance: 12500.0,
-  income: 4850.0,
-  expenses: 2350.0,
-  recentTransactions: [
-    {
-      id: 1,
-      name: "Salary",
-      amount: 4500.0,
-      type: "income",
-      date: "2025-10-01",
-    },
-    {
-      id: 2,
-      name: "Grocery Store",
-      amount: -156.78,
-      type: "expense",
-      date: "2025-10-01",
-    },
-    {
-      id: 3,
-      name: "Electric Bill",
-      amount: -89.99,
-      type: "expense",
-      date: "2025-09-30",
-    },
-  ],
-};
-
 function StatCard({ title, value, change, isPositive, icon: Icon }) {
+  const formatted = new Intl.NumberFormat("en-ZA", {
+    style: "currency",
+    currency: "ZAR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(value) || 0);
   return (
     <div className={styles.statCard}>
       <div className={styles.statHeader}>
@@ -55,12 +32,16 @@ function StatCard({ title, value, change, isPositive, icon: Icon }) {
         </div>
         <span className={styles.statTitle}>{title}</span>
       </div>
-      <div className={styles.statValue}>
-        $
-        {value.toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })}
+      <div
+        className={`${styles.statValue} ${
+          isPositive === true
+            ? styles.positive
+            : isPositive === false
+            ? styles.negative
+            : ""
+        }`}
+      >
+        {formatted}
       </div>
       {change !== undefined && (
         <div
@@ -76,36 +57,7 @@ function StatCard({ title, value, change, isPositive, icon: Icon }) {
   );
 }
 
-function TransactionItem({ transaction }) {
-  const isIncome = transaction.amount > 0;
-  const formattedAmount = isIncome
-    ? `+$${Math.abs(transaction.amount).toFixed(2)}`
-    : `-$${Math.abs(transaction.amount).toFixed(2)}`;
-
-  return (
-    <div className={styles.transactionItem}>
-      <div className={styles.transactionIcon}>
-        {isIncome ? <FiDollarSign /> : <FiCreditCard />}
-      </div>
-      <div className={styles.transactionDetails}>
-        <div className={styles.transactionName}>{transaction.name}</div>
-        <div className={styles.transactionDate}>
-          {new Date(transaction.date).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-          })}
-        </div>
-      </div>
-      <div
-        className={`${styles.transactionAmount} ${
-          isIncome ? styles.income : styles.expense
-        }`}
-      >
-        {formattedAmount}
-      </div>
-    </div>
-  );
-}
+// TransactionItem is now a shared component
 
 function DashboardPage() {
   const [wipOpen, setWipOpen] = useState(false);
@@ -114,6 +66,9 @@ function DashboardPage() {
   );
   const [profileName, setProfileName] = useState("");
   const [welcomeLoading, setWelcomeLoading] = useState(true);
+  const [recentTxns, setRecentTxns] = useState([]);
+  const [txnsLoading, setTxnsLoading] = useState(true);
+  const [totals, setTotals] = useState({ income: 0, expenses: 0, balance: 0 });
 
   useEffect(() => {
     let cancelled = false;
@@ -134,6 +89,38 @@ function DashboardPage() {
       }
     }
     loadProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadTransactions() {
+      try {
+        const data = await apiRequest("/api/users/me/transactions");
+        if (cancelled) return;
+        const items = Array.isArray(data?.items) ? data.items : [];
+        // Compute summary totals
+        const income = 0; // not implemented yet
+        const expenses = items.reduce(
+          (sum, t) => sum + (Number(t.amount) || 0),
+          0
+        );
+        const balance = income - expenses;
+        setTotals({ income, expenses, balance });
+        const sorted = items
+          .slice()
+          .sort((a, b) => (b.createdAtEpoch || 0) - (a.createdAtEpoch || 0));
+        setRecentTxns(sorted.slice(0, 3));
+      } catch (e) {
+        setRecentTxns([]);
+        setTotals({ income: 0, expenses: 0, balance: 0 });
+      } finally {
+        if (!cancelled) setTxnsLoading(false);
+      }
+    }
+    loadTransactions();
     return () => {
       cancelled = true;
     };
@@ -168,22 +155,14 @@ function DashboardPage() {
         <div className={styles.statsGrid}>
           <StatCard
             title="Total Balance"
-            value={accountData.balance}
-            change={2.4}
-            isPositive={true}
+            value={totals.balance}
+            isPositive={totals.balance >= 0}
             icon={FiDollarSign}
           />
-          <StatCard
-            title="Income"
-            value={accountData.income}
-            change={5.2}
-            isPositive={true}
-            icon={FiTrendingUp}
-          />
+          <StatCard title="Income" value={totals.income} icon={FiTrendingUp} />
           <StatCard
             title="Expenses"
-            value={accountData.expenses}
-            change={1.8}
+            value={totals.expenses}
             isPositive={false}
             icon={FiCreditCard}
           />
@@ -204,12 +183,23 @@ function DashboardPage() {
               </button>
             </div>
             <div className={styles.transactionsList}>
-              {accountData.recentTransactions.map((transaction) => (
-                <TransactionItem
-                  key={transaction.id}
-                  transaction={transaction}
-                />
-              ))}
+              {txnsLoading ? (
+                <div className={styles.transactionSkeleton}>
+                  Loading transactions…
+                </div>
+              ) : recentTxns.length === 0 ? (
+                <div className={styles.transactionEmpty}>
+                  No recent transactions
+                </div>
+              ) : (
+                recentTxns.map((tx) => (
+                  <TransactionItem
+                    key={tx._id || tx.createdAtEpoch}
+                    tx={tx}
+                    forceExpense
+                  />
+                ))
+              )}
             </div>
           </div>
 

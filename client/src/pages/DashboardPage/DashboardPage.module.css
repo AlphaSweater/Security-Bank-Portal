@@ -234,6 +234,41 @@
   color: #f87171;
 }
 
+.transactionEmpty,
+.transactionSkeleton {
+  color: #a7a9be;
+  font-size: 0.95rem;
+  padding: 0.5rem 0.25rem;
+}
+
+.statusPill {
+  margin-left: auto;
+  margin-right: 0.25rem;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.statusApproved {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.statusPending {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+  border-color: rgba(251, 191, 36, 0.25);
+}
+
+.statusRejected {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
 /* Quick Actions */
 .quickActions {
   display: grid;
