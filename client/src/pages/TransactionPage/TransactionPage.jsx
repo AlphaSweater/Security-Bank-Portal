@@ -828,94 +828,118 @@ const TransactionPage = () => {
                   Please review all details before confirming your transfer.
                 </p>
 
-                <div className={styles.reviewSection}>
-                  <h3>Transfer Summary</h3>
+                <h3 className={styles.reviewTitle}>Transfer Summary</h3>
 
-                  <div className={styles.reviewGrid}>
-                    <div className={styles.reviewItem}>
-                      <span className={styles.reviewLabel}>You send</span>
-                      <span className={styles.reviewValue}>
-                        {formatCurrency(
-                          formData.amount || 0,
-                          formData.currency
-                        )}
-                      </span>
-                    </div>
-
-                    {convertedAmount && (
-                      <>
+                <div className={styles.reviewSummaryGrid}>
+                  <div className={styles.reviewCol}>
+                    <div className={styles.summaryCard}>
+                      <div className={styles.cardHeader}>Amounts</div>
+                      <div className={styles.reviewGrid}>
                         <div className={styles.reviewItem}>
-                          <span className={styles.reviewLabel}>
-                            Recipient gets
-                          </span>
-                          <span className={styles.reviewValue}>
+                          <span className={styles.reviewLabel}>You send</span>
+                          <span
+                            className={`${styles.reviewValue} ${styles.money}`}
+                          >
                             {formatCurrency(
-                              convertedAmount.amount,
-                              convertedAmount.currency
+                              formData.amount || 0,
+                              formData.currency
                             )}
                           </span>
                         </div>
 
-                        <div className={styles.reviewItem}>
+                        {convertedAmount && (
+                          <>
+                            <div className={styles.reviewItem}>
+                              <span className={styles.reviewLabel}>
+                                Recipient gets
+                              </span>
+                              <span
+                                className={`${styles.reviewValue} ${styles.emphasis}`}
+                              >
+                                {formatCurrency(
+                                  convertedAmount.amount,
+                                  convertedAmount.currency
+                                )}
+                                <span className={styles.badgeCurrency}>
+                                  {convertedAmount.currency}
+                                </span>
+                              </span>
+                            </div>
+
+                            <div className={styles.reviewItem}>
+                              <span className={styles.reviewLabel}>
+                                Exchange rate
+                              </span>
+                              <span className={styles.reviewValue}>
+                                {formatCurrency(1, formData.currency)} ={" "}
+                                {formatCurrency(
+                                  convertedAmount.rate,
+                                  convertedAmount.currency
+                                )}
+                              </span>
+                            </div>
+                          </>
+                        )}
+
+                        <div
+                          className={`${styles.reviewItem} ${styles.totalAmount}`}
+                        >
                           <span className={styles.reviewLabel}>
-                            Exchange rate
+                            Total amount to debit
                           </span>
-                          <span className={styles.reviewValue}>
-                            {formatCurrency(1, formData.currency)} ={" "}
+                          <span
+                            className={`${styles.reviewValue} ${styles.money} ${styles.emphasis}`}
+                          >
                             {formatCurrency(
-                              convertedAmount.rate,
-                              convertedAmount.currency
+                              formData.amount || 0,
+                              formData.currency
                             )}
                           </span>
                         </div>
-                      </>
-                    )}
-
-                    <div
-                      className={`${styles.reviewItem} ${styles.totalAmount}`}
-                    >
-                      <span className={styles.reviewLabel}>
-                        Total amount to debit
-                      </span>
-                      <span className={styles.reviewValue}>
-                        {formatCurrency(
-                          formData.amount || 0,
-                          formData.currency
-                        )}
-                      </span>
+                      </div>
                     </div>
+                  </div>
 
-                    <div className={styles.reviewDivider} />
-
-                    <div className={styles.reviewItem}>
-                      <span className={styles.reviewLabel}>Beneficiary</span>
-                      <span className={styles.reviewValue}>
+                  <div className={styles.reviewCol}>
+                    <div className={styles.summaryCard}>
+                      <div className={styles.cardHeader}>Beneficiary</div>
+                      <div className={styles.beneficiaryName}>
                         {formData.beneficiaryName}
-                        {formData.message && (
-                          <div className={styles.messagePreview}>
-                            <span style={{ fontWeight: 500 }}>Message:</span>{" "}
-                            {formData.message}
-                          </div>
-                        )}
-                      </span>
+                      </div>
+                      {formData.message && (
+                        <div className={styles.messagePreview}>
+                          <span style={{ fontWeight: 500 }}>Message:</span>{" "}
+                          {formData.message}
+                        </div>
+                      )}
                     </div>
 
-                    <div className={styles.reviewItem}>
-                      <span className={styles.reviewLabel}>Bank Details</span>
-                      <div className={styles.bankDetails}>
-                        <div className={styles.bankFlag}>
-                          {formData.destinationCountry && (
-                            <span
-                              className={`fi fi-${formData.destinationCountry.toLowerCase()}`}
-                            ></span>
-                          )}
-                          <span>{formData.destinationCountry}</span>
-                        </div>
-                        <div>{formData.bankName}</div>
-                        <div>SWIFT/BIC: {formData.swiftBic}</div>
-                        <div>
-                          Account: ••••{formData.accountNumber.slice(-4)}
-                        </div>
+                    <div className={styles.summaryCard}>
+                      <div className={styles.cardHeader}>Bank details</div>
+                      <div className={styles.metaRow}>
+                        <span>Country</span>
+                        <span className={styles.bankDetails}>
+                          <div className={styles.bankFlag}>
+                            {formData.destinationCountry && (
+                              <span
+                                className={`fi fi-${formData.destinationCountry.toLowerCase()}`}
+                              ></span>
+                            )}
+                            <span>{formData.destinationCountry}</span>
+                          </div>
+                        </span>
+                      </div>
+                      <div className={styles.metaRow}>
+                        <span>Bank</span>
+                        <span>{formData.bankName}</span>
+                      </div>
+                      <div className={styles.metaRow}>
+                        <span>SWIFT/BIC</span>
+                        <span>{formData.swiftBic}</span>
+                      </div>
+                      <div className={styles.metaRow}>
+                        <span>Account</span>
+                        <span>••••{formData.accountNumber.slice(-4)}</span>
                       </div>
                     </div>
                   </div>
