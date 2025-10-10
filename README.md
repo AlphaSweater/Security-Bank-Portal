@@ -19,7 +19,6 @@ Whether you’re searching for a cozy spot to study, a trendy café to meet frie
 
 ## 📚 Table of Contents
 - [How to Install and Setup](#-how-to-install-and-setup)
-- [How to Setup HTTPS Certificates](#-how-to-setup-https-certificates)
 - [Features](#-features)
 - [Security Features](#-security-features)
 - [Tech Stack](#-tech-stack)
@@ -41,51 +40,27 @@ git clone https://github.com/YourTeam/GlobalBankSecure.git
 cd GlobalBankSecure
 ```
 
-### 2. Install dependencies
+### 2. Install dependencies (client & server)
+From the root:
 ```
+cd client
+npm install
+```
+```
+cd ../server
 npm install
 ```
 
-### 3. Create .env
-```
-PORT=3000
-```
-```
-NODE_ENV=development
-```
-```
-MONGO_URI=mongodb://localhost:27017/globalbank
-```
-```
-SESSION_SECRET=some_secret_here
-```
-
-### 4. Generate HTTPS certs (see mkcert instructions above). Place certs in certs/ directory.
-
-<br>
-
-### 5. Run server (dev)
-```
-npm run dev
-# (your dev script should start the server with https using certs/localhost.crt and certs/localhost.key)
-```
-
-### 6. Run tests
-```
-npm test
-```
-
-<br>
-
-## 🧾 How to Setup HTTPS Certificates
+### 3. Generate HTTPS certs
 To run local development with trusted HTTPS certs (no browser warnings), use mkcert.
 
-### 1. Install mkcert
+### 3.1. Install mkcert
 ```
 winget install --id FiloSottile.mkcert -e
 ```
 
-### 2. Create a project-local CA (recommended)
+### 3.2. Create a project-local CA
+From the root:
 ```
 $env:CAROOT = "$PWD\.certs\ca"
 ```
@@ -96,7 +71,7 @@ mkdir .certs\ca -Force
 mkcert -install
 ```
 
-### 3. Generate cert and key
+### 3.3. Generate cert and key
 ```
 mkdir certs -Force
 ```
@@ -108,7 +83,7 @@ mkcert -key-file .\certs\localhost.key -cert-file .\certs\localhost.crt localhos
 
 <br>
 
-### 4. Clean up (optional)
+### 3.4. Clean up (optional)
 ```
 $env:CAROOT = "$PWD\.certs\ca"
 ```
@@ -120,6 +95,20 @@ Remove-Item -Recurse -Force .\.certs\ca
 ```
 
 <br>
+
+### 4. Run server (dev)
+From root:
+```
+cd server
+npm run dev
+```
+
+### 5. Run client (dev)
+From root:
+```
+cd client
+npm run dev
+```
 
 ## 🌟 Features
 
