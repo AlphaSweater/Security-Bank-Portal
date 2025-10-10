@@ -59,6 +59,8 @@ const currencySymbols = {
   AUD: "$",
 };
 const getCurrencySymbol = (code) => currencySymbols[code] || code;
+const getCountryName = (code) =>
+  countryOptions.find((c) => c.value === code)?.label || code;
 
 const TransactionPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -925,7 +927,9 @@ const TransactionPage = () => {
                                 className={`fi fi-${formData.destinationCountry.toLowerCase()}`}
                               ></span>
                             )}
-                            <span>{formData.destinationCountry}</span>
+                            <span>
+                              {getCountryName(formData.destinationCountry)}
+                            </span>
                           </div>
                         </span>
                       </div>
@@ -939,7 +943,7 @@ const TransactionPage = () => {
                       </div>
                       <div className={styles.metaRow}>
                         <span>Account</span>
-                        <span>••••{formData.accountNumber.slice(-4)}</span>
+                        <span>{formData.accountNumber}</span>
                       </div>
                     </div>
                   </div>
@@ -1057,7 +1061,7 @@ const TransactionPage = () => {
                 type="button"
                 onClick={handleMakePayment}
                 variant="primary"
-                disabled={isSubmitting}
+                disabled={!isStepValid(4) || isSubmitting}
                 className={styles.submitButton}
               >
                 {isSubmitting ? "Processing..." : "Make Payment"}
