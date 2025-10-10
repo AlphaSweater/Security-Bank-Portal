@@ -149,6 +149,7 @@ const moneyAmount = (label = "Amount", { max = 999_999_999_999_999 } = {}) =>
     .precision(2)
     .messages({
       "number.base": `${label} must be a number`,
+      "any.required": `${label} is required`,
       "number.greater": `${label} must be greater than 0`,
       "number.max": `${label} must be ${max} or less`,
       "number.precision": `${label} can have at most 2 decimal places`,

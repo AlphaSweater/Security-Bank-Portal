@@ -83,6 +83,8 @@ const TransactionPage = () => {
 
   const [notification, setNotification] = useState(null);
   const [errors, setErrors] = useState({}); // Joi error messages by API field key
+  const [touched, setTouched] = useState({}); // Track per-field interaction (by API key)
+  const [stepAttempted, setStepAttempted] = useState(false); // User tried to move forward
 
   // Map UI fields to API schema fields
   const mapUiToApi = (fd) => ({
@@ -127,6 +129,40 @@ const TransactionPage = () => {
     const { errors: errMap } = validateMapped(mapped);
     setErrors(errMap || {});
   };
+
+  // Map UI fields to API keys for touch tracking
+  const uiFieldToApiKeys = (uiName) => {
+    switch (uiName) {
+      case "amount":
+        return ["amount"];
+      case "currency":
+        return ["currencyCode"];
+      case "beneficiaryType":
+        return ["beneficiaryType"];
+      case "beneficiaryName":
+        return ["beneficiaryFullName"];
+      case "message":
+        return ["beneficiaryNote"];
+      case "destinationCountry":
+        return ["destinationCountryCode"];
+      case "bankName":
+        return ["destinationBankName"];
+      case "swiftBic":
+        return ["destinationBankSwift"];
+      case "accountNumber":
+        return ["destinationAccountNumber"];
+      default:
+        return [];
+    }
+  };
+
+  const markTouched = (apiKeys = []) =>
+    setTouched((prev) =>
+      apiKeys.reduce((acc, k) => ({ ...acc, [k]: true }), prev)
+    );
+
+  const showError = (apiKey) =>
+    !!(errors?.[apiKey] && (touched?.[apiKey] || stepAttempted));
 
   // Step-specific field lists in API schema keys
   const stepApiFields = {
@@ -262,6 +298,8 @@ const TransactionPage = () => {
     };
     setFormData(next);
     runValidation(next);
+    // mark field as touched on change
+    markTouched(uiFieldToApiKeys(name));
   };
 
   // Handle dropdown changes
@@ -269,6 +307,7 @@ const TransactionPage = () => {
     const next = { ...formData, [name]: value };
     setFormData(next);
     runValidation(next);
+    markTouched(uiFieldToApiKeys(name));
   };
 
   const nextStep = () => {
@@ -297,6 +336,9 @@ const TransactionPage = () => {
     const { errors: errMap } = validateMapped(payload);
     if (errMap) {
       setErrors(errMap);
+      // mark all errored fields as touched so they render
+      markTouched(Object.keys(errMap));
+      setStepAttempted(true);
       setIsSubmitting(false);
       setNotification({
         type: "error",
@@ -341,9 +383,9 @@ const TransactionPage = () => {
     return noErrors;
   };
 
-  // Helper to render an inline error under fields
+  // Helper to render an inline error under fields (only when touched/attempted)
   const FieldError = ({ apiKey }) =>
-    errors && errors[apiKey] ? (
+    errors && showError(apiKey) ? (
       <div className={styles.errorText}>{errors[apiKey]}</div>
     ) : null;
 
@@ -414,14 +456,14 @@ const TransactionPage = () => {
                 <div className={styles.formGroup}>
                   <label
                     htmlFor="amount"
-                    className={errors.amount ? styles.labelError : ""}
+                    className={showError("amount") ? styles.labelError : ""}
                   >
                     Amount
                   </label>
                   <div className={styles.amountContainer}>
                     <div
                       className={`${styles.amountInput} ${
-                        errors.amount ? styles.inputError : ""
+                        showError("amount") ? styles.inputError : ""
                       }`}
                     >
                       <div className={styles.currencySymbol}>
@@ -438,9 +480,10 @@ const TransactionPage = () => {
                         step="0.01"
                         required
                         className={`${styles.amountField} ${
-                          errors.amount ? styles.inputError : ""
+                          showError("amount") ? styles.inputError : ""
                         }`}
                         aria-label="Amount to transfer"
+                        onBlur={() => markTouched(["amount"])}
                       />
                     </div>
                     <div className={styles.currencyDropdownWrapper}>
@@ -450,7 +493,9 @@ const TransactionPage = () => {
                         options={currencyOptions}
                         onChange={handleDropdownChange("currency")}
                         className={styles.currencyDropdown}
-                        error={errors.currencyCode || ""}
+                        error={
+                          showError("currencyCode") ? errors.currencyCode : ""
+                        }
                       />
                     </div>
                   </div>
@@ -482,13 +527,17 @@ const TransactionPage = () => {
 
                 <div className={styles.formGroup}>
                   <label
-                    className={errors.beneficiaryType ? styles.labelError : ""}
+                    className={
+                      showError("beneficiaryType") ? styles.labelError : ""
+                    }
                   >
                     Beneficiary Type
                   </label>
                   <div
                     className={`${styles.segmentedControl} ${
-                      errors.beneficiaryType ? styles.segmentedControlError : ""
+                      showError("beneficiaryType")
+                        ? styles.segmentedControlError
+                        : ""
                     }`}
                   >
                     <Button
@@ -505,6 +554,7 @@ const TransactionPage = () => {
                         };
                         setFormData(next);
                         runValidation(next);
+                        markTouched(["beneficiaryType"]);
                       }}
                       className={`${styles.segment} ${
                         formData.beneficiaryType === "individual"
@@ -528,6 +578,7 @@ const TransactionPage = () => {
                         };
                         setFormData(next);
                         runValidation(next);
+                        markTouched(["beneficiaryType"]);
                       }}
                       className={`${styles.segment} ${
                         formData.beneficiaryType === "business"
@@ -545,7 +596,7 @@ const TransactionPage = () => {
                   <label
                     htmlFor="beneficiaryName"
                     className={
-                      errors.beneficiaryFullName ? styles.labelError : ""
+                      showError("beneficiaryFullName") ? styles.labelError : ""
                     }
                   >
                     {formData.beneficiaryType === "individual"
@@ -565,8 +616,9 @@ const TransactionPage = () => {
                     }
                     required
                     className={`${styles.inputField} ${
-                      errors.beneficiaryFullName ? styles.inputError : ""
+                      showError("beneficiaryFullName") ? styles.inputError : ""
                     }`}
+                    onBlur={() => markTouched(["beneficiaryFullName"])}
                   />
                   <FieldError apiKey="beneficiaryFullName" />
                 </div>
@@ -610,7 +662,9 @@ const TransactionPage = () => {
                   <label
                     htmlFor="destinationCountry"
                     className={
-                      errors.destinationCountryCode ? styles.labelError : ""
+                      showError("destinationCountryCode")
+                        ? styles.labelError
+                        : ""
                     }
                   >
                     Destination Country
@@ -622,7 +676,11 @@ const TransactionPage = () => {
                     onChange={handleDropdownChange("destinationCountry")}
                     placeholder="Select a country"
                     required
-                    error={errors.destinationCountryCode || ""}
+                    error={
+                      showError("destinationCountryCode")
+                        ? errors.destinationCountryCode
+                        : ""
+                    }
                   />
                 </div>
 
@@ -630,7 +688,7 @@ const TransactionPage = () => {
                   <label
                     htmlFor="bankName"
                     className={
-                      errors.destinationBankName ? styles.labelError : ""
+                      showError("destinationBankName") ? styles.labelError : ""
                     }
                   >
                     Bank Name
@@ -644,9 +702,10 @@ const TransactionPage = () => {
                     placeholder="Start typing to search bank"
                     required
                     className={`${styles.inputField} ${
-                      errors.destinationBankName ? styles.inputError : ""
+                      showError("destinationBankName") ? styles.inputError : ""
                     }`}
                     list="bankSuggestions"
+                    onBlur={() => markTouched(["destinationBankName"])}
                   />
                   <datalist id="bankSuggestions">
                     <option value="Chase Bank" />
@@ -667,7 +726,7 @@ const TransactionPage = () => {
                   <label
                     htmlFor="swiftBic"
                     className={
-                      errors.destinationBankSwift ? styles.labelError : ""
+                      showError("destinationBankSwift") ? styles.labelError : ""
                     }
                   >
                     SWIFT/BIC Code
@@ -681,10 +740,11 @@ const TransactionPage = () => {
                     placeholder="e.g., CHASUS33XXX"
                     required
                     className={`${styles.inputField} ${
-                      errors.destinationBankSwift ? styles.inputError : ""
+                      showError("destinationBankSwift") ? styles.inputError : ""
                     }`}
                     style={{ textTransform: "uppercase" }}
                     maxLength={11}
+                    onBlur={() => markTouched(["destinationBankSwift"])}
                   />
                   <small style={{ color: "var(--color-text-muted)" }}>
                     {formData.swiftBic.length < 8 ||
@@ -699,7 +759,9 @@ const TransactionPage = () => {
                   <label
                     htmlFor="accountNumber"
                     className={
-                      errors.destinationAccountNumber ? styles.labelError : ""
+                      showError("destinationAccountNumber")
+                        ? styles.labelError
+                        : ""
                     }
                   >
                     Account Number
@@ -713,9 +775,12 @@ const TransactionPage = () => {
                     placeholder="Enter account number"
                     required
                     className={`${styles.inputField} ${
-                      errors.destinationAccountNumber ? styles.inputError : ""
+                      showError("destinationAccountNumber")
+                        ? styles.inputError
+                        : ""
                     }`}
                     inputMode="numeric"
+                    onBlur={() => markTouched(["destinationAccountNumber"])}
                   />
                   <FieldError apiKey="destinationAccountNumber" />
                 </div>
@@ -917,10 +982,14 @@ const TransactionPage = () => {
               <Button
                 type="button"
                 onClick={() => {
+                  // Mark current step fields as touched so their errors show
+                  markTouched(stepApiFields[currentStep] || []);
+                  setStepAttempted(true);
                   const mapped = mapUiToApi(formData);
                   const { errors: errMap } = validateMapped(mapped);
                   setErrors(errMap || {});
                   if (!hasStepErrors(currentStep, mapped, errMap || {})) {
+                    setStepAttempted(false);
                     setCurrentStep(currentStep + 1);
                   }
                 }}

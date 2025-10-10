@@ -83,6 +83,7 @@ const Dropdown = ({
           disabled={disabled}
           aria-haspopup="listbox"
           aria-expanded={isOpen}
+          aria-invalid={!!error}
           ref={buttonRef}
           style={{
             display: "flex",
@@ -169,18 +170,7 @@ const Dropdown = ({
             document.body
           )}
       </div>
-      {error && (
-        <div
-          style={{
-            marginTop: "0.5rem",
-            color: "var(--color-error)",
-            fontSize: "0.875rem",
-            lineHeight: "1.25rem",
-          }}
-        >
-          {error}
-        </div>
-      )}
+      {error && <div className={styles.errorMessage}>{error}</div>}
     </div>
   );
 };
