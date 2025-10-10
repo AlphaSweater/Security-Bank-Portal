@@ -503,10 +503,39 @@ const TransactionPage = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <div className={styles.infoBox}>
-                    <div className={styles.infoRow}>
-                      <span>Estimated delivery:</span>
-                      <span>1-2 business days</span>
+                  <div className={styles.providerBox}>
+                    <div className={styles.providerContent}>
+                      <div className={styles.providerIcon} aria-hidden="true">
+                        {/* simple shield/lock icon */}
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 3l7 4v5c0 5-3.5 9-7 9s-7-4-7-9V7l7-4z"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M9.5 12.5l2 2 3.5-3.5"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </div>
+                      <div className={styles.providerLabel}>
+                        Payment Provider:
+                      </div>
+                      <div className={styles.providerValue}>
+                        <span className={styles.providerBadge}>SWIFT</span>
+                      </div>
                     </div>
                   </div>
                 </div>

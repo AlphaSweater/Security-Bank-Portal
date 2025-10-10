@@ -145,11 +145,6 @@
   /* Remove min-height to prevent footer overlap */
 }
 
-.formContainer:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-hover);
-}
-
 .stepContent {
   margin-bottom: 2.5rem;
   animation: fadeIn 0.5s var(--ease-out-quint) forwards;
@@ -234,8 +229,6 @@
   opacity: 0.7;
 }
 
-/* Style the select dropdown */
-/* Custom Dropdown Styles */
 /* Amount container */
 .amountContainer {
   display: flex;
@@ -376,57 +369,11 @@
   color: var(--color-primary-start) !important;
 }
 
-/* Ensure proper z-index for dropdowns */
-.dropdownContainer {
-  position: relative;
-  z-index: 10;
-}
-
 /* Fix for transparent background */
 .dropdownButton,
 .dropdownMenu {
   background-color: var(--color-surface-solid) !important;
   background: var(--color-surface-solid) !important;
-}
-
-/* Hide the original select element */
-select {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  background-size: 1em;
-  padding-right: 2.5rem;
-  color: var(--color-text-primary);
-}
-
-/* Style the dropdown options */
-.formGroup select option {
-  background: var(--color-surface-solid-dark);
-  color: var(--color-text-primary);
-  padding: 0.5rem 1rem;
-}
-
-/* Fix for Firefox */
-@-moz-document url-prefix() {
-  .formGroup select {
-    text-indent: 0.01px;
-    text-overflow: "";
-  }
-  .formGroup select option {
-    padding: 0.5rem 1rem;
-  }
-}
-
-/* For IE11 */
-@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
-  .formGroup select::-ms-expand {
-    display: none;
-  }
-  .formGroup select:focus::-ms-value {
-    background: transparent;
-    color: var(--color-text-primary);
-  }
 }
 
 .formGroup input::placeholder,
@@ -455,11 +402,6 @@ select {
   border-color: var(--color-primary-start);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
   background: rgba(255, 255, 255, 0.08);
-}
-
-.formGroup input:focus + label,
-.formGroup input:not(:placeholder-shown) + label {
-  color: var(--color-primary-start);
 }
 
 /* Segmented Control */
@@ -533,21 +475,6 @@ select {
 }
 
 /* Review Section */
-.reviewSection {
-  background: var(--color-surface-solid-darker);
-  border-radius: var(--radius-md);
-  padding: 1.5rem;
-  margin: 1.5rem 0;
-  border: 1px solid var(--color-border);
-}
-
-.reviewSection h3 {
-  margin-top: 0;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-text-primary);
-}
 
 .reviewGrid {
   display: grid;
@@ -645,160 +572,6 @@ select {
   line-height: 1.5;
 }
 
-/* Amount input and currency selector */
-.amountInput {
-  display: flex;
-  gap: 0.75rem;
-  position: relative;
-}
-
-.amountInputWrapper {
-  position: relative;
-  flex: 1;
-}
-
-.currencySymbol {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-text-primary);
-  font-weight: 500;
-  pointer-events: none;
-  z-index: 2;
-  min-width: 3rem;
-  padding-right: 0.5rem;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 3.5rem;
-}
-
-.amountField {
-  width: 100%;
-  padding: 0.9rem 1.25rem 0.9rem 4rem;
-  background: var(--color-surface-solid-dark);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: 1.1rem;
-  color: var(--color-text-primary);
-  transition: all 0.3s var(--ease-out-quint);
-  font-family: var(--font-family-base);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.amountField:focus {
-  outline: none;
-  border-color: var(--color-primary-start);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.currencySelect {
-  min-width: 180px;
-  padding: 0.9rem 2.5rem 0.9rem 1rem;
-  background: var(--color-surface-solid-dark);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: 1rem;
-  color: var(--color-text-primary);
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  background-size: 1em;
-  transition: all 0.3s var(--ease-out-quint);
-}
-
-/* Style the dropdown options */
-.currencySelect option {
-  background: var(--color-surface-solid-darker);
-  color: var(--color-text-primary);
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
-  border: none;
-}
-
-/* Style the dropdown when it's open */
-.currencySelect:focus {
-  outline: none;
-  border-color: var(--color-primary-start);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-  background-color: var(--color-surface-solid-dark);
-  color: var(--color-text-primary);
-}
-
-/* Ensure the dropdown arrow is visible */
-.currencySelect::-ms-expand {
-  display: none;
-}
-
-/* Style the dropdown list */
-.currencySelect option {
-  background: var(--color-surface-solid-darker);
-  color: var(--color-text-primary);
-  padding: 0.75rem 1rem;
-}
-
-/* For WebKit browsers */
-.currencySelect option:checked,
-.currencySelect option:checked:focus {
-  background: var(--color-primary) !important;
-  color: white !important;
-}
-
-/* For Firefox */
-@-moz-document url-prefix() {
-  .currencySelect {
-    color: var(--color-text-primary);
-    background-color: var(--color-surface-solid-dark);
-  }
-  .currencySelect option {
-    background: var(--color-surface-solid-darker);
-    color: var(--color-text-primary);
-  }
-  .currencySelect option:checked,
-  .currencySelect option:checked:focus {
-    background: var(--color-primary) !important;
-    color: white !important;
-  }
-}
-
-/* For IE11 */
-@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
-  .currencySelect {
-    color: var(--color-text-primary);
-    background-color: var(--color-surface-solid-dark);
-  }
-  .currencySelect option {
-    background: var(--color-surface-solid-darker);
-    color: var(--color-text-primary);
-  }
-}
-
-/* Reset the closed state styles */
-.currencySelect {
-  color: var(--color-text-primary);
-  background-color: var(--color-surface-solid-dark);
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
-
-/* Ensure the selected option is visible in the dropdown */
-.currencySelect option[value][selected] {
-  background: var(--color-primary);
-  color: white;
-}
-
-/* Hover state for dropdown options */
-.currencySelect option:hover {
-  background: var(--color-primary);
-  color: white;
-}
-
 /* Info Box */
 .infoBox {
   padding: 1rem;
@@ -819,6 +592,62 @@ select {
   margin-bottom: 0;
   padding-top: 0.5rem;
   border-top: 1px solid var(--color-border-light);
+}
+
+/* Provider Box (Step 1) */
+.providerBox {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.providerContent {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.providerIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.15),
+    rgba(99, 102, 241, 0.05)
+  );
+  color: var(--color-primary-start);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+.providerLabel {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-bottom: 2px;
+}
+
+.providerValue {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.providerBadge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-start),
+    var(--color-primary-end)
+  );
+  color: #fff;
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
 }
 
 /* Terms & OTP */
@@ -978,108 +807,6 @@ select {
   }
 }
 
-.amountInput {
-  display: flex;
-  gap: 1rem;
-  position: relative;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.amountInput input {
-  padding: 0.75rem 1rem 0.75rem 2.5rem;
-  flex: 1;
-  min-width: 200px;
-  box-sizing: border-box;
-  background: var(--color-surface-solid-dark);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: 1rem;
-  color: var(--color-text-primary);
-  transition: all 0.3s var(--ease-out-quint);
-}
-
-.amountInput select {
-  flex: 0 0 auto;
-  min-width: 120px;
-  max-width: 140px;
-  padding: 0.75rem 1rem;
-  box-sizing: border-box;
-  background: var(--color-surface-solid-dark);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: 1rem;
-  color: var(--color-text-primary);
-  transition: all 0.3s var(--ease-out-quint);
-}
-
-.currencySymbol {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #555;
-  font-weight: 500;
-}
-
-.currencySelect {
-  position: absolute;
-  right: 0.5rem;
-  width: auto !important;
-  background: none;
-  border: none;
-  border-left: 1px solid #ddd;
-  border-radius: 0 4px 4px 0;
-  padding: 0.75rem 0.5rem 0.75rem 1rem;
-  color: #1976d2;
-  cursor: pointer;
-}
-
-.paymentMethod {
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.payme.nextButton {
-  margin-top: 1.5rem;
-  width: 100%;
-  padding: 0.75rem 1.5rem;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: var(--color-primary-start);
-  transform: scaleY(0);
-  transform-origin: top;
-  transition: transform 0.3s var(--ease-out-quint);
-}
-
-.paymentOption:hover {
-  transform: translateY(-2px);
-  border-color: var(--color-primary-start);
-  background: rgba(99, 102, 241, 0.1);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.paymentOption:hover::before {
-  transform: scaleY(1);
-}
-
-.paymentOption.selected {
-  background: rgba(99, 102, 241, 0.15);
-  border-color: var(--color-primary-start);
-}
-
-.paymentOption.selected::before {
-  transform: scaleY(1);
-}
-
-.paymentOption input[type="radio"] {
-  margin-right: 0.75rem;
-  width: auto;
-}
-
 .reviewSection {
   background: rgba(255, 255, 255, 0.05);
   padding: 2rem;
@@ -1143,43 +870,6 @@ select {
   border-top: 1px solid #eee;
 }
 
-.primaryButton {
-  background-color: #1976d2;
-  color: white;
-  border: none;
-  padding: 0.75rem 2rem;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.primaryButton:hover {
-  background-color: #1565c0;
-}
-
-.primaryButton:disabled {
-  background-color: #b0bec5;
-  cursor: not-allowed;
-}
-
-.secondaryButton {
-  background-color: transparent;
-  color: #1976d2;
-  border: 1px solid #1976d2;
-  padding: 0.75rem 2rem;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.secondaryButton:hover {
-  background-color: rgba(25, 118, 210, 0.08);
-}
-
 /* Modal Styles */
 .modalOverlay {
   position: fixed;
@@ -1220,17 +910,6 @@ select {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-}
-
-/* Animations */
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
 }
 
 /* Responsive adjustments */
