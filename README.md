@@ -179,7 +179,7 @@ project/
 ## 🎥 Video Demo
 
 📺 **Watch the full walkthrough of Security Bank Portal on YouTube:**
-👉 [Click here to view]((https://www.youtube.com/watch?v=fku6-EeaMf4 )
+👉 [Click here to view](https://www.youtube.com/watch?v=fku6-EeaMf4)
 
 <br>
 
