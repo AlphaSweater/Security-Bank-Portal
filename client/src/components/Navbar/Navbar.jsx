@@ -14,7 +14,10 @@ function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const closeTimeoutRef = useRef(null);
+  const menuItemsRef = useRef([]);
   const navigate = useNavigate();
+  const CLOSE_DELAY_MS = 2000; // Delay before closing after pointer leaves
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -32,6 +35,44 @@ function Navbar() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [dropdownOpen]);
+
+  // Close on Escape key
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        setDropdownOpen(false);
+      }
+    }
+    if (dropdownOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [dropdownOpen]);
+
+  // Helpers to avoid janky close on tiny pointer leave
+  const clearCloseTimeout = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+  };
+
+  const openDropdown = () => {
+    clearCloseTimeout();
+    setDropdownOpen(true);
+    // focus first item shortly after open for keyboard users
+    requestAnimationFrame(() => {
+      menuItemsRef.current?.[0]?.focus?.();
+    });
+  };
+
+  const scheduleClose = () => {
+    clearCloseTimeout();
+    closeTimeoutRef.current = setTimeout(
+      () => setDropdownOpen(false),
+      CLOSE_DELAY_MS
+    );
+  };
 
   // Logout handler
   const handleLogout = async (e) => {
@@ -69,31 +110,76 @@ function Navbar() {
       <div
         className={styles.profile}
         ref={dropdownRef}
-        tabIndex={-1}
-        onBlur={() => setDropdownOpen(false)}
+        onMouseEnter={clearCloseTimeout}
+        onMouseLeave={scheduleClose}
       >
         <button
           className={styles.avatarBtn}
-          onClick={() => setDropdownOpen((open) => !open)}
-          aria-haspopup="true"
+          onClick={() =>
+            dropdownOpen ? setDropdownOpen(false) : openDropdown()
+          }
+          aria-haspopup="menu"
           aria-expanded={dropdownOpen}
+          aria-controls="profile-menu"
         >
           <FiUser />
         </button>
         <div
+          id="profile-menu"
           className={
             dropdownOpen
               ? `${styles.dropdown} ${styles.dropdownOpen}`
               : styles.dropdown
           }
-          onMouseEnter={() => setDropdownOpen(true)}
-          onMouseLeave={() => setDropdownOpen(false)}
+          role="menu"
+          aria-label="Profile menu"
+          onKeyDown={(e) => {
+            const items = menuItemsRef.current.filter(Boolean);
+            const currentIndex = items.indexOf(document.activeElement);
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              const next = items[(currentIndex + 1) % items.length] || items[0];
+              next?.focus();
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              const prevIndex =
+                (currentIndex - 1 + items.length) % items.length;
+              const prev = items[prevIndex] || items[items.length - 1];
+              prev?.focus();
+            } else if (e.key === "Home") {
+              e.preventDefault();
+              items[0]?.focus();
+            } else if (e.key === "End") {
+              e.preventDefault();
+              items[items.length - 1]?.focus();
+            }
+          }}
         >
-          <a href="#">Profile</a>
-          <a href="#">Preferences</a>
-          <a href="#" onMouseDown={handleLogout}>
+          <button
+            type="button"
+            className={styles.dropdownItem}
+            role="menuitem"
+            ref={(el) => (menuItemsRef.current[0] = el)}
+          >
+            Profile
+          </button>
+          <button
+            type="button"
+            className={styles.dropdownItem}
+            role="menuitem"
+            ref={(el) => (menuItemsRef.current[1] = el)}
+          >
+            Preferences
+          </button>
+          <button
+            type="button"
+            className={styles.dropdownItem}
+            role="menuitem"
+            onClick={handleLogout}
+            ref={(el) => (menuItemsRef.current[2] = el)}
+          >
             Logout
-          </a>
+          </button>
         </div>
       </div>
     </nav>

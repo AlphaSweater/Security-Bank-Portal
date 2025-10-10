@@ -163,14 +163,16 @@ function LoginForm({ onSwap }) {
             value={form.password}
             onChange={handleChange}
             onBlur={handleBlur}
-            error={shouldShowError("password") ? currentErrors.password : undefined}
+            error={
+              shouldShowError("password") ? currentErrors.password : undefined
+            }
             required
             autoComplete="current-password"
           />
-          <Button 
+          <Button
             type="button"
-            variant="text" 
-            onClick={() => window.location.href = '/auth/forgot-password'}
+            variant="text"
+            onClick={() => (window.location.href = "/auth/forgot-password")}
             className={styles.forgotPasswordLink}
           >
             Forgot Password?
@@ -188,12 +190,12 @@ function LoginForm({ onSwap }) {
         >
           {loading ? "Logging in..." : "Log In"}
         </Button>
-        
+
         <div className={styles.linksContainer}>
-          <Button 
-            type="button" 
-            variant="text" 
-            onClick={onSwap} 
+          <Button
+            type="button"
+            variant="text"
+            onClick={onSwap}
             className={styles.switchLink}
           >
             Need an account? Sign Up
@@ -242,18 +244,6 @@ function RegisterForm({ onSwap }) {
       );
     }
   );
-
-  function calculatePasswordStrength(pw) {
-    if (!pw) return 0;
-    let score = 0;
-    if (pw.length >= 8) score++;
-    if (pw.length >= 12) score++;
-    if (/[A-Z]/.test(pw)) score++;
-    if (/[0-9]/.test(pw)) score++;
-    if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(pw)) score++;
-    return score; // 0..5
-  }
-  const passwordStrength = calculatePasswordStrength(form.password);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -318,7 +308,9 @@ function RegisterForm({ onSwap }) {
             value={form.firstName}
             onChange={handleChange}
             onBlur={handleBlur}
-            error={shouldShowError("firstName") ? currentErrors.firstName : undefined}
+            error={
+              shouldShowError("firstName") ? currentErrors.firstName : undefined
+            }
             required
             autoComplete="given-name"
           />
@@ -330,7 +322,9 @@ function RegisterForm({ onSwap }) {
             value={form.lastName}
             onChange={handleChange}
             onBlur={handleBlur}
-            error={shouldShowError("lastName") ? currentErrors.lastName : undefined}
+            error={
+              shouldShowError("lastName") ? currentErrors.lastName : undefined
+            }
             required
             autoComplete="family-name"
           />
@@ -354,7 +348,10 @@ function RegisterForm({ onSwap }) {
           label="SA ID Number"
           value={form.saIdNumber}
           onChange={handleChange}
-          error={shouldShowError("saIdNumber") ? currentErrors.saIdNumber : undefined}
+          onBlur={handleBlur}
+          error={
+            shouldShowError("saIdNumber") ? currentErrors.saIdNumber : undefined
+          }
           required
         />
 
@@ -365,38 +362,17 @@ function RegisterForm({ onSwap }) {
           value={form.password}
           onChange={handleChange}
           onBlur={handleBlur}
-          error={shouldShowError("password") ? currentErrors.password : undefined}
+          error={
+            shouldShowError("password") ? currentErrors.password : undefined
+          }
           required
           autoComplete="new-password"
           rightIcon={{
             icon: showPassword ? "🙈" : "👁️",
             onClick: () => setShowPassword(!showPassword),
-            label: showPassword ? "Hide password" : "Show password"
+            label: showPassword ? "Hide password" : "Show password",
           }}
         />
-        {!shouldShowError("password") && form.password && (
-          <div className={styles.passwordStrength}>
-            <div
-              className={styles.strengthBar}
-              style={{
-                width: `${(passwordStrength / 5) * 100}%`,
-                background: passwordStrength <= 1 
-                  ? "#e63946" 
-                  : passwordStrength <= 3 
-                    ? "#fbbf24" 
-                    : "#10b981"
-              }}
-            />
-            <div className={styles.passwordStrengthLabel}>
-              {passwordStrength <= 1 
-                ? "Weak" 
-                : passwordStrength <= 3 
-                  ? "Okay" 
-                  : "Strong"
-              }
-            </div>
-          </div>
-        )}
 
         <InputBox
           type={showConfirmPassword ? "text" : "password"}
@@ -405,13 +381,17 @@ function RegisterForm({ onSwap }) {
           value={form.passwordConfirm}
           onChange={handleChange}
           onBlur={handleBlur}
-          error={shouldShowError("passwordConfirm") ? currentErrors.passwordConfirm : undefined}
+          error={
+            shouldShowError("passwordConfirm")
+              ? currentErrors.passwordConfirm
+              : undefined
+          }
           required
           autoComplete="new-password"
           rightIcon={{
             icon: showConfirmPassword ? "🙈" : "👁️",
             onClick: () => setShowConfirmPassword(!showConfirmPassword),
-            label: showConfirmPassword ? "Hide password" : "Show password"
+            label: showConfirmPassword ? "Hide password" : "Show password",
           }}
         />
       </div>
@@ -422,15 +402,15 @@ function RegisterForm({ onSwap }) {
           variant="primary"
           fullWidth
           loading={loading}
-          disabled={submitAttempted && (Object.keys(currentErrors).length > 0 || !form.termsAndConditions || passwordStrength < 3)}
+          disabled={submitAttempted && Object.keys(currentErrors).length > 0}
         >
           {loading ? "Signing up..." : "Sign Up"}
         </Button>
         <p>
-          <Button 
-            type="button" 
-            variant="text" 
-            onClick={onSwap} 
+          <Button
+            type="button"
+            variant="text"
+            onClick={onSwap}
             className={styles.switchLink}
           >
             Already have an account? Log In

@@ -17,4 +17,11 @@ router.get(
   asyncHandler(userController.getMyTransactions)
 );
 
+router.get(
+  "/me",
+  addRateLimiter(GeneralLimiter),
+  requireAuth,
+  asyncHandler(userController.getMyProfile)
+);
+
 export default router;

@@ -35,6 +35,14 @@
   opacity: 0.9;
 }
 
+.welcomeName {
+  background: linear-gradient(90deg, #a3c5ff, #eebbcb);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 700;
+}
+
 /* Stats Grid */
 .statsGrid {
   display: grid;
@@ -149,15 +157,19 @@
 
 .viewAll {
   color: #b8c1ec;
-  text-decoration: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
   font-size: 0.95rem;
   font-weight: 500;
-  transition: color 0.2s;
+  cursor: pointer;
+  transition: color 0.2s, opacity 0.2s;
 }
 
 .viewAll:hover {
   color: #fffffe;
-  text-decoration: underline;
+  opacity: 0.9;
 }
 
 /* Transactions */
@@ -220,6 +232,41 @@
 
 .expense {
   color: #f87171;
+}
+
+.transactionEmpty,
+.transactionSkeleton {
+  color: #a7a9be;
+  font-size: 0.95rem;
+  padding: 0.5rem 0.25rem;
+}
+
+.statusPill {
+  margin-left: auto;
+  margin-right: 0.25rem;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.statusApproved {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.statusPending {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+  border-color: rgba(251, 191, 36, 0.25);
+}
+
+.statusRejected {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.25);
 }
 
 /* Quick Actions */
@@ -301,4 +348,76 @@
 }
 .statCard:nth-child(3) {
   animation-delay: 0.3s;
+}
+
+/* Modal (WIP) */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #232946; /* match card background */
+  color: #fffffe;
+  max-width: 460px;
+  width: 92%;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  padding: 1.25rem 1.25rem 1rem 1.25rem;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.modalCloseButton {
+  background: transparent;
+  border: none;
+  color: #b8c1ec;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  padding: 0.25rem 0.5rem;
+}
+
+.modalCloseButton:hover {
+  color: #fffffe;
+}
+
+.modalBody {
+  color: #b8c1ec;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+
+.modalPrimaryButton {
+  background: #2a6df1;
+  color: #fffffe;
+  border: none;
+  border-radius: 10px;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.modalPrimaryButton:hover {
+  background: #3a7bff;
 }
