@@ -515,9 +515,8 @@
 }
 
 .totalAmount {
-  margin-top: 1rem;
-  padding-top: 1.25rem;
-  border-top: 2px solid var(--color-border);
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .totalAmount .reviewLabel,
@@ -814,6 +813,7 @@
   display: grid;
   grid-template-columns: 1.2fr 1fr;
   gap: 1.25rem;
+  align-items: stretch;
 }
 
 .reviewCol {
@@ -827,6 +827,40 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 1rem 1.25rem;
+}
+
+/* Make the Amounts card fill the column height */
+.stretchCard {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.cardHeader {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Flexing body to push total to bottom */
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1 1 auto;
+}
+
+.flexFill {
+  flex: 1 1 auto;
+}
+
+.divider {
+  height: 1px;
+  background: var(--color-border-subtle);
+  margin: 0.25rem 0 0.5rem;
 }
 
 .cardHeader {

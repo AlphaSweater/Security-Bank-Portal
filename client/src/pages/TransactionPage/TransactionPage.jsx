@@ -834,54 +834,61 @@ const TransactionPage = () => {
 
                 <div className={styles.reviewSummaryGrid}>
                   <div className={styles.reviewCol}>
-                    <div className={styles.summaryCard}>
+                    <div
+                      className={`${styles.summaryCard} ${styles.stretchCard}`}
+                    >
                       <div className={styles.cardHeader}>Amounts</div>
-                      <div className={styles.reviewGrid}>
-                        <div className={styles.reviewItem}>
-                          <span className={styles.reviewLabel}>You send</span>
-                          <span
-                            className={`${styles.reviewValue} ${styles.money}`}
-                          >
-                            {formatCurrency(
-                              formData.amount || 0,
-                              formData.currency
-                            )}
-                          </span>
+                      <div className={styles.cardBody}>
+                        <div className={styles.reviewGrid}>
+                          <div className={styles.reviewItem}>
+                            <span className={styles.reviewLabel}>You send</span>
+                            <span
+                              className={`${styles.reviewValue} ${styles.money}`}
+                            >
+                              {formatCurrency(
+                                formData.amount || 0,
+                                formData.currency
+                              )}
+                            </span>
+                          </div>
+
+                          {convertedAmount && (
+                            <>
+                              <div className={styles.reviewItem}>
+                                <span className={styles.reviewLabel}>
+                                  Recipient gets
+                                </span>
+                                <span
+                                  className={`${styles.reviewValue} ${styles.emphasis}`}
+                                >
+                                  {formatCurrency(
+                                    convertedAmount.amount,
+                                    convertedAmount.currency
+                                  )}
+                                  <span className={styles.badgeCurrency}>
+                                    {convertedAmount.currency}
+                                  </span>
+                                </span>
+                              </div>
+
+                              <div className={styles.reviewItem}>
+                                <span className={styles.reviewLabel}>
+                                  Exchange rate
+                                </span>
+                                <span className={styles.reviewValue}>
+                                  {formatCurrency(1, formData.currency)} ={" "}
+                                  {formatCurrency(
+                                    convertedAmount.rate,
+                                    convertedAmount.currency
+                                  )}
+                                </span>
+                              </div>
+                            </>
+                          )}
                         </div>
 
-                        {convertedAmount && (
-                          <>
-                            <div className={styles.reviewItem}>
-                              <span className={styles.reviewLabel}>
-                                Recipient gets
-                              </span>
-                              <span
-                                className={`${styles.reviewValue} ${styles.emphasis}`}
-                              >
-                                {formatCurrency(
-                                  convertedAmount.amount,
-                                  convertedAmount.currency
-                                )}
-                                <span className={styles.badgeCurrency}>
-                                  {convertedAmount.currency}
-                                </span>
-                              </span>
-                            </div>
-
-                            <div className={styles.reviewItem}>
-                              <span className={styles.reviewLabel}>
-                                Exchange rate
-                              </span>
-                              <span className={styles.reviewValue}>
-                                {formatCurrency(1, formData.currency)} ={" "}
-                                {formatCurrency(
-                                  convertedAmount.rate,
-                                  convertedAmount.currency
-                                )}
-                              </span>
-                            </div>
-                          </>
-                        )}
+                        <div className={styles.flexFill} />
+                        <div className={styles.divider} />
 
                         <div
                           className={`${styles.reviewItem} ${styles.totalAmount}`}
