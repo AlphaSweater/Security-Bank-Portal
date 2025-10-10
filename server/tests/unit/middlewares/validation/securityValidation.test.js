@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { validateData } from "#middlewares/validationMiddleware.js";
 import * as userValidation from "#utils/validation/userValidation.js";
+import * as transactionValidation from "#utils/validation/transactionValidation.js";
 import * as loggerSpyHelper from "../../loggerTestSpyHelpers.js";
 import logger from "#utils/logger.js";
 
@@ -285,11 +286,94 @@ describe("[Transaction] User Input Security", () => {
     loggerSpyHelper.teardownLoggerSpies(spies);
   });
 
-  // TODO: Implement Transaction schema and validation tests for NoSQL Injection and XSS
-  // Example:
-  // describe("NoSQL Injection", () => { ... });
-  // describe("Cross-Site Scripting (XSS)", () => { ... });
-  it.skip("should validate transaction input security (To Be Implemented)", () => {
-    // This test is a placeholder and will be implemented when transaction validation is available
+  // Simple helper to make a 24-char hex id
+  const hex24 = () => "a".repeat(24);
+
+  describe("NoSQL Injection", () => {
+    it("should block NoSQL-style payloads in transaction create", () => {
+      // Arrange
+      const maliciousBody = {
+        userId: { $ne: null },
+        amount: { $gt: 0 },
+        currencyCode: { $in: ["USD"] },
+        beneficiaryType: { $regex: ".*" },
+        beneficiaryFullName: { $ne: "" },
+        destinationCountryCode: { $ne: "US" },
+        destinationBankName: { $gt: "" },
+        destinationBankSwift: { $exists: true },
+        destinationAccountNumber: { $where: "true" },
+      };
+      const req = { body: maliciousBody };
+      const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
+      const next = vi.fn();
+
+      logger.info(
+        "[TEST] BEFORE validation (transaction create, NoSQL injection):",
+        req.body
+      );
+
+      // Act
+      validateData(transactionValidation.createTransactionSchema)(
+        req,
+        res,
+        next
+      );
+
+      logger.info(
+        "[TEST] AFTER validation (transaction create, NoSQL injection):",
+        res.json.mock.calls[0]?.[0]
+      );
+
+      // Assert
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(next).not.toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ message: "Validation errors" })
+      );
+    });
+  });
+
+  describe("Cross-Site Scripting (XSS)", () => {
+    it("should block XSS in beneficiary and bank name fields", () => {
+      // Arrange
+      const maliciousBody = {
+        userId: hex24(),
+        amount: 100,
+        currencyCode: "USD",
+        beneficiaryType: "Individual",
+        beneficiaryFullName: "<script>alert('XSS')</script>",
+        destinationCountryCode: "US",
+        destinationBankName: "<svg onload=alert('XSS')>",
+        destinationBankSwift: "DEUTDEFF",
+        destinationAccountNumber: "1234567",
+      };
+      const req = { body: maliciousBody };
+      const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
+      const next = vi.fn();
+
+      logger.info(
+        "[TEST] BEFORE validation (transaction create, XSS):",
+        req.body
+      );
+
+      // Act
+      validateData(transactionValidation.createTransactionSchema)(
+        req,
+        res,
+        next
+      );
+
+      logger.info(
+        "[TEST] AFTER validation (transaction create, XSS):",
+        res.json.mock.calls[0]?.[0]
+      );
+
+      // Assert
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(next).not.toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ message: "Validation errors" })
+      );
+    });
   });
 });

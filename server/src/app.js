@@ -5,6 +5,7 @@ import errorHandler from "#middlewares/errorHandlerMiddleware.js";
 import session from "#middlewares/sessionMiddleware.js";
 import authRoutes from "#routes/authRoutes.js";
 import userRoutes from "#routes/userRoutes.js";
+import transactionRoutes from "#routes/transactionRoutes.js";
 import { getLogger } from "#utils/logger.js";
 
 const logger = getLogger(import.meta.url);
@@ -35,6 +36,7 @@ setupSecurity(app);
 // Register routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/transactions", transactionRoutes);
 app.get("/api/health", (req, res) => res.status(200).send("OK"));
 
 // 404 handler (for unmatched routes)
