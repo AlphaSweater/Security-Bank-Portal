@@ -1,4 +1,4 @@
-// External Dependencies
+﻿// External Dependencies
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -17,7 +17,8 @@ import TransactionItem from "../../components/Common/TransactionItem";
 // Styles
 import styles from "./DashboardPage.module.css";
 
-function StatCard({ title, value, change, isPositive, icon: Icon }) {
+function StatCard({ title, value, change, isPositive, icon }) {
+  const Icon = icon;
   const formatted = new Intl.NumberFormat("en-ZA", {
     style: "currency",
     currency: "ZAR",
@@ -57,18 +58,20 @@ function StatCard({ title, value, change, isPositive, icon: Icon }) {
   );
 }
 
-// TransactionItem is now a shared component
-
-function DashboardPage() {
-  const [wipOpen, setWipOpen] = useState(false);
-  const [wipMessage, setWipMessage] = useState(
+function CustomerDashboard() {
+  const [isWorkInProgressOpen, setIsWorkInProgressOpen] = useState(false);
+  const [workInProgressMessage, setWorkInProgressMessage] = useState(
     "This feature is a work in progress and will be implemented later."
   );
   const [profileName, setProfileName] = useState("");
-  const [welcomeLoading, setWelcomeLoading] = useState(true);
-  const [recentTxns, setRecentTxns] = useState([]);
-  const [txnsLoading, setTxnsLoading] = useState(true);
-  const [totals, setTotals] = useState({ income: 0, expenses: 0, balance: 0 });
+  const [isWelcomeLoading, setIsWelcomeLoading] = useState(true);
+  const [recentTransactions, setRecentTransactions] = useState([]);
+  const [isTransactionsLoading, setIsTransactionsLoading] = useState(true);
+  const [summaryTotals, setSummaryTotals] = useState({
+    income: 0,
+    expenses: 0,
+    balance: 0,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -81,11 +84,8 @@ function DashboardPage() {
         const last = user?.lastName;
         const full = [first, last].filter(Boolean).join(" ").trim();
         setProfileName(full || "User");
-      } catch (e) {
-        // Keep a graceful fallback if profile fetch fails
-        setProfileName("User");
       } finally {
-        if (!cancelled) setWelcomeLoading(false);
+        if (!cancelled) setIsWelcomeLoading(false);
       }
     }
     loadProfile();
@@ -101,23 +101,19 @@ function DashboardPage() {
         const data = await apiRequest("/api/users/me/transactions");
         if (cancelled) return;
         const items = Array.isArray(data?.items) ? data.items : [];
-        // Compute summary totals
         const income = 0; // not implemented yet
-        const expenses = items.reduce(
-          (sum, t) => sum + (Number(t.amount) || 0),
-          0
-        );
+        const expenses = items.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
         const balance = income - expenses;
-        setTotals({ income, expenses, balance });
+        setSummaryTotals({ income, expenses, balance });
         const sorted = items
           .slice()
           .sort((a, b) => (b.createdAtEpoch || 0) - (a.createdAtEpoch || 0));
-        setRecentTxns(sorted.slice(0, 3));
-      } catch (e) {
-        setRecentTxns([]);
-        setTotals({ income: 0, expenses: 0, balance: 0 });
+        setRecentTransactions(sorted.slice(0, 3));
+      } catch {
+        setRecentTransactions([]);
+        setSummaryTotals({ income: 0, expenses: 0, balance: 0 });
       } finally {
-        if (!cancelled) setTxnsLoading(false);
+        if (!cancelled) setIsTransactionsLoading(false);
       }
     }
     loadTransactions();
@@ -126,13 +122,13 @@ function DashboardPage() {
     };
   }, []);
 
-  function openWip(message) {
-    if (message) setWipMessage(message);
-    setWipOpen(true);
+  function openWorkInProgress(message) {
+    if (message) setWorkInProgressMessage(message);
+    setIsWorkInProgressOpen(true);
   }
 
-  function closeWip() {
-    setWipOpen(false);
+  function closeWorkInProgress() {
+    setIsWorkInProgressOpen(false);
   }
 
   return (
@@ -141,12 +137,11 @@ function DashboardPage() {
         <div className={styles.pageHeader}>
           <h1 className={styles.heading}>Dashboard</h1>
           <div className={styles.welcome} aria-live="polite">
-            {welcomeLoading ? (
-              "Welcome back, …"
+            {isWelcomeLoading ? (
+              "Welcome back, ..."
             ) : (
               <>
-                Welcome back,{" "}
-                <span className={styles.welcomeName}>{profileName}</span>! 👋
+                Welcome back, <span className={styles.welcomeName}>{profileName}</span>!
               </>
             )}
           </div>
@@ -155,14 +150,14 @@ function DashboardPage() {
         <div className={styles.statsGrid}>
           <StatCard
             title="Total Balance"
-            value={totals.balance}
-            isPositive={totals.balance >= 0}
+            value={summaryTotals.balance}
+            isPositive={summaryTotals.balance >= 0}
             icon={FiDollarSign}
           />
-          <StatCard title="Income" value={totals.income} icon={FiTrendingUp} />
+          <StatCard title="Income" value={summaryTotals.income} icon={FiTrendingUp} />
           <StatCard
             title="Expenses"
-            value={totals.expenses}
+            value={summaryTotals.expenses}
             isPositive={false}
             icon={FiCreditCard}
           />
@@ -176,26 +171,22 @@ function DashboardPage() {
                 type="button"
                 className={styles.viewAll}
                 onClick={() =>
-                  openWip("The full transactions list is coming soon.")
+                  openWorkInProgress("The full transactions list is coming soon.")
                 }
               >
                 View All
               </button>
             </div>
             <div className={styles.transactionsList}>
-              {txnsLoading ? (
-                <div className={styles.transactionSkeleton}>
-                  Loading transactions…
-                </div>
-              ) : recentTxns.length === 0 ? (
-                <div className={styles.transactionEmpty}>
-                  No recent transactions
-                </div>
+              {isTransactionsLoading ? (
+                <div className={styles.transactionSkeleton}>Loading transactions…</div>
+              ) : recentTransactions.length === 0 ? (
+                <div className={styles.transactionEmpty}>No recent transactions</div>
               ) : (
-                recentTxns.map((tx) => (
+                recentTransactions.map((transaction) => (
                   <TransactionItem
-                    key={tx._id || tx.createdAtEpoch}
-                    tx={tx}
+                    key={transaction._id || transaction.createdAtEpoch}
+                    tx={transaction}
                     forceExpense
                   />
                 ))
@@ -212,7 +203,7 @@ function DashboardPage() {
               </Link>
               <button
                 type="button"
-                onClick={() => openWip("Bill payments are a work in progress.")}
+                onClick={() => openWorkInProgress("Bill payments are a work in progress.")}
                 className={styles.actionButton}
               >
                 <FiCreditCard />
@@ -220,7 +211,7 @@ function DashboardPage() {
               </button>
               <button
                 type="button"
-                onClick={() => openWip("Investments will be available soon.")}
+                onClick={() => openWorkInProgress("Investments will be available soon.")}
                 className={styles.actionButton}
               >
                 <FiTrendingUp />
@@ -230,19 +221,19 @@ function DashboardPage() {
           </div>
         </div>
       </main>
-      {wipOpen && (
+      {isWorkInProgressOpen && (
         <div
           role="dialog"
           aria-modal="true"
           aria-label="Work in progress message"
           className={styles.modalOverlay}
-          onClick={closeWip}
+          onClick={closeWorkInProgress}
         >
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h4 className={styles.modalTitle}>Coming soon</h4>
               <button
-                onClick={closeWip}
+                onClick={closeWorkInProgress}
                 aria-label="Close"
                 className={styles.modalCloseButton}
               >
@@ -250,10 +241,10 @@ function DashboardPage() {
               </button>
             </div>
             <div className={styles.modalBody}>
-              <p>{wipMessage}</p>
+              <p>{workInProgressMessage}</p>
             </div>
             <div className={styles.modalFooter}>
-              <button onClick={closeWip} className={styles.modalPrimaryButton}>
+              <button onClick={closeWorkInProgress} className={styles.modalPrimaryButton}>
                 Got it
               </button>
             </div>
@@ -265,4 +256,4 @@ function DashboardPage() {
   );
 }
 
-export default DashboardPage;
+export default CustomerDashboard;
