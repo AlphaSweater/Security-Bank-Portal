@@ -43,7 +43,7 @@ jobs:
         run: npm run build
 
       - name: 🧪 Test
-        run: npm test -- --ci
+        run: npm test
 
       - name: 📤 Artifact (optional)
         uses: actions/upload-artifact@v4
@@ -80,7 +80,7 @@ jobs:
         run: npm run build
 
       - name: 🧪 Test
-        run: npm test -- --ci
+        run: npm test
 
       - name: 📤 Artifact (optional)
         uses: actions/upload-artifact@v4
