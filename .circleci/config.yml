@@ -113,10 +113,8 @@ jobs:
 
   sonar-scan:
     docker:
-      - image: cimg/node:20.12
+      - image: cimg/node:22.11
     working_directory: ~/project
-    environment:
-      SONAR_SERVER_VERSION: "10.6" # optional, just for cache keying
     steps:
       - checkout
       - attach_workspace: { at: . }
@@ -132,7 +130,7 @@ jobs:
             echo "Node: $(node -v)"
             npx @sonar/scan@latest \
               -Dsonar.host.url="${SONAR_HOST_URL}" \
-              -Dsonar.login="${SONAR_TOKEN}" \
+              -Dsonar.token="${SONAR_TOKEN}" \
               -Dsonar.qualitygate.wait=true \
               -Dsonar.nodejs.executable="$(which node)"
 
