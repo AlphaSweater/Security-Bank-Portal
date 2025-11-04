@@ -1,6 +1,4 @@
-
 ![Logo](https://i.postimg.cc/L6MYhpN8/Logo-With-Title.png)
-
 
 <h1 align="center">Security Bank Portal</h1>
 
@@ -11,85 +9,113 @@
 <br>
 
 ## 📝 Overview
-Security Bank Portal is a secure Node.js / Express prototype that lets users register, log in, and perform international transfers. The project focuses on real-world security practices: input validation with Joi and password hashing with Argon2. The README includes local HTTPS setup for a production-like environment during development.
 
-Whether you’re searching for a cozy spot to study, a trendy café to meet friends, or the perfect latte, Cape Town Coffees connects you to the city’s best brews.
+Security Bank Portal is a secure Node.js / Express prototype that lets users register, log in, and perform international transfers. The project focuses on real-world security practices: input validation with Joi and password hashing with Argon2. The README includes local HTTPS setup for a production-like environment during development.
 
 <br>
 
 ## 📚 Table of Contents
-- [How to Install and Setup](#-how-to-install-and-setup)
-- [Features](#-features)
-- [Security Features](#-security-features)
-- [Tech Stack](#-tech-stack)
-- [Architecture](#-architecture)
-- [Security Implementation and File Explanation](#-security-implementation-and-file-explanations)
-- [Video Demonstration](#-video-demo)
-- [Contributors](#-contributors)
-- [Learning Outcomes](#-learning-outcomes)
-- [References](#-references)
+
+- [📝 Overview](#-overview)
+- [📚 Table of Contents](#-table-of-contents)
+- [⚙️ How to Install and Setup](#️-how-to-install-and-setup)
+  - [1. Clone repo](#1-clone-repo)
+  - [2. Install dependencies (client \& server)](#2-install-dependencies-client--server)
+  - [3. Generate HTTPS certs](#3-generate-https-certs)
+  - [3.1. Install mkcert](#31-install-mkcert)
+  - [3.2. Create a project-local CA](#32-create-a-project-local-ca)
+  - [3.3. Generate cert and key](#33-generate-cert-and-key)
+  - [3.4. Clean up (optional)](#34-clean-up-optional)
+  - [4. Run server (dev)](#4-run-server-dev)
+  - [5. Run client (dev)](#5-run-client-dev)
+- [🌟 Features](#-features)
+- [🔐 Security Features](#-security-features)
+- [🔧 Tech Stack](#-tech-stack)
+- [🏗️ Architecture](#️-architecture)
+- [🎥 Video Demo](#-video-demo)
+- [👥 contributors](#-contributors)
+- [🧠 Learning Outcomes](#-learning-outcomes)
+- [📚 References](#-references)
 
 <br>
 
 ## ⚙️ How to Install and Setup
+
 ### 1. Clone repo
+
 ```
 git clone https://github.com/YourTeam/GlobalBankSecure.git
 ```
+
 ```
 cd GlobalBankSecure
 ```
 
 ### 2. Install dependencies (client & server)
+
 From the root:
+
 ```
 cd client
 npm install
 ```
+
 ```
 cd ../server
 npm install
 ```
 
 ### 3. Generate HTTPS certs
+
 To run local development with trusted HTTPS certs (no browser warnings), use mkcert.
 
 ### 3.1. Install mkcert
+
 ```
 winget install --id FiloSottile.mkcert -e
 ```
 
 ### 3.2. Create a project-local CA
+
 From the root:
+
 ```
 $env:CAROOT = "$PWD\.certs\ca"
 ```
+
 ```
 mkdir .certs\ca -Force
 ```
+
 ```
 mkcert -install
 ```
 
 ### 3.3. Generate cert and key
+
 ```
 mkdir certs -Force
 ```
+
 ```
 mkcert -key-file .\certs\localhost.key -cert-file .\certs\localhost.crt localhost 127.0.0.1 ::1
 ```
+
 - certs/localhost.crt and certs/localhost.key will be created.
 - .certs/ca/ will contain the CA files for your project.
 
 <br>
 
 ### 3.4. Clean up (optional)
+
 ```
 $env:CAROOT = "$PWD\.certs\ca"
 ```
+
 ```
 mkcert -uninstall
 ```
+
 ```
 Remove-Item -Recurse -Force .\.certs\ca
 ```
@@ -97,14 +123,18 @@ Remove-Item -Recurse -Force .\.certs\ca
 <br>
 
 ### 4. Run server (dev)
+
 From root:
+
 ```
 cd server
 npm run dev
 ```
 
 ### 5. Run client (dev)
+
 From root:
+
 ```
 cd client
 npm run dev
@@ -129,6 +159,7 @@ npm run dev
 <br>
 
 ## 🔐 Security Features
+
 - Argon2 (Argon2id) for password hashing
 
 - Joi for input validation (users & transactions)
@@ -142,6 +173,7 @@ npm run dev
 <br>
 
 ## 🔧 Tech Stack
+
 - Node.js, Express.js
 
 - Joi for validation
@@ -157,6 +189,7 @@ npm run dev
 <br>
 
 ## 🏗️ Architecture
+
 ```
 project/
 ├─ src/
@@ -174,7 +207,6 @@ project/
 ```
 
 <br>
-
 
 ## 🎥 Video Demo
 
