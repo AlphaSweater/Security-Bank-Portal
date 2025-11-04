@@ -1,4 +1,4 @@
-name: 🚀 Build and Test
+name: 🚀 CI — Build & Test
 
 on:
   push:
@@ -7,50 +7,87 @@ on:
     branches: [development, production]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "20.x"
+
 jobs:
-  ci:
-    name: 🔄 CI Pipeline
+  frontend:
+    name: 🎨 Frontend • Build & Test
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [20.x]
-
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: client
     steps:
-      - name: 📥 Checkout Repository
+      - name: 📥 Checkout
         uses: actions/checkout@v4
 
-      - name: 🔧 Setup Node.js ${{ matrix.node-version }}
+      - name: 🔧 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: "npm"
-          cache-dependency-path: |
-            client/package-lock.json
-            server/package-lock.json
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: client/package-lock.json
 
-      # Frontend Pipeline
-      - name: 🎨 Install Frontend Dependencies
-        working-directory: client
+      - name: 📦 Install
         run: npm ci
 
-      - name: 🏗️ Build Frontend
-        working-directory: client
+      - name: 🏗️ Build
         run: npm run build
 
-      - name: 🧪 Test Frontend
-        working-directory: client
-        run: npm test
+      - name: 🧪 Test
+        run: npm test -- --ci
 
-      # Backend Pipeline
-      - name: 🛠️ Install Backend Dependencies
+      - name: 📤 Artifact (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: |
+            client/dist
+            client/build
+          if-no-files-found: ignore
+          retention-days: 7
+
+  backend:
+    name: 🛠️ Backend • Build & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
         working-directory: server
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: 📦 Install
         run: npm ci
 
-      - name: 🔨 Build Backend
-        working-directory: server
+      - name: 🔨 Build
         run: npm run build
 
-      - name: 🧪 Test Backend
-        working-directory: server
-        run: npm test
+      - name: 🧪 Test
+        run: npm test -- --ci
+
+      - name: 📤 Artifact (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: |
+            server/dist
+            server/build
+          if-no-files-found: ignore
+          retention-days: 7

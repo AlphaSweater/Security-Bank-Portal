@@ -21,6 +21,7 @@
     "bothDev:fast": "concurrently -n server,client -c green,cyan \"nodemon src/server.js\" \"npm run dev:fast --prefix ../client\"",
     "build": "node -c src/server.js && echo 'Server validation complete'",
     "test": "vitest",
+    "test:ci": "vitest run --coverage",
     "test:ui": "vitest --ui"
   },
   "keywords": [],
@@ -46,6 +47,7 @@
     "redis": "^5.8.2"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
     "concurrently": "^9.2.1",
     "nodemon": "^3.1.10",
