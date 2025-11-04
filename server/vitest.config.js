@@ -8,7 +8,7 @@ export default defineConfig({
     passWithNoTests: true,
 
     // JUnit for CircleCI Tests tab
-    reporters: ["default", "junit"],
+    reporters: process.env.CI ? ["junit"] : ["default", "junit"],
     outputFile: {
       junit: "test-results/junit.xml",
     },

@@ -1,4 +1,3 @@
-# .circleci/config.yml
 version: 2.1
 
 orbs:
@@ -26,14 +25,17 @@ jobs:
           working_directory: client
           command: npm test || true
 
-      # Store build artifacts
+      - run:
+          name: 📦 Collect Artifacts (client)
+          command: |
+            set -e
+            mkdir -p /tmp/artifacts
+            [ -d client/dist ]  && cp -R client/dist  /tmp/artifacts/client_dist  || true
+            [ -d client/build ] && cp -R client/build /tmp/artifacts/client_build || true
+            ls -la /tmp/artifacts || true
       - store_artifacts:
-          path: client/dist
-          destination: frontend-dist
-
-      - store_artifacts:
-          path: client/build
-          destination: frontend-build
+          path: /tmp/artifacts
+          destination: frontend
 
   backend-build-test:
     executor:
@@ -58,19 +60,18 @@ jobs:
       - store_test_results:
           path: server/test-results
 
-      # Coverage report (viewable HTML)
+      - run:
+          name: 📦 Collect Artifacts (server)
+          command: |
+            set -e
+            mkdir -p /tmp/artifacts
+            [ -d server/coverage ] && cp -R server/coverage /tmp/artifacts/server_coverage || true
+            [ -d server/dist ]     && cp -R server/dist     /tmp/artifacts/server_dist     || true
+            [ -d server/build ]    && cp -R server/build    /tmp/artifacts/server_build    || true
+            ls -la /tmp/artifacts || true
       - store_artifacts:
-          path: server/coverage
-          destination: backend-coverage
-
-      # Store build artifacts
-      - store_artifacts:
-          path: server/dist
-          destination: backend-dist
-
-      - store_artifacts:
-          path: server/build
-          destination: backend-build
+          path: /tmp/artifacts
+          destination: backend
 
 # --- Workflow ---
 workflows:
