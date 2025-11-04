@@ -1,0 +1,160 @@
+/* Layout - aligned with DashboardPage.module.css look and feel */
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  color: #fffffe;
+}
+
+.mainContent {
+  flex: 1;
+  padding: 2rem 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.pageHeader {
+  margin-bottom: 1.5rem;
+}
+
+.heading {
+  color: #fffffe;
+  font-size: 2rem;
+  margin: 0 0 0.5rem 0;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.subheading {
+  font-size: 1rem;
+  color: #b8c1ec;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.iconPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(184, 193, 236, 0.12);
+  color: #b8c1ec;
+}
+
+/* Card */
+.card {
+  background: #232946;
+  border-radius: 16px;
+  padding: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.cardHeader h3 {
+  margin: 0;
+  color: #fffffe;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.queueCount {
+  color: #b8c1ec;
+  font-size: 0.95rem;
+}
+
+/* Table */
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px; /* row gap */
+  table-layout: auto;
+}
+
+.table thead th {
+  text-align: left;
+  color: #a7a9be;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.75rem;
+}
+
+.table tbody tr {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px; /* visual only with cell padding */
+}
+
+.table tbody td {
+  padding: 0.75rem;
+  color: #fffffe;
+}
+
+.table th, .table td {
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.right { text-align: right; }
+.center { text-align: center; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+/* Status pill */
+.statusPill {
+  display: inline-block;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.statusPending {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+  border-color: rgba(251, 191, 36, 0.25);
+}
+
+/* Empty */
+.emptyState {
+  color: #a7a9be;
+  font-size: 0.95rem;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+  .mainContent { padding: 1.5rem 1rem; }
+  .heading { font-size: 1.6rem; }
+}
+
+/* Back link */
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #b8c1ec;
+  text-decoration: none;
+  margin-bottom: 0.5rem;
+}
+.backLink:hover { color: #fffffe; }

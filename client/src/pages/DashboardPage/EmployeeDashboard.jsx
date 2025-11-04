@@ -157,8 +157,8 @@ function EmployeeDashboard() {
                 <span>View Rejected</span>
               </Link>
               <Link to="/transactions/history" className={styles.actionButton}>
-                <FiFileText />
-                <span>Full History</span>
+                <FiCheckCircle />
+                <span>Transaction History</span>
               </Link>
               <Link to="/reports" className={styles.actionButton}>
                 <FiTrendingUp />
