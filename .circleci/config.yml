@@ -112,36 +112,32 @@ jobs:
             - sonar-project.properties
 
   sonar-scan:
-    # Use a Node image so SonarJS analyzer has a supported Node runtime
     docker:
       - image: cimg/node:20.12
     working_directory: ~/project
     environment:
-      # Optional: pass your SonarQube server version to key the cache
-      SONAR_SERVER_VERSION: "10.6"
+      SONAR_SERVER_VERSION: "10.6" # optional, just for cache keying
     steps:
       - checkout
       - attach_workspace: { at: . }
 
-      # cache Sonar analyzers (~/.sonar/cache)
+      # cache analyzers (~/.sonar/cache) so the second run is much faster
       - restore_cache:
           keys:
-            - *sonar_cache_key
+            - v1-sonar-{{ arch }}-{{ .Environment.SONAR_SERVER_VERSION }}
 
-      # Use npx with a pinned version to avoid global install cost
       - run:
           name: 🔎 SonarQube Scan (self-hosted)
           command: |
             echo "Node: $(node -v)"
-            echo "NPM:  $(npm -v)"
-            npx @sonarsource/sonar-scanner@6.2.1 \
+            npx @sonar/scan@latest \
               -Dsonar.host.url="${SONAR_HOST_URL}" \
               -Dsonar.login="${SONAR_TOKEN}" \
               -Dsonar.qualitygate.wait=true \
               -Dsonar.nodejs.executable="$(which node)"
 
       - save_cache:
-          key: *sonar_cache_key
+          key: v1-sonar-{{ arch }}-{{ .Environment.SONAR_SERVER_VERSION }}
           paths:
             - ~/.sonar/cache
 
