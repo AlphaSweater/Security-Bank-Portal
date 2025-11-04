@@ -3,6 +3,13 @@ version: 2.1
 orbs:
   node: circleci/node@5.2.0
 
+# Reusable keys
+# Change "v1" if you ever want to force-invalidate all caches.
+defaults: &cache-keys
+  client: &client_cache_key v1-client-{{ arch }}-node-20.11-{{ checksum "client/package-lock.json" }}
+  server: &server_cache_key v1-server-{{ arch }}-node-20.11-{{ checksum "server/package-lock.json" }}
+  sonar: &sonar_cache_key v1-sonar-{{ arch }}-{{ .Environment.SONAR_SERVER_VERSION }}
+
 # --- Jobs ---
 jobs:
   frontend-build-test:
@@ -11,9 +18,19 @@ jobs:
       tag: "20.11"
     steps:
       - checkout
+
+      # cache node_modules
+      - restore_cache:
+          keys:
+            - *client_cache_key
       - node/install-packages:
           app-dir: client
           pkg-manager: npm
+          include-branch-in-cache-key: false
+      - save_cache:
+          key: *client_cache_key
+          paths:
+            - client/node_modules
 
       - run:
           name: 🏗️ Build (client)
@@ -37,6 +54,10 @@ jobs:
       - store_artifacts:
           path: /tmp/artifacts
           destination: frontend
+      - persist_to_workspace:
+          root: .
+          paths:
+            - client
 
   backend-build-test:
     executor:
@@ -44,9 +65,19 @@ jobs:
       tag: "20.11"
     steps:
       - checkout
+
+      # cache node_modules
+      - restore_cache:
+          keys:
+            - *server_cache_key
       - node/install-packages:
           app-dir: server
           pkg-manager: npm
+          include-branch-in-cache-key: false
+      - save_cache:
+          key: *server_cache_key
+          paths:
+            - server/node_modules
 
       - run:
           name: 🔨 Build (server)
@@ -81,20 +112,38 @@ jobs:
             - sonar-project.properties
 
   sonar-scan:
+    # Use a Node image so SonarJS analyzer has a supported Node runtime
     docker:
-      - image: sonarsource/sonar-scanner-cli:5.0.1
+      - image: cimg/node:20.12
     working_directory: ~/project
+    environment:
+      # Optional: pass your SonarQube server version to key the cache
+      SONAR_SERVER_VERSION: "10.6"
     steps:
       - checkout
-      - attach_workspace:
-          at: .
+      - attach_workspace: { at: . }
+
+      # cache Sonar analyzers (~/.sonar/cache)
+      - restore_cache:
+          keys:
+            - *sonar_cache_key
+
+      # Use npx with a pinned version to avoid global install cost
       - run:
           name: 🔎 SonarQube Scan (self-hosted)
           command: |
-            sonar-scanner \
+            echo "Node: $(node -v)"
+            echo "NPM:  $(npm -v)"
+            npx @sonarsource/sonar-scanner@6.2.1 \
               -Dsonar.host.url="${SONAR_HOST_URL}" \
               -Dsonar.login="${SONAR_TOKEN}" \
-              -Dsonar.qualitygate.wait=true
+              -Dsonar.qualitygate.wait=true \
+              -Dsonar.nodejs.executable="$(which node)"
+
+      - save_cache:
+          key: *sonar_cache_key
+          paths:
+            - ~/.sonar/cache
 
 # --- Workflow ---
 workflows:
