@@ -38,12 +38,6 @@ jobs:
           path: /tmp/artifacts
           destination: frontend
 
-      - persist_to_workspace:
-          root: .
-          paths:
-            - client
-            - sonar-project.properties
-
   backend-build-test:
     executor:
       name: node/default
