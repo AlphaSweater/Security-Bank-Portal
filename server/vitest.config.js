@@ -7,17 +7,25 @@ export default defineConfig({
     watch: false,
     passWithNoTests: true,
 
-    // JUnit for CircleCI Tests tab
+    // Reporters: show JUnit in CI, default locally
     reporters: process.env.CI ? ["junit"] : ["default", "junit"],
     outputFile: {
       junit: "test-results/junit.xml",
     },
 
-    // Coverage for artifacts
+    // Coverage reports
     coverage: {
       provider: "v8",
-      reporter: ["text", "html", "lcov"],
-      reportsDirectory: "./coverage",
+      reporter: ["text", "html", "lcov"], // lcov = required for SonarQube
+      reportsDirectory: "coverage", // CircleCI + Sonar expects ./coverage/lcov.info
+      all: true,
+      exclude: [
+        "**/node_modules/**",
+        "**/dist/**",
+        "**/build/**",
+        "**/*.config.*",
+        "**/vitest.config.*",
+      ],
     },
   },
 });

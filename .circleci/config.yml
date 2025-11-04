@@ -30,12 +30,19 @@ jobs:
           command: |
             set -e
             mkdir -p /tmp/artifacts
-            [ -d client/dist ]  && cp -R client/dist  /tmp/artifacts/client_dist  || true
-            [ -d client/build ] && cp -R client/build /tmp/artifacts/client_build || true
+            [ -d client/dist ]         && cp -R client/dist          /tmp/artifacts/client_dist          || true
+            [ -d client/build ]        && cp -R client/build         /tmp/artifacts/client_build         || true
+            [ -d client/coverage ]     && cp -R client/coverage      /tmp/artifacts/client_coverage      || true
             ls -la /tmp/artifacts || true
       - store_artifacts:
           path: /tmp/artifacts
           destination: frontend
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - client
+            - sonar-project.properties
 
   backend-build-test:
     executor:
@@ -73,13 +80,39 @@ jobs:
           path: /tmp/artifacts
           destination: backend
 
+      - persist_to_workspace:
+          root: .
+          paths:
+            - server
+            - sonar-project.properties
+
+  sonar-scan:
+    docker:
+      - image: sonarsource/sonar-scanner-cli:5.0.1
+    working_directory: ~/project
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: 🔎 SonarQube Scan (self-hosted)
+          command: |
+            sonar-scanner \
+              -Dsonar.host.url="${SONAR_HOST_URL}" \
+              -Dsonar.login="${SONAR_TOKEN}" \
+              -Dsonar.qualitygate.wait=true
+
 # --- Workflow ---
 workflows:
   version: 2
-  build-and-test:
+  build-test-scan:
     jobs:
       - frontend-build-test:
           name: "🎨 Frontend • Build & Test"
-
       - backend-build-test:
           name: "🛠️ Backend • Build & Test"
+      - sonar-scan:
+          name: "🧭 Sonar • Code Scan"
+          requires:
+            - "🎨 Frontend • Build & Test"
+            - "🛠️ Backend • Build & Test"
