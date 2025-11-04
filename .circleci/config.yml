@@ -79,20 +79,6 @@ workflows:
     jobs:
       - frontend-build-test:
           name: "🎨 Frontend • Build & Test"
-          filters:
-            branches:
-              only:
-                - development
-                - production
-                - /feature\/.*/
-                - /bugfix\/.*/
 
       - backend-build-test:
           name: "🛠️ Backend • Build & Test"
-          filters:
-            branches:
-              only:
-                - development
-                - production
-                - /feature\/.*/
-                - /bugfix\/.*/
