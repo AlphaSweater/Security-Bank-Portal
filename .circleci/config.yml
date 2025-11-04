@@ -1,0 +1,85 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@5.2.0
+
+# --- Jobs ---
+jobs:
+  frontend-build-test:
+    executor:
+      name: node/default
+      tag: "20.11"
+    steps:
+      - checkout
+      - node/install-packages:
+          app-dir: client
+          pkg-manager: npm
+
+      - run:
+          name: 🏗️ Build (client)
+          working_directory: client
+          command: npm run build
+
+      - run:
+          name: 🧪 Test (client)
+          working_directory: client
+          command: npm test || true
+
+      - run:
+          name: 📦 Collect Artifacts (client)
+          command: |
+            set -e
+            mkdir -p /tmp/artifacts
+            [ -d client/dist ]  && cp -R client/dist  /tmp/artifacts/client_dist  || true
+            [ -d client/build ] && cp -R client/build /tmp/artifacts/client_build || true
+            ls -la /tmp/artifacts || true
+      - store_artifacts:
+          path: /tmp/artifacts
+          destination: frontend
+
+  backend-build-test:
+    executor:
+      name: node/default
+      tag: "20.11"
+    steps:
+      - checkout
+      - node/install-packages:
+          app-dir: server
+          pkg-manager: npm
+
+      - run:
+          name: 🔨 Build (server)
+          working_directory: server
+          command: npm run build
+
+      - run:
+          name: 🧪 Test (server)
+          working_directory: server
+          command: npm run test:ci
+
+      - store_test_results:
+          path: server/test-results
+
+      - run:
+          name: 📦 Collect Artifacts (server)
+          command: |
+            set -e
+            mkdir -p /tmp/artifacts
+            [ -d server/coverage ] && cp -R server/coverage /tmp/artifacts/server_coverage || true
+            [ -d server/dist ]     && cp -R server/dist     /tmp/artifacts/server_dist     || true
+            [ -d server/build ]    && cp -R server/build    /tmp/artifacts/server_build    || true
+            ls -la /tmp/artifacts || true
+      - store_artifacts:
+          path: /tmp/artifacts
+          destination: backend
+
+# --- Workflow ---
+workflows:
+  version: 2
+  build-and-test:
+    jobs:
+      - frontend-build-test:
+          name: "🎨 Frontend • Build & Test"
+
+      - backend-build-test:
+          name: "🛠️ Backend • Build & Test"
