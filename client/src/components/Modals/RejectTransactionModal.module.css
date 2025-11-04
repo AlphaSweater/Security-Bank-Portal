@@ -1,0 +1,102 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modalContent {
+  background: #232946;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  margin: 0 auto;
+}
+
+.modalContent h3 {
+  margin: 0 0 1rem 0;
+  color: #fffffe;
+  font-size: 1.5rem;
+  text-align: left;
+  width: 100%;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modalContent p {
+  color: #b8c1ec;
+  margin: 1.5rem 0;
+  line-height: 1.5;
+  text-align: left;
+  width: 100%;
+}
+
+.reasonInput {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fffffe;
+  font-family: inherit;
+  font-size: 0.95rem;
+  margin: 0.5rem 0 1rem 0;
+  resize: vertical;
+  min-height: 120px;
+  display: block;
+  box-sizing: border-box;
+}
+
+.reasonInput:focus {
+  outline: none;
+  border-color: #b8c1ec;
+  box-shadow: 0 0 0 2px rgba(184, 193, 236, 0.2);
+}
+
+.formGroup {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.buttonGroup {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  width: 100%;
+}
+
+.errorText {
+  color: #ef4444;
+  font-size: 0.85rem;
+  margin: -0.5rem 0 0.5rem 0;
+  text-align: left;
+  width: 100%;
+  display: block;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .modalContent {
+    padding: 1.5rem;
+  }
+  
+  .buttonGroup {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .buttonGroup button {
+    width: 100%;
+  }
+}
