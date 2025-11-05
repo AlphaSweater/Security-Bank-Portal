@@ -1,5 +1,5 @@
 // External Dependencies
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   FiClock,
@@ -9,6 +9,9 @@ import {
   FiFileText,
   FiTrendingUp,
 } from "react-icons/fi";
+
+// Components
+import { apiRequest } from "../../utils/apiUtil";
 
 // Styles
 import styles from "./DashboardPage.module.css";
@@ -23,9 +26,7 @@ function StatCard({ title, value, icon, colorClass }) {
         </div>
         <span className={styles.statTitle}>{title}</span>
       </div>
-      <div className={`${styles.statValue} ${colorClass || ""}`}>
-        {value}
-      </div>
+      <div className={`${styles.statValue} ${colorClass || ""}`}>{value}</div>
     </div>
   );
 }
@@ -38,14 +39,40 @@ function PendingTransactionPreview({ transaction }) {
     maximumFractionDigits: 2,
   }).format(Number(transaction.amount) || 0);
 
+  // Format date - handle both epoch timestamps and date strings
+  const formatDate = (tx) => {
+    if (tx.createdAtEpoch) {
+      const date = new Date(tx.createdAtEpoch);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      if (diffHours < 1) return "Just now";
+      if (diffHours < 24)
+        return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+      if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+      return date.toLocaleDateString("en-ZA");
+    }
+    return tx.date || "Unknown date";
+  };
+
   return (
-    <div className={styles.transactionItem}>
+    <Link
+      to={`/transactions/review/${transaction._id}`}
+      className={styles.transactionItem}
+      style={{ textDecoration: "none", color: "inherit" }}
+    >
       <div className={styles.transactionIcon}>
         <FiClock />
       </div>
       <div className={styles.transactionDetails}>
-        <div className={styles.transactionName}>{transaction.recipient}</div>
-        <div className={styles.transactionDate}>{transaction.date}</div>
+        <div className={styles.transactionName}>
+          {transaction.recipient ||
+            transaction.recipientAccountNumber ||
+            "Unknown"}
+        </div>
+        <div className={styles.transactionDate}>{formatDate(transaction)}</div>
       </div>
       <div className={`${styles.statusPill} ${styles.statusPending}`}>
         Pending
@@ -53,38 +80,88 @@ function PendingTransactionPreview({ transaction }) {
       <div className={`${styles.transactionAmount} ${styles.expense}`}>
         {formatted}
       </div>
-    </div>
+    </Link>
   );
 }
 
 function EmployeeDashboard() {
-  // Mock data for UI demonstration - replace with real data later
-  const [stats] = useState({
-    pending: 12,
-    approved: 47,
-    rejected: 8,
+  const [profileName, setProfileName] = useState("");
+  const [isWelcomeLoading, setIsWelcomeLoading] = useState(true);
+  const [pendingTransactions, setPendingTransactions] = useState([]);
+  const [isTransactionsLoading, setIsTransactionsLoading] = useState(true);
+  const [stats, setStats] = useState({
+    pending: 0,
+    approved: 0,
+    rejected: 0,
   });
 
-  const [pendingTransactions] = useState([
-    {
-      id: "1",
-      recipient: "John Smith",
-      amount: 2500.0,
-      date: "2 hours ago",
-    },
-    {
-      id: "2",
-      recipient: "Jane Doe",
-      amount: 1800.5,
-      date: "4 hours ago",
-    },
-    {
-      id: "3",
-      recipient: "Mike Johnson",
-      amount: 5200.75,
-      date: "6 hours ago",
-    },
-  ]);
+  // Load employee profile
+  useEffect(() => {
+    let cancelled = false;
+    async function loadProfile() {
+      try {
+        const data = await apiRequest("/api/users/me");
+        if (cancelled) return;
+        const user = data?.user;
+        const first = user?.firstName;
+        const last = user?.lastName;
+        const full = [first, last].filter(Boolean).join(" ").trim();
+        setProfileName(full || "Employee");
+      } catch (err) {
+        if (!cancelled) setProfileName("Employee");
+      } finally {
+        if (!cancelled) setIsWelcomeLoading(false);
+      }
+    }
+    loadProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Load pending transactions for employee review
+  useEffect(() => {
+    let cancelled = false;
+    async function loadPendingTransactions() {
+      try {
+        // TODO: Replace with actual employee transactions endpoint
+        // For now, using a stub endpoint that will need to be implemented
+        const data = await apiRequest("/api/transactions/pending");
+        if (cancelled) return;
+
+        const items = Array.isArray(data?.transactions)
+          ? data.transactions
+          : [];
+
+        // Calculate stats
+        const pending = items.filter((t) => t.status === "pending").length;
+        const approved = items.filter((t) => t.status === "approved").length;
+        const rejected = items.filter((t) => t.status === "rejected").length;
+
+        setStats({ pending, approved, rejected });
+
+        // Show only pending transactions, sorted by most recent
+        const pendingOnly = items
+          .filter((t) => t.status === "pending")
+          .sort((a, b) => (b.createdAtEpoch || 0) - (a.createdAtEpoch || 0))
+          .slice(0, 5); // Show top 5
+
+        setPendingTransactions(pendingOnly);
+      } catch (err) {
+        // If endpoint doesn't exist yet, fall back to empty state
+        if (!cancelled) {
+          setPendingTransactions([]);
+          setStats({ pending: 0, approved: 0, rejected: 0 });
+        }
+      } finally {
+        if (!cancelled) setIsTransactionsLoading(false);
+      }
+    }
+    loadPendingTransactions();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className={styles.pageWrapper}>
@@ -92,7 +169,14 @@ function EmployeeDashboard() {
         <div className={styles.pageHeader}>
           <h1 className={styles.heading}>Employee Dashboard</h1>
           <div className={styles.welcome} aria-live="polite">
-            Welcome back, <span className={styles.welcomeName}>Employee</span>!
+            {isWelcomeLoading ? (
+              "Welcome back, ..."
+            ) : (
+              <>
+                Welcome back,{" "}
+                <span className={styles.welcomeName}>{profileName}</span>!
+              </>
+            )}
           </div>
         </div>
 
@@ -126,7 +210,11 @@ function EmployeeDashboard() {
               </Link>
             </div>
             <div className={styles.transactionsList}>
-              {pendingTransactions.length === 0 ? (
+              {isTransactionsLoading ? (
+                <div className={styles.transactionSkeleton}>
+                  Loading pending transactions…
+                </div>
+              ) : pendingTransactions.length === 0 ? (
                 <div className={styles.transactionEmpty}>
                   No pending transactions at the moment
                 </div>
@@ -157,7 +245,7 @@ function EmployeeDashboard() {
                 <span>View Rejected</span>
               </Link>
               <Link to="/transactions/history" className={styles.actionButton}>
-                <FiCheckCircle />
+                <FiFileText />
                 <span>Transaction History</span>
               </Link>
               <Link to="/reports" className={styles.actionButton}>

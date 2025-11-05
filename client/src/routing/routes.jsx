@@ -10,6 +10,7 @@ import ApprovedTransactions from "../pages/EmployeeTransactions/ApprovedTransact
 import RejectedTransactions from "../pages/EmployeeTransactions/RejectedTransactions";
 import TransactionReview from "../pages/EmployeeTransactions/TransactionReview";
 import TransactionHistory from "../pages/EmployeeTransactions/TransactionHistory";
+import UnauthorizedPage from "../pages/UnauthorizedPage";
 import PrivateRoute from "./PrivateRoute";
 
 // Route meta: label for nav, element, auth, showInNav
@@ -53,7 +54,7 @@ const routes = [
         <TransactionPage />
       </PrivateRoute>
     ),
-    showInNav: false,  // Set to false since we're accessing it from the dashboard
+    showInNav: false, // Set to false since we're accessing it from the dashboard
     isPrivate: true,
   },
   {
@@ -127,7 +128,16 @@ const routes = [
     showInNav: false,
     isPrivate: false,
     showNavbar: false,
-    showFooter: false
+    showFooter: false,
+  },
+  {
+    path: "/unauthorized",
+    label: "Unauthorized",
+    element: <UnauthorizedPage />,
+    showInNav: false,
+    isPrivate: false,
+    showNavbar: false,
+    showFooter: false,
   },
   // Add more routes as needed
 ];

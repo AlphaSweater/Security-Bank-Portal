@@ -102,7 +102,10 @@ function CustomerDashboard() {
         if (cancelled) return;
         const items = Array.isArray(data?.items) ? data.items : [];
         const income = 0; // not implemented yet
-        const expenses = items.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+        const expenses = items.reduce(
+          (sum, t) => sum + (Number(t.amount) || 0),
+          0
+        );
         const balance = income - expenses;
         setSummaryTotals({ income, expenses, balance });
         const sorted = items
@@ -141,7 +144,8 @@ function CustomerDashboard() {
               "Welcome back, ..."
             ) : (
               <>
-                Welcome back, <span className={styles.welcomeName}>{profileName}</span>!
+                Welcome back,{" "}
+                <span className={styles.welcomeName}>{profileName}</span>!
               </>
             )}
           </div>
@@ -154,7 +158,11 @@ function CustomerDashboard() {
             isPositive={summaryTotals.balance >= 0}
             icon={FiDollarSign}
           />
-          <StatCard title="Income" value={summaryTotals.income} icon={FiTrendingUp} />
+          <StatCard
+            title="Income"
+            value={summaryTotals.income}
+            icon={FiTrendingUp}
+          />
           <StatCard
             title="Expenses"
             value={summaryTotals.expenses}
@@ -171,7 +179,9 @@ function CustomerDashboard() {
                 type="button"
                 className={styles.viewAll}
                 onClick={() =>
-                  openWorkInProgress("The full transactions list is coming soon.")
+                  openWorkInProgress(
+                    "The full transactions list is coming soon."
+                  )
                 }
               >
                 View All
@@ -179,9 +189,13 @@ function CustomerDashboard() {
             </div>
             <div className={styles.transactionsList}>
               {isTransactionsLoading ? (
-                <div className={styles.transactionSkeleton}>Loading transactions…</div>
+                <div className={styles.transactionSkeleton}>
+                  Loading transactions…
+                </div>
               ) : recentTransactions.length === 0 ? (
-                <div className={styles.transactionEmpty}>No recent transactions</div>
+                <div className={styles.transactionEmpty}>
+                  No recent transactions
+                </div>
               ) : (
                 recentTransactions.map((transaction) => (
                   <TransactionItem
@@ -203,7 +217,9 @@ function CustomerDashboard() {
               </Link>
               <button
                 type="button"
-                onClick={() => openWorkInProgress("Bill payments are a work in progress.")}
+                onClick={() =>
+                  openWorkInProgress("Bill payments are a work in progress.")
+                }
                 className={styles.actionButton}
               >
                 <FiCreditCard />
@@ -211,7 +227,9 @@ function CustomerDashboard() {
               </button>
               <button
                 type="button"
-                onClick={() => openWorkInProgress("Investments will be available soon.")}
+                onClick={() =>
+                  openWorkInProgress("Investments will be available soon.")
+                }
                 className={styles.actionButton}
               >
                 <FiTrendingUp />
@@ -244,7 +262,10 @@ function CustomerDashboard() {
               <p>{workInProgressMessage}</p>
             </div>
             <div className={styles.modalFooter}>
-              <button onClick={closeWorkInProgress} className={styles.modalPrimaryButton}>
+              <button
+                onClick={closeWorkInProgress}
+                className={styles.modalPrimaryButton}
+              >
                 Got it
               </button>
             </div>
