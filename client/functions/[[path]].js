@@ -38,10 +38,15 @@ export const onRequest = async ({ request, env, next }) => {
       /^\/privacy(\/|$)/,
       /^\/unauthorized(\/|$)/,
     ],
+    // Maps route patterns to allowed roles (admin always has access)
     roles: {
-      admin: [/^\/admin(\/|$)/],
-      employee: [/^\/reports(\/|$)/],
-      customer: [/^\/dashboard(\/|$)/],
+      "/dashboard": ["customer", "employee", "admin"],
+      "/transaction": ["customer", "admin"],
+      "/transactions/pending": ["employee", "admin"],
+      "/transactions/review": ["employee", "admin"],
+      "/transactions/history": ["employee", "admin"],
+      "/transactions/approved": ["employee", "admin"],
+      "/transactions/rejected": ["employee", "admin"],
     },
   };
 
@@ -99,11 +104,13 @@ export const onRequest = async ({ request, env, next }) => {
   // 4) Handle probe result
   if (probe.ok) {
     // Role gate (optional)
-    const matchedRole = Object.entries(ROUTES.roles).find(([, patterns]) =>
-      patterns.some((rx) => rx.test(path))
+    // Find if this route requires specific roles
+    const matchedRoute = Object.entries(ROUTES.roles).find(([routePath]) =>
+      path.startsWith(routePath)
     );
-    if (!matchedRole) {
-      // console.log("No role required for this route", path);
+
+    if (!matchedRoute) {
+      // No role required for this route
       return next();
     }
 
@@ -119,11 +126,18 @@ export const onRequest = async ({ request, env, next }) => {
       console.error("Failed to parse sessionCheck JSON", { error: err });
     }
 
-    const [requiredRole] = matchedRole;
-    if (!role || role !== requiredRole) {
-      console.error(`Role mismatch: need ${requiredRole}, have ${role}`);
+    const [, allowedRoles] = matchedRoute;
+
+    // Check if user's role is in the allowed roles for this route
+    if (!role || !allowedRoles.includes(role)) {
+      console.error(
+        `Role mismatch: route requires one of [${allowedRoles.join(
+          ", "
+        )}], user has ${role}`
+      );
       return Response.redirect(new URL("/unauthorized", url).toString(), 302);
     }
+
     return next();
   }
 
