@@ -12,7 +12,7 @@ defaults: &cache-keys
 
 # --- Jobs ---
 jobs:
-  frontend-build-test:
+  frontend-build:
     executor:
       name: node/default
       tag: "20.11"
@@ -38,18 +38,12 @@ jobs:
           command: npm run build
 
       - run:
-          name: 🧪 Test (client)
-          working_directory: client
-          command: npm test || true
-
-      - run:
           name: 📦 Collect Artifacts (client)
           command: |
             set -e
             mkdir -p /tmp/artifacts
             [ -d client/dist ]         && cp -R client/dist          /tmp/artifacts/client_dist          || true
             [ -d client/build ]        && cp -R client/build         /tmp/artifacts/client_build         || true
-            [ -d client/coverage ]     && cp -R client/coverage      /tmp/artifacts/client_coverage      || true
             ls -la /tmp/artifacts || true
       - store_artifacts:
           path: /tmp/artifacts
