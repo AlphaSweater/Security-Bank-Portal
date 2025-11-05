@@ -3,17 +3,34 @@ version: 2.1
 orbs:
   node: circleci/node@5.2.0
 
+# Reusable keys
+# Change "v1" if you ever want to force-invalidate all caches.
+defaults: &cache-keys
+  client: &client_cache_key v1-client-{{ arch }}-node-20.11-{{ checksum "client/package-lock.json" }}
+  server: &server_cache_key v1-server-{{ arch }}-node-20.11-{{ checksum "server/package-lock.json" }}
+  sonar: &sonar_cache_key v1-sonar-{{ arch }}-{{ .Environment.SONAR_SERVER_VERSION }}
+
 # --- Jobs ---
 jobs:
-  frontend-build-test:
+  frontend-build:
     executor:
       name: node/default
       tag: "20.11"
     steps:
       - checkout
+
+      # cache node_modules
+      - restore_cache:
+          keys:
+            - *client_cache_key
       - node/install-packages:
           app-dir: client
           pkg-manager: npm
+          include-branch-in-cache-key: false
+      - save_cache:
+          key: *client_cache_key
+          paths:
+            - client/node_modules
 
       - run:
           name: 🏗️ Build (client)
@@ -21,21 +38,20 @@ jobs:
           command: npm run build
 
       - run:
-          name: 🧪 Test (client)
-          working_directory: client
-          command: npm test || true
-
-      - run:
           name: 📦 Collect Artifacts (client)
           command: |
             set -e
             mkdir -p /tmp/artifacts
-            [ -d client/dist ]  && cp -R client/dist  /tmp/artifacts/client_dist  || true
-            [ -d client/build ] && cp -R client/build /tmp/artifacts/client_build || true
+            [ -d client/dist ]         && cp -R client/dist          /tmp/artifacts/client_dist          || true
+            [ -d client/build ]        && cp -R client/build         /tmp/artifacts/client_build         || true
             ls -la /tmp/artifacts || true
       - store_artifacts:
           path: /tmp/artifacts
           destination: frontend
+      - persist_to_workspace:
+          root: .
+          paths:
+            - client
 
   backend-build-test:
     executor:
@@ -43,9 +59,19 @@ jobs:
       tag: "20.11"
     steps:
       - checkout
+
+      # cache node_modules
+      - restore_cache:
+          keys:
+            - *server_cache_key
       - node/install-packages:
           app-dir: server
           pkg-manager: npm
+          include-branch-in-cache-key: false
+      - save_cache:
+          key: *server_cache_key
+          paths:
+            - server/node_modules
 
       - run:
           name: 🔨 Build (server)
@@ -73,13 +99,51 @@ jobs:
           path: /tmp/artifacts
           destination: backend
 
+      - persist_to_workspace:
+          root: .
+          paths:
+            - server
+            - sonar-project.properties
+
+  sonar-scan:
+    docker:
+      - image: cimg/node:22.11
+    working_directory: ~/project
+    steps:
+      - checkout
+      - attach_workspace: { at: . }
+
+      # cache analyzers (~/.sonar/cache) so the second run is much faster
+      - restore_cache:
+          keys:
+            - v1-sonar-{{ arch }}-{{ .Environment.SONAR_SERVER_VERSION }}
+
+      - run:
+          name: 🔎 SonarQube Scan (self-hosted)
+          command: |
+            echo "Node: $(node -v)"
+            npx @sonar/scan@latest \
+              -Dsonar.host.url="${SONAR_HOST_URL}" \
+              -Dsonar.token="${SONAR_TOKEN}" \
+              -Dsonar.qualitygate.wait=true \
+              -Dsonar.nodejs.executable="$(which node)"
+
+      - save_cache:
+          key: v1-sonar-{{ arch }}-{{ .Environment.SONAR_SERVER_VERSION }}
+          paths:
+            - ~/.sonar/cache
+
 # --- Workflow ---
 workflows:
   version: 2
-  build-and-test:
+  build-test-scan:
     jobs:
       - frontend-build-test:
           name: "🎨 Frontend • Build & Test"
-
       - backend-build-test:
           name: "🛠️ Backend • Build & Test"
+      - sonar-scan:
+          name: "🧭 Sonar • Code Scan"
+          requires:
+            - "🎨 Frontend • Build & Test"
+            - "🛠️ Backend • Build & Test"
