@@ -116,20 +116,22 @@ jobs:
       # cache analyzers (~/.sonar/cache) so the second run is much faster
       - restore_cache:
           keys:
-            - v1-sonar-{{ arch }}-{{ .Environment.SONAR_SERVER_VERSION }}
+            - *sonar_cache_key
 
       - run:
           name: 🔎 SonarQube Scan (self-hosted)
+          no_output_timeout: 20m
           command: |
             echo "Node: $(node -v)"
             npx @sonar/scan@latest \
               -Dsonar.host.url="${SONAR_HOST_URL}" \
               -Dsonar.token="${SONAR_TOKEN}" \
               -Dsonar.qualitygate.wait=true \
+              -Dsonar.qualitygate.timeout=1200 \
               -Dsonar.nodejs.executable="$(which node)"
 
       - save_cache:
-          key: v1-sonar-{{ arch }}-{{ .Environment.SONAR_SERVER_VERSION }}
+          key: *sonar_cache_key
           paths:
             - ~/.sonar/cache
 
