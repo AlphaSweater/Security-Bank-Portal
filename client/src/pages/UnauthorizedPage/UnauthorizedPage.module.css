@@ -1,0 +1,349 @@
+/* =============================
+   Unauthorized Page Layout
+   ============================= */
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.container {
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 4rem 2.5rem;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(20px);
+}
+
+/* =============================
+   Icon Styles
+   ============================= */
+
+.iconWrapper {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 2rem;
+}
+
+.iconBackground {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-start) 0%,
+    var(--color-primary-end) 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4),
+    0 0 60px rgba(14, 165, 233, 0.3);
+  animation: iconPulse 3s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%,
+  100% {
+    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4),
+      0 0 60px rgba(14, 165, 233, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 8px 40px rgba(99, 102, 241, 0.6),
+      0 0 80px rgba(14, 165, 233, 0.5);
+    transform: scale(1.05);
+  }
+}
+
+.icon {
+  width: 60px;
+  height: 60px;
+  color: var(--color-text-primary);
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+}
+
+.warningBadge {
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--color-error);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.5);
+  border: 3px solid var(--color-bg-start);
+}
+
+.warningBadge svg {
+  width: 20px;
+  height: 20px;
+  color: var(--color-text-primary);
+}
+
+/* =============================
+   Content Styles
+   ============================= */
+
+.content {
+  margin-bottom: 2.5rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+.subtitle {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin: 0 0 1.5rem 0;
+}
+
+.description {
+  font-size: var(--font-size-base);
+  color: var(--color-text-muted);
+  line-height: 1.7;
+  margin: 0;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* =============================
+   Button Styles
+   ============================= */
+
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  text-decoration: none;
+  transition: all var(--transition-base);
+  cursor: pointer;
+  border: none;
+}
+
+.primaryButton {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-start) 0%,
+    var(--color-primary-end) 100%
+  );
+  color: var(--color-text-primary);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+}
+
+.primaryButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+.secondaryButton {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  backdrop-filter: blur(10px);
+}
+
+.secondaryButton:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* =============================
+   Error Code Badge
+   ============================= */
+
+.errorCode {
+  position: relative;
+  margin-top: 1.5rem;
+}
+
+.errorCodeText {
+  display: inline-block;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  letter-spacing: 1px;
+}
+
+/* =============================
+   Background Decorations
+   ============================= */
+
+.bgDecoration1,
+.bgDecoration2,
+.bgDecoration3 {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.1;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.bgDecoration1 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(
+    circle,
+    var(--color-primary-start) 0%,
+    transparent 70%
+  );
+  top: -200px;
+  right: -200px;
+  animation: float1 8s ease-in-out infinite;
+}
+
+.bgDecoration2 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(
+    circle,
+    var(--color-primary-end) 0%,
+    transparent 70%
+  );
+  bottom: -150px;
+  left: -150px;
+  animation: float2 10s ease-in-out infinite;
+}
+
+.bgDecoration3 {
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, var(--color-error) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: float3 12s ease-in-out infinite;
+}
+
+@keyframes float1 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-30px, 30px);
+  }
+}
+
+@keyframes float2 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(30px, -30px);
+  }
+}
+
+@keyframes float3 {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+/* =============================
+   Responsive Design
+   ============================= */
+
+@media (max-width: 768px) {
+  .container {
+    padding: 3rem 1.5rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: var(--font-size-lg);
+  }
+
+  .description {
+    font-size: var(--font-size-sm);
+  }
+
+  .iconBackground {
+    width: 100px;
+    height: 100px;
+  }
+
+  .icon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .bgDecoration1,
+  .bgDecoration2,
+  .bgDecoration3 {
+    opacity: 0.05;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 1rem;
+  }
+
+  .container {
+    padding: 2.5rem 1.25rem;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+}
