@@ -1,21 +1,25 @@
 version: 2.1
 
+parameters:
+  node_version:
+    type: string
+    default: "22.11"
+
 orbs:
   node: circleci/node@5.2.0
 
 # Reusable keys
-# Change "v1" if you ever want to force-invalidate all caches.
 defaults: &cache-keys
-  client: &client_cache_key v1-client-{{ arch }}-node-20.11-{{ checksum "client/package-lock.json" }}
-  server: &server_cache_key v1-server-{{ arch }}-node-20.11-{{ checksum "server/package-lock.json" }}
-  sonar: &sonar_cache_key v1-sonar-{{ arch }}-{{ .Environment.SONAR_SERVER_VERSION }}
+  client: &client_cache_key cv{{ .Environment.CACHE_VERSION }}-client-{{ arch }}-node-<< pipeline.parameters.node_version >>-{{ checksum "client/package-lock.json" }}
+  server: &server_cache_key cv{{ .Environment.CACHE_VERSION }}-server-{{ arch }}-node-<< pipeline.parameters.node_version >>-{{ checksum "server/package-lock.json" }}
+  sonar: &sonar_cache_key cv{{ .Environment.CACHE_VERSION }}-sonar-{{ arch }}-{{ .Environment.SONAR_SERVER_VERSION }}
 
 # --- Jobs ---
 jobs:
   frontend-build:
     executor:
       name: node/default
-      tag: "20.11"
+      tag: "<< pipeline.parameters.node_version >>"
     steps:
       - checkout
 
@@ -56,7 +60,7 @@ jobs:
   backend-build-test:
     executor:
       name: node/default
-      tag: "20.11"
+      tag: "<< pipeline.parameters.node_version >>"
     steps:
       - checkout
 
@@ -77,6 +81,11 @@ jobs:
           name: 🔨 Build (server)
           working_directory: server
           command: npm run build
+
+      - run:
+          name: 🧹 Clean old coverage
+          working_directory: server
+          command: rm -rf coverage
 
       - run:
           name: 🧪 Test (server)
@@ -107,7 +116,7 @@ jobs:
 
   sonar-scan:
     docker:
-      - image: cimg/node:22.11
+      - image: cimg/node:<< pipeline.parameters.node_version >>
     working_directory: ~/project
     steps:
       - checkout
