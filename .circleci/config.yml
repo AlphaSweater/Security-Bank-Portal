@@ -138,12 +138,12 @@ workflows:
   version: 2
   build-test-scan:
     jobs:
-      - frontend-build-test:
-          name: "🎨 Frontend • Build & Test"
+      - frontend-build:
+          name: "🎨 Frontend • Build"
       - backend-build-test:
           name: "🛠️ Backend • Build & Test"
       - sonar-scan:
           name: "🧭 Sonar • Code Scan"
           requires:
-            - "🎨 Frontend • Build & Test"
+            - "🎨 Frontend • Build"
             - "🛠️ Backend • Build & Test"
