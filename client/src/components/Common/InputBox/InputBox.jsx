@@ -13,6 +13,7 @@ const InputBox = forwardRef(({
   label,
   required = false,
   error,
+  variant,
   ...props
 }, ref) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -52,9 +53,11 @@ const InputBox = forwardRef(({
     }
   };
 
+  const isDark = variant === 'dark' || props['data-theme'] === 'dark';
   const labelClasses = [
     styles.floatingLabel,
-    isFocused || hasValue ? styles.labelFloating : ''
+    isFocused || hasValue ? styles.labelFloating : '',
+    isDark ? styles.labelDark : ''
   ].join(' ');
 
   return (
@@ -69,7 +72,7 @@ const InputBox = forwardRef(({
           onChange={handleChange}
           onFocus={handleFocus}
           onBlur={handleBlurEvent}
-          className={`${styles.input} ${error ? styles.error : ''}`}
+          className={`${styles.input} ${isDark ? styles.inputDark : ''} ${error ? styles.error : ''}`}
           placeholder={!value && !isFocused ? ' ' : undefined}
           required={required}
           {...props}

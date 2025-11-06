@@ -8,6 +8,7 @@ import {
 import { useEffect } from "react";
 import { getCsrfToken } from "./utils/csrfUtil";
 import routes from "./routing/routes.jsx";
+import PrivateRoute from "./routing/PrivateRoute";
 import PageTransition from "components/PageTransition/PageTransition";
 
 // UI Components
@@ -33,15 +34,24 @@ function AppContent() {
       <header>{showNavbar && <Navbar />}</header>
 
       <PageTransition locationKey={location.key}>
-        <main className={isLanding ? styles.contentFullBleed : styles.contentContainer}>
+        <main
+          className={
+            isLanding ? styles.contentFullBleed : styles.contentContainer
+          }
+        >
           <Routes location={location}>
-            {routes.map((route) => (
-              <Route
-                key={route.path}
-                path={route.path}
-                element={route.element}
-              />
-            ))}
+            {routes.map((route) => {
+              const element = route.isPrivate ? (
+                <PrivateRoute allowedRoles={route.allowedRoles}>
+                  {route.element}
+                </PrivateRoute>
+              ) : (
+                route.element
+              );
+              return (
+                <Route key={route.path} path={route.path} element={element} />
+              );
+            })}
           </Routes>
         </main>
       </PageTransition>

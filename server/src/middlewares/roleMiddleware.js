@@ -2,11 +2,10 @@ import { getLogger } from "#utils/logger.js";
 
 const logger = getLogger(import.meta.url);
 
-// Map friendly/legacy role names to canonical groups used in route checks
-// Example: DB uses "user" but routes check for "customer".
 const ROLE_ALIASES = {
-  customer: ["customer", "user"],
-  employee: ["employee", "staff", "admin"],
+  customer: ["customer"],
+  employee: ["employee"],
+  admin: ["admin"],
 };
 
 function normalizeSessionRoles(req) {
