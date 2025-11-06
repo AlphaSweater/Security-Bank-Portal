@@ -123,3 +123,29 @@
   border-color: #dc3545;
   box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
 }
+
+/* Dark variant */
+.inputDark {
+  color: #fffffe;
+  background-color: #0f1020;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.inputDark:focus {
+  color: #fffffe;
+  border-color: #8da2fb;
+  box-shadow: 0 0 0 0.2rem rgba(141, 162, 251, 0.18);
+}
+
+.labelDark {
+  color: #b8c1ec;
+  text-shadow: none;
+  -webkit-text-stroke: 0;
+}
+
+.inputDark:focus + .floatingLabel,
+.inputDark:not(:placeholder-shown) + .floatingLabel {
+  color: #fffffe;
+  text-shadow: none;
+  -webkit-text-stroke: 0;
+}
