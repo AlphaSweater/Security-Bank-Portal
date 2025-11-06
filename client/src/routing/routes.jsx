@@ -1,4 +1,3 @@
-// Centralized route config for client-side routing and navigation
 import LandingPage from "../pages/LandingPage";
 import AuthPage from "../pages/AuthPage";
 import DashboardPage from "../pages/DashboardPage";
@@ -11,10 +10,9 @@ import RejectedTransactions from "../pages/EmployeeTransactions/RejectedTransact
 import TransactionReview from "../pages/EmployeeTransactions/TransactionReview";
 import TransactionHistory from "../pages/EmployeeTransactions/TransactionHistory";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
-import PrivateRoute from "./PrivateRoute";
-import ManageEmployees from "../pages/Admin/ManageEmployees";
+import ManageEmployeesPage from "../pages/ManageEmployeesPage";
 
-// Route meta: label for nav, element, auth, showInNav
+// Route meta: label for nav, element, auth, showInNav, allowedRoles
 
 const routes = [
   {
@@ -38,11 +36,7 @@ const routes = [
   {
     path: "/dashboard",
     label: "Dashboard",
-    element: (
-      <PrivateRoute>
-        <DashboardPage />
-      </PrivateRoute>
-    ),
+    element: <DashboardPage />,
     showInNav: true,
     isPrivate: true,
     showNavbar: true,
@@ -50,79 +44,57 @@ const routes = [
   {
     path: "/transaction",
     label: "Transaction",
-    element: (
-      <PrivateRoute>
-        <TransactionPage />
-      </PrivateRoute>
-    ),
-    showInNav: false, // Set to false since we're accessing it from the dashboard
+    element: <TransactionPage />,
+    showInNav: false,
     isPrivate: true,
   },
   {
     path: "/transactions/pending",
     label: "Pending Transactions",
-    element: (
-      <PrivateRoute>
-        <PendingTransactions />
-      </PrivateRoute>
-    ),
+    element: <PendingTransactions />,
     showInNav: false,
     isPrivate: true,
+    allowedRoles: ["employee", "admin"],
   },
   {
     path: "/transactions/review/:id",
     label: "Transaction Review",
-    element: (
-      <PrivateRoute>
-        <TransactionReview />
-      </PrivateRoute>
-    ),
+    element: <TransactionReview />,
     showInNav: false,
     isPrivate: true,
+    allowedRoles: ["employee", "admin"],
   },
   {
     path: "/transactions/history",
     label: "Transaction History",
-    element: (
-      <PrivateRoute>
-        <TransactionHistory />
-      </PrivateRoute>
-    ),
+    element: <TransactionHistory />,
     showInNav: false,
     isPrivate: true,
+    allowedRoles: ["employee", "admin"],
   },
   {
     path: "/transactions/approved",
     label: "Approved Transactions",
-    element: (
-      <PrivateRoute>
-        <ApprovedTransactions />
-      </PrivateRoute>
-    ),
+    element: <ApprovedTransactions />,
     showInNav: false,
     isPrivate: true,
+    allowedRoles: ["employee", "admin"],
   },
   {
     path: "/transactions/rejected",
     label: "Rejected Transactions",
-    element: (
-      <PrivateRoute>
-        <RejectedTransactions />
-      </PrivateRoute>
-    ),
+    element: <RejectedTransactions />,
     showInNav: false,
     isPrivate: true,
+    allowedRoles: ["employee", "admin"],
   },
   {
     path: "/admin/employees",
     label: "Manage Employees",
-    element: (
-      <PrivateRoute>
-        <ManageEmployees />
-      </PrivateRoute>
-    ),
+    element: <ManageEmployeesPage />,
     showInNav: false,
     isPrivate: true,
+    allowedRoles: ["admin"],
     showNavbar: true,
   },
   {

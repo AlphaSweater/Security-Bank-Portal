@@ -41,6 +41,7 @@ export const onRequest = async ({ request, env, next }) => {
     // Maps route patterns to allowed roles (admin always has access)
     roles: {
       "/dashboard": ["customer", "employee", "admin"],
+      "/admin/employees": ["admin"],
       "/transaction": ["customer", "admin"],
       "/transactions/pending": ["employee", "admin"],
       "/transactions/review": ["employee", "admin"],
