@@ -241,6 +241,24 @@
   padding: 0.5rem 0.25rem;
 }
 
+/* Inline error shown under the transactions list with a retry button */
+.transactionError {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: rgba(239, 68, 68, 0.04);
+  border: 1px solid rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+}
+
+.retryButton {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.8rem;
+}
+
 .statusPill {
   margin-left: auto;
   margin-right: 0.25rem;

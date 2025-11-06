@@ -1,5 +1,5 @@
 // External Dependencies
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
   FiClock,
@@ -12,6 +12,7 @@ import {
 
 // Components
 import { apiRequest } from "../../utils/apiUtil";
+import Button from "../../components/Common/Button/Button";
 
 // Styles
 import styles from "./DashboardPage.module.css";
@@ -94,6 +95,46 @@ function EmployeeDashboard({ role }) {
     approved: 0,
     rejected: 0,
   });
+  const [transactionsError, setTransactionsError] = useState("");
+  const mountedRef = useRef(true);
+
+  async function fetchPendingTransactions() {
+    try {
+      setIsTransactionsLoading(true);
+      setTransactionsError("");
+      // TODO: Replace with actual employee transactions endpoint
+      const data = await apiRequest("/api/transactions/pending");
+      if (!mountedRef.current) return;
+
+      const items = Array.isArray(data?.transactions) ? data.transactions : [];
+
+      // Calculate stats
+      const pending = items.filter((t) => t.status === "pending").length;
+      const approved = items.filter((t) => t.status === "approved").length;
+      const rejected = items.filter((t) => t.status === "rejected").length;
+
+      if (!mountedRef.current) return;
+      setStats({ pending, approved, rejected });
+
+      // Show only pending transactions, sorted by most recent
+      const pendingOnly = items
+        .filter((t) => t.status === "pending")
+        .sort((a, b) => (b.createdAtEpoch || 0) - (a.createdAtEpoch || 0))
+        .slice(0, 5); // Show top 5
+
+      if (!mountedRef.current) return;
+      setPendingTransactions(pendingOnly);
+    } catch (err) {
+      if (!mountedRef.current) return;
+      setPendingTransactions([]);
+      setStats({ pending: 0, approved: 0, rejected: 0 });
+      setTransactionsError(err?.message || "Failed to load transactions");
+      // eslint-disable-next-line no-console
+      console.error("Failed to load pending transactions:", err);
+    } finally {
+      if (mountedRef.current) setIsTransactionsLoading(false);
+    }
+  }
 
   // Load employee profile
   useEffect(() => {
@@ -121,45 +162,10 @@ function EmployeeDashboard({ role }) {
 
   // Load pending transactions for employee review
   useEffect(() => {
-    let cancelled = false;
-    async function loadPendingTransactions() {
-      try {
-        // TODO: Replace with actual employee transactions endpoint
-        // For now, using a stub endpoint that will need to be implemented
-        const data = await apiRequest("/api/transactions/pending");
-        if (cancelled) return;
-
-        const items = Array.isArray(data?.transactions)
-          ? data.transactions
-          : [];
-
-        // Calculate stats
-        const pending = items.filter((t) => t.status === "pending").length;
-        const approved = items.filter((t) => t.status === "approved").length;
-        const rejected = items.filter((t) => t.status === "rejected").length;
-
-        setStats({ pending, approved, rejected });
-
-        // Show only pending transactions, sorted by most recent
-        const pendingOnly = items
-          .filter((t) => t.status === "pending")
-          .sort((a, b) => (b.createdAtEpoch || 0) - (a.createdAtEpoch || 0))
-          .slice(0, 5); // Show top 5
-
-        setPendingTransactions(pendingOnly);
-      } catch (err) {
-        // If endpoint doesn't exist yet, fall back to empty state
-        if (!cancelled) {
-          setPendingTransactions([]);
-          setStats({ pending: 0, approved: 0, rejected: 0 });
-        }
-      } finally {
-        if (!cancelled) setIsTransactionsLoading(false);
-      }
-    }
-    loadPendingTransactions();
+    mountedRef.current = true;
+    fetchPendingTransactions();
     return () => {
-      cancelled = true;
+      mountedRef.current = false;
     };
   }, []);
 
@@ -216,6 +222,17 @@ function EmployeeDashboard({ role }) {
                 <div className={styles.transactionSkeleton}>
                   Loading pending transactions…
                 </div>
+              ) : transactionsError ? (
+                <div className={styles.transactionError} role="alert">
+                  <div>{transactionsError}</div>
+                  <Button
+                    variant="outline"
+                    onClick={() => fetchPendingTransactions()}
+                    className={styles.retryButton}
+                  >
+                    Retry
+                  </Button>
+                </div>
               ) : pendingTransactions.length === 0 ? (
                 <div className={styles.transactionEmpty}>
                   No pending transactions at the moment
@@ -232,7 +249,9 @@ function EmployeeDashboard({ role }) {
           </div>
 
           <div className={styles.card}>
-            <h3>{role === "admin" ? "Admin Quick Actions" : "Quick Actions"}</h3>
+            <h3>
+              {role === "admin" ? "Admin Quick Actions" : "Quick Actions"}
+            </h3>
             <div className={styles.quickActions}>
               <Link to="/transactions/pending" className={styles.actionButton}>
                 <FiList />

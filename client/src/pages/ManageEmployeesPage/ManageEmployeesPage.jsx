@@ -6,6 +6,13 @@ import Button from "../../components/Common/Button/Button";
 import { apiRequest } from "../../utils/apiUtil";
 import styles from "./ManageEmployeesPage.module.css";
 
+async function loadEmployees() {
+  // Try real API, otherwise fall back to demo list
+  const data = await apiRequest("/api/admin/employees");
+  const arr = Array.isArray(data?.employees) ? data.employees : [];
+  return arr;
+}
+
 function ConfirmDialog({ open, title, message, onCancel, onConfirm }) {
   if (!open) return null;
 
@@ -190,14 +197,6 @@ export default function ManageEmployeesPage({ role }) {
         .some((v) => String(v).toLowerCase().includes(q))
     );
   }, [items, search, roleFilter]);
-
-  // function to load employees (callable by effect and retry button)
-  async function loadEmployees() {
-    // Try real API, otherwise fall back to demo list
-    const data = await apiRequest("/api/admin/employees");
-    const arr = Array.isArray(data?.employees) ? data.employees : [];
-    return arr;
-  }
 
   useEffect(() => {
     let mounted = true;
