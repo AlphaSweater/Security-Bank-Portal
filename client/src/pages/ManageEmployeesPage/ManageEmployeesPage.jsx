@@ -8,15 +8,41 @@ import styles from "./ManageEmployeesPage.module.css";
 
 function ConfirmDialog({ open, title, message, onCancel, onConfirm }) {
   if (!open) return null;
+
+  const onOverlayKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onCancel();
+    }
+  };
+
+  const titleId = "confirm-title";
+
   return (
-    <div className={styles.modalOverlay} onClick={onCancel}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+    <div
+      className={styles.modalOverlay}
+      onClick={onCancel}
+      role="button"
+      tabIndex={0}
+      aria-label="Close dialog"
+      onKeyDown={onOverlayKeyDown}
+    >
+      <div
+        className={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className={styles.modalHeader}>
-          <h4 className={styles.modalTitle}>{title}</h4>
+          <h4 id={titleId} className={styles.modalTitle}>
+            {title}
+          </h4>
           <button
             onClick={onCancel}
             aria-label="Close"
             className={styles.modalCloseButton}
+            type="button"
           >
             ×
           </button>
@@ -106,8 +132,13 @@ function EmployeeForm({ initial, onSubmit, onCancel, submitting }) {
           />
         </div>
         <div className={styles.selectField}>
-          <label className={styles.label}>Role</label>
+          {/* Associate label with select */}
+          <label htmlFor="role" className={styles.label}>
+            Role
+          </label>
           <select
+            id="role"
+            name="role"
             className={styles.select}
             value={form.role}
             onChange={(e) => update("role", e.target.value)}
@@ -133,7 +164,9 @@ export default function ManageEmployeesPage({ role }) {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  // separate errors: loadError for fetching employees, formError for create/update failures
+  const [loadError, setLoadError] = useState("");
+  const [formError, setFormError] = useState("");
   const [items, setItems] = useState([]);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -158,31 +191,51 @@ export default function ManageEmployeesPage({ role }) {
     );
   }, [items, search, roleFilter]);
 
+  // function to load employees (callable by effect and retry button)
+  async function loadEmployees() {
+    // Try real API, otherwise fall back to demo list
+    const data = await apiRequest("/api/admin/employees");
+    const arr = Array.isArray(data?.employees) ? data.employees : [];
+    return arr;
+  }
+
   useEffect(() => {
-    let cancelled = false;
-    async function load() {
+    let mounted = true;
+    (async () => {
       try {
         setLoading(true);
-        setError("");
-        // Try real API, otherwise fall back to demo list
-        const data = await apiRequest("/api/admin/employees");
-        if (cancelled) return;
-        const arr = Array.isArray(data?.employees) ? data.employees : [];
+        setLoadError("");
+        const arr = await loadEmployees();
+        if (!mounted) return;
         setItems(arr);
       } catch (e) {
-        setError(e.message || "Failed to load employees");
+        if (!mounted) return;
+        setLoadError(e.message || "Failed to load employees");
       } finally {
-        if (!cancelled) setLoading(false);
+        if (mounted) setLoading(false);
       }
-    }
-    load();
+    })();
     return () => {
-      cancelled = true;
+      mounted = false;
     };
   }, []);
 
+  async function handleRetry() {
+    try {
+      setLoading(true);
+      setLoadError("");
+      const arr = await loadEmployees();
+      setItems(arr);
+    } catch (e) {
+      setLoadError(e.message || "Failed to load employees");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function createEmployee(payload) {
     setSubmitting(true);
+    setFormError("");
     try {
       const res = await apiRequest("/api/admin/employees", {
         method: "POST",
@@ -192,8 +245,9 @@ export default function ManageEmployeesPage({ role }) {
       setItems((list) => [newItem, ...list]);
       setIsFormOpen(false);
       setEditing(null);
+      setFormError("");
     } catch (e) {
-      setError(e.message || "Failed to create employee");
+      setFormError(e.message || "Failed to create employee");
     } finally {
       setSubmitting(false);
     }
@@ -201,6 +255,7 @@ export default function ManageEmployeesPage({ role }) {
 
   async function updateEmployee(id, payload) {
     setSubmitting(true);
+    setFormError("");
     try {
       await apiRequest(`/api/admin/employees/${id}`, {
         method: "PUT",
@@ -213,8 +268,9 @@ export default function ManageEmployeesPage({ role }) {
       );
       setIsFormOpen(false);
       setEditing(null);
+      setFormError("");
     } catch (e) {
-      setError(e.message || "Failed to update employee");
+      setFormError(e.message || "Failed to update employee");
     } finally {
       setSubmitting(false);
     }
@@ -230,6 +286,17 @@ export default function ManageEmployeesPage({ role }) {
       setConfirm({ open: false, id: null });
     }
   }
+
+  // keyboard support for the main form modal backdrop
+  const onFormOverlayKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (!submitting) {
+        setIsFormOpen(false);
+        setEditing(null);
+      }
+    }
+  };
 
   return (
     <div className={styles.pageWrapper}>
@@ -249,11 +316,17 @@ export default function ManageEmployeesPage({ role }) {
 
         <div className={styles.toolbar}>
           <div className={styles.searchBox}>
-            <FiSearch />
+            <FiSearch aria-hidden />
+            {/* Associate label with control */}
+            <label htmlFor="employeeSearch" className={styles.searchLabel}>
+              Search employees
+            </label>
             <input
+              id="employeeSearch"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search employees..."
+              type="search"
             />
           </div>
           <Button
@@ -261,11 +334,25 @@ export default function ManageEmployeesPage({ role }) {
             onClick={() => {
               setIsFormOpen(true);
               setEditing(null);
+              setFormError("");
             }}
           >
             Add Employee
           </Button>
         </div>
+
+        {loadError && (
+          <div className={styles.error} role="alert" style={{ marginTop: 12 }}>
+            <span>{loadError}</span>
+            <Button
+              variant="outline"
+              onClick={handleRetry}
+              style={{ marginLeft: 12 }}
+            >
+              Retry
+            </Button>
+          </div>
+        )}
 
         <div className={styles.roleFilters}>
           <button
@@ -302,10 +389,10 @@ export default function ManageEmployeesPage({ role }) {
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Action</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Role</th>
+                  <th scope="col">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -350,6 +437,7 @@ export default function ManageEmployeesPage({ role }) {
                             onClick={() => {
                               setEditing(u);
                               setIsFormOpen(true);
+                              setFormError("");
                             }}
                           >
                             Edit
@@ -383,10 +471,20 @@ export default function ManageEmployeesPage({ role }) {
                 setEditing(null);
               }
             }}
+            role="button" // a11y for clickable backdrop
+            tabIndex={0}
+            aria-label="Close form"
+            onKeyDown={onFormOverlayKeyDown}
           >
-            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div
+              className={styles.modal}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="employee-form-title"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className={styles.modalHeader}>
-                <h4 className={styles.modalTitle}>
+                <h4 id="employee-form-title" className={styles.modalTitle}>
                   {editing ? "Edit Employee" : "Add Employee"}
                 </h4>
                 <button
@@ -398,6 +496,7 @@ export default function ManageEmployeesPage({ role }) {
                   }}
                   aria-label="Close"
                   className={styles.modalCloseButton}
+                  type="button"
                 >
                   ×
                 </button>
@@ -418,7 +517,7 @@ export default function ManageEmployeesPage({ role }) {
                       : createEmployee(payload)
                   }
                 />
-                {error && <div className={styles.error}>{error}</div>}
+                {formError && <div className={styles.error}>{formError}</div>}
               </div>
             </div>
           </div>
