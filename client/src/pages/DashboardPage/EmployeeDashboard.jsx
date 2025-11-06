@@ -59,7 +59,7 @@ function PendingTransactionPreview({ transaction }) {
 
   return (
     <Link
-      to={`/transactions/review/${transaction._id}`}
+      to={`/transactions/review/${transaction.id}`}
       className={styles.transactionItem}
       style={{ textDecoration: "none", color: "inherit" }}
     >

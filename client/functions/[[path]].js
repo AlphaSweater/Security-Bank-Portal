@@ -104,10 +104,33 @@ export const onRequest = async ({ request, env, next }) => {
   // 4) Handle probe result
   if (probe.ok) {
     // Role gate (optional)
-    // Find if this route requires specific roles
-    const matchedRoute = Object.entries(ROUTES.roles).find(([routePath]) =>
-      path.startsWith(routePath)
-    );
+    // Find if this route requires specific roles.
+    // Support parameterized routes like `/transactions/review/:id` by
+    // converting route patterns to regexes. Also match plain prefixes
+    // (e.g. `/dashboard`) and allow exact matches.
+    const routeToRegex = (routePattern) => {
+      // Escape regex special chars except ':' which we use for params
+      const escaped = routePattern.replace(/[-/\\^$*+?.()|[\]{}]/g, (m) => {
+        // keep ':' so we can convert :param to a segment matcher
+        return m === ":" ? ":" : `\\${m}`;
+      });
+
+      // Replace :param with a single-segment matcher ([^/]+)
+      const withParams = escaped.replace(/:([a-zA-Z0-9_]+)/g, "[^/]+");
+
+      // Match either exact route or route + '/' + more (so /x and /x/123)
+      return new RegExp(`^${withParams}(?:$|/)`);
+    };
+
+    const matchedRoute = Object.entries(ROUTES.roles).find(([routePath]) => {
+      try {
+        const rx = routeToRegex(routePath);
+        return rx.test(path);
+      } catch (err) {
+        // Fallback to previous behavior on any regex construction error
+        return path === routePath || path.startsWith(routePath + "/");
+      }
+    });
 
     if (!matchedRoute) {
       // No role required for this route

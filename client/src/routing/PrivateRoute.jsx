@@ -42,11 +42,11 @@ export default function PrivateRoute({ children }) {
     return <Navigate to="/auth" replace />;
   }
 
-  // While checking or if authenticated, render children with user data
-  // Clone the element and inject user prop
+  // While checking or if authenticated, render children with role data
+  // Clone the element and inject only the `role` prop
   const userToPass = authState.user || lastUser.current;
   if (userToPass) {
-    return cloneElement(lastChildren.current, { user: userToPass });
+    return cloneElement(lastChildren.current, { role: userToPass.role });
   }
 
   // While checking and no user data yet, render without props

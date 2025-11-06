@@ -2,16 +2,16 @@ import React from "react";
 import CustomerDashboard from "./CustomerDashboard";
 import EmployeeDashboard from "./EmployeeDashboard";
 
-function Dashboard({ user, ...props }) {
-  // Default to customer if no user or role provided
-  const role = user?.role || "customer";
+function Dashboard({ role, ...props }) {
+  // Default to customer if no role provided
+  const usedRole = role || "customer";
 
   const Comp =
-    role === "employee" || role === "admin"
+    usedRole === "employee" || usedRole === "admin"
       ? EmployeeDashboard
       : CustomerDashboard;
 
-  return React.createElement(Comp, { ...props, role, user });
+  return React.createElement(Comp, { ...props, role: usedRole });
 }
 
 export default Dashboard;
