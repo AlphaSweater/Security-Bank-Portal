@@ -1,24 +1,36 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, cloneElement } from "react";
 import { Navigate } from "react-router-dom";
 import { apiRequest } from "../utils/apiUtil";
 
 export default function PrivateRoute({ children }) {
-  const [auth, setAuth] = useState(null);
+  const [authState, setAuthState] = useState({
+    authenticated: null,
+    user: null,
+  });
   const lastChildren = useRef(children);
+  const lastUser = useRef(null);
 
-  // Save the last rendered children if auth is not false
-  if (auth !== false) {
+  // Save the last rendered children and user if auth is not false
+  if (authState.authenticated !== false) {
     lastChildren.current = children;
+    if (authState.user) {
+      lastUser.current = authState.user;
+    }
   }
 
   useEffect(() => {
     let isMounted = true;
     apiRequest("/api/auth/sessionCheck")
       .then((res) => {
-        if (isMounted) setAuth(res.authenticated === true);
+        if (isMounted) {
+          setAuthState({
+            authenticated: res.authenticated === true,
+            user: res.authenticated ? { role: res.role } : null,
+          });
+        }
       })
       .catch(() => {
-        if (isMounted) setAuth(false);
+        if (isMounted) setAuthState({ authenticated: false, user: null });
       });
     return () => {
       isMounted = false;
@@ -26,10 +38,17 @@ export default function PrivateRoute({ children }) {
   }, []);
 
   // If not authenticated, redirect
-  if (auth === false) {
+  if (authState.authenticated === false) {
     return <Navigate to="/auth" replace />;
   }
 
-  // While checking, keep rendering the last page
+  // While checking or if authenticated, render children with role data
+  // Clone the element and inject only the `role` prop
+  const userToPass = authState.user || lastUser.current;
+  if (userToPass) {
+    return cloneElement(lastChildren.current, { role: userToPass.role });
+  }
+
+  // While checking and no user data yet, render without props
   return lastChildren.current;
 }

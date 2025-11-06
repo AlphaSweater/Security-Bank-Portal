@@ -1,29 +1,17 @@
-import React, { useState } from "react";
+import React from "react";
 import CustomerDashboard from "./CustomerDashboard";
 import EmployeeDashboard from "./EmployeeDashboard";
 
-function Dashboard({ role: initialRole = "customer", ...props }) {
-  const [role, setRole] = useState(initialRole);
-  const Comp = role === "employee" ? EmployeeDashboard : CustomerDashboard;
+function Dashboard({ role, ...props }) {
+  // Default to customer if no role provided
+  const usedRole = role || "customer";
 
-  const toggleButton = React.createElement(
-    "button",
-    {
-      type: "button",
-      onClick: () => setRole((r) => (r === "employee" ? "customer" : "employee")),
-    },
-    `Switch to ${role === "employee" ? "Customer" : "Employee"} View`
-  );
+  const Comp =
+    usedRole === "employee" || usedRole === "admin"
+      ? EmployeeDashboard
+      : CustomerDashboard;
 
-  const toggleWrapper = React.createElement(
-    "div",
-    { style: { position: "fixed", top: 12, right: 12, zIndex: 1200 } },
-    toggleButton
-  );
-
-  const dashboardEl = React.createElement(Comp, { ...props, role });
-
-  return React.createElement(React.Fragment, null, toggleWrapper, dashboardEl);
+  return React.createElement(Comp, { ...props, role: usedRole });
 }
 
 export default Dashboard;

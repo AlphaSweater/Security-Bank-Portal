@@ -38,10 +38,15 @@ export const onRequest = async ({ request, env, next }) => {
       /^\/privacy(\/|$)/,
       /^\/unauthorized(\/|$)/,
     ],
+    // Maps route patterns to allowed roles (admin always has access)
     roles: {
-      admin: [/^\/admin(\/|$)/],
-      employee: [/^\/reports(\/|$)/],
-      customer: [/^\/dashboard(\/|$)/],
+      "/dashboard": ["customer", "employee", "admin"],
+      "/transaction": ["customer", "admin"],
+      "/transactions/pending": ["employee", "admin"],
+      "/transactions/review": ["employee", "admin"],
+      "/transactions/history": ["employee", "admin"],
+      "/transactions/approved": ["employee", "admin"],
+      "/transactions/rejected": ["employee", "admin"],
     },
   };
 
@@ -99,11 +104,36 @@ export const onRequest = async ({ request, env, next }) => {
   // 4) Handle probe result
   if (probe.ok) {
     // Role gate (optional)
-    const matchedRole = Object.entries(ROUTES.roles).find(([, patterns]) =>
-      patterns.some((rx) => rx.test(path))
-    );
-    if (!matchedRole) {
-      // console.log("No role required for this route", path);
+    // Find if this route requires specific roles.
+    // Support parameterized routes like `/transactions/review/:id` by
+    // converting route patterns to regexes. Also match plain prefixes
+    // (e.g. `/dashboard`) and allow exact matches.
+    const routeToRegex = (routePattern) => {
+      // Escape regex special chars except ':' which we use for params
+      const escaped = routePattern.replace(/[-/\\^$*+?.()|[\]{}]/g, (m) => {
+        // keep ':' so we can convert :param to a segment matcher
+        return m === ":" ? ":" : `\\${m}`;
+      });
+
+      // Replace :param with a single-segment matcher ([^/]+)
+      const withParams = escaped.replace(/:([a-zA-Z0-9_]+)/g, "[^/]+");
+
+      // Match either exact route or route + '/' + more (so /x and /x/123)
+      return new RegExp(`^${withParams}(?:$|/)`);
+    };
+
+    const matchedRoute = Object.entries(ROUTES.roles).find(([routePath]) => {
+      try {
+        const rx = routeToRegex(routePath);
+        return rx.test(path);
+      } catch (err) {
+        // Fallback to previous behavior on any regex construction error
+        return path === routePath || path.startsWith(routePath + "/");
+      }
+    });
+
+    if (!matchedRoute) {
+      // No role required for this route
       return next();
     }
 
@@ -119,11 +149,18 @@ export const onRequest = async ({ request, env, next }) => {
       console.error("Failed to parse sessionCheck JSON", { error: err });
     }
 
-    const [requiredRole] = matchedRole;
-    if (!role || role !== requiredRole) {
-      console.error(`Role mismatch: need ${requiredRole}, have ${role}`);
+    const [, allowedRoles] = matchedRoute;
+
+    // Check if user's role is in the allowed roles for this route
+    if (!role || !allowedRoles.includes(role)) {
+      console.error(
+        `Role mismatch: route requires one of [${allowedRoles.join(
+          ", "
+        )}], user has ${role}`
+      );
       return Response.redirect(new URL("/unauthorized", url).toString(), 302);
     }
+
     return next();
   }
 
