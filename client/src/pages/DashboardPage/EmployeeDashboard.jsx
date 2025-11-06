@@ -84,7 +84,7 @@ function PendingTransactionPreview({ transaction }) {
   );
 }
 
-function EmployeeDashboard() {
+function EmployeeDashboard({ role }) {
   const [profileName, setProfileName] = useState("");
   const [isWelcomeLoading, setIsWelcomeLoading] = useState(true);
   const [pendingTransactions, setPendingTransactions] = useState([]);
@@ -167,7 +167,9 @@ function EmployeeDashboard() {
     <div className={styles.pageWrapper}>
       <main className={styles.mainContent}>
         <div className={styles.pageHeader}>
-          <h1 className={styles.heading}>Employee Dashboard</h1>
+          <h1 className={styles.heading}>
+            {role === "admin" ? "Admin Dashboard" : "Employee Dashboard"}
+          </h1>
           <div className={styles.welcome} aria-live="polite">
             {isWelcomeLoading ? (
               "Welcome back, ..."
@@ -230,7 +232,7 @@ function EmployeeDashboard() {
           </div>
 
           <div className={styles.card}>
-            <h3>Quick Actions</h3>
+            <h3>{role === "admin" ? "Admin Quick Actions" : "Quick Actions"}</h3>
             <div className={styles.quickActions}>
               <Link to="/transactions/pending" className={styles.actionButton}>
                 <FiList />
@@ -252,6 +254,12 @@ function EmployeeDashboard() {
                 <FiTrendingUp />
                 <span>Reports</span>
               </Link>
+              {role === "admin" && (
+                <Link to="/admin/employees" className={styles.actionButton}>
+                  <FiList />
+                  <span>Manage Employees</span>
+                </Link>
+              )}
             </div>
           </div>
         </div>

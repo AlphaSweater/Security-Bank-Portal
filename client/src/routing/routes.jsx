@@ -12,6 +12,7 @@ import TransactionReview from "../pages/EmployeeTransactions/TransactionReview";
 import TransactionHistory from "../pages/EmployeeTransactions/TransactionHistory";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
 import PrivateRoute from "./PrivateRoute";
+import ManageEmployees from "../pages/Admin/ManageEmployees";
 
 // Route meta: label for nav, element, auth, showInNav
 
@@ -111,6 +112,18 @@ const routes = [
     ),
     showInNav: false,
     isPrivate: true,
+  },
+  {
+    path: "/admin/employees",
+    label: "Manage Employees",
+    element: (
+      <PrivateRoute>
+        <ManageEmployees />
+      </PrivateRoute>
+    ),
+    showInNav: false,
+    isPrivate: true,
+    showNavbar: true,
   },
   {
     path: "/auth/forgot-password",
