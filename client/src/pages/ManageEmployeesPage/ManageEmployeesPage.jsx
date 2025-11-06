@@ -317,12 +317,9 @@ export default function ManageEmployeesPage({ role }) {
         <div className={styles.toolbar}>
           <div className={styles.searchBox}>
             <FiSearch aria-hidden />
-            {/* Associate label with control */}
-            <label htmlFor="employeeSearch" className={styles.searchLabel}>
-              Search employees
-            </label>
             <input
               id="employeeSearch"
+              aria-label="Search employees"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search employees..."
@@ -340,19 +337,6 @@ export default function ManageEmployeesPage({ role }) {
             Add Employee
           </Button>
         </div>
-
-        {loadError && (
-          <div className={styles.error} role="alert" style={{ marginTop: 12 }}>
-            <span>{loadError}</span>
-            <Button
-              variant="outline"
-              onClick={handleRetry}
-              style={{ marginLeft: 12 }}
-            >
-              Retry
-            </Button>
-          </div>
-        )}
 
         <div className={styles.roleFilters}>
           <button
@@ -460,6 +444,21 @@ export default function ManageEmployeesPage({ role }) {
               </tbody>
             </table>
           </div>
+
+          {loadError && (
+            <div className={styles.tableError} role="alert">
+              <div className={styles.errorMessage}>
+                <span>{loadError}</span>
+              </div>
+              <Button
+                variant="outline"
+                onClick={handleRetry}
+                className={styles.retryButton}
+              >
+                Retry
+              </Button>
+            </div>
+          )}
         </div>
 
         {isFormOpen && (
