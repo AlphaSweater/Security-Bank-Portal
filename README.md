@@ -273,9 +273,9 @@ All tests passed successfully, ensuring that input validation, authentication, a
 
 <div align="center">
   
-| Manage Orders | Manage Components | Manage Products | Customer Page |
+| Admin Dashboard | Dashboard | Transaction Review | Transfer Page |
 |-----------------|------------------------|-------------------|-----------------|
-| <img src="https://i.postimg.cc/WtLF75rq/Screenshot-2025-10-31-164545.png" width="700"/> | <img src="https://i.postimg.cc/Dw1QRXw0/Screenshot-2025-10-31-164451.png" width="700"/> | <img src="https://i.postimg.cc/cL3TZzX1/Screenshot-2025-10-31-164400.png" width="700"/> | <img src="https://i.postimg.cc/hPPHDK73/Screenshot-2025-10-31-164212.png" width="700"/> |
+| <img src="https://i.postimg.cc/5tyhGdKg/image.png" width="700"/> | <img src="https://i.postimg.cc/d3kg02KP/image.png" width="700"/> | <img src="https://i.postimg.cc/pLJVxHZQ/image.png" width="700"/> | <img src="https://i.postimg.cc/kGS9H34Z/image.png" width="700"/> |
 
 </div>
 
