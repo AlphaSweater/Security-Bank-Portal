@@ -31,8 +31,20 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 0.5rem;
+  margin: 0.5rem 0 0.5rem 0;
   color: #b8c1ec;
+}
+
+.searchContainer {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.noResults {
+  text-align: center;
+  padding: 1.5rem;
+  color: #a7a9be;
+  font-style: italic;
 }
 
 .mono { 
@@ -90,8 +102,7 @@
 
 .table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 8px;
+  border-collapse: collapse;
   table-layout: auto;
 }
 
@@ -104,12 +115,6 @@
   white-space: nowrap;
 }
 
-.table tbody tr {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-}
-
 .table tbody td {
   padding: 0.75rem;
   color: #fffffe;
@@ -118,10 +123,11 @@
 .table th, 
 .table td {
   vertical-align: middle;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.05);
+.table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
 }
 
 /* Empty state */

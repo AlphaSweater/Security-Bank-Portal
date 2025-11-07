@@ -33,6 +33,67 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin: 0.5rem 0 0.5rem 0;
+}
+
+/* Search and Filter */
+.toolbar {
+  margin: 1rem 0;
+}
+
+.searchAndFilter {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.searchBar {
+  flex: 1;
+  max-width: 400px;
+}
+
+.filterDropdown {
+  min-width: 180px;
+}
+
+.noResults {
+  text-align: center;
+  padding: 2rem;
+  color: #a7a9be;
+  font-style: italic;
+  grid-column: 1 / -1;
+}
+
+/* Risk Level Badges */
+.riskHigh {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+.riskMedium {
+  background-color: rgba(234, 179, 8, 0.15) !important;
+  color: #eab308 !important;
+  border: 1px solid rgba(234, 179, 8, 0.3) !important;
+}
+
+.riskLow {
+  background-color: rgba(34, 197, 94, 0.15) !important;
+  color: #22c55e !important;
+  border: 1px solid rgba(34, 197, 94, 0.3) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .searchAndFilter {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .searchBar,
+  .filterDropdown {
+    width: 100%;
+    max-width: 100%;
+  }
 }
 
 .iconPill {
@@ -82,8 +143,7 @@
 
 .table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 8px; /* row gap */
+  border-collapse: collapse;
   table-layout: auto;
 }
 
@@ -95,12 +155,6 @@
   padding: 0.75rem;
 }
 
-.table tbody tr {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px; /* visual only with cell padding */
-}
-
 .table tbody td {
   padding: 0.75rem;
   color: #fffffe;
@@ -108,10 +162,11 @@
 
 .table th, .table td {
   vertical-align: middle;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.05);
+.table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .right { text-align: right; }

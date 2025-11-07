@@ -1,4 +1,4 @@
-﻿// External Dependencies
+// External Dependencies
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -25,6 +25,7 @@ function StatCard({ title, value, change, isPositive, icon }) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(Number(value) || 0);
+  const display = formatted.length > 16 ? formatted.slice(0, 16) + "…" : formatted;
   return (
     <div className={styles.statCard}>
       <div className={styles.statHeader}>
@@ -42,7 +43,7 @@ function StatCard({ title, value, change, isPositive, icon }) {
             : ""
         }`}
       >
-        {formatted}
+        {display}
       </div>
       {change !== undefined && (
         <div
@@ -101,11 +102,22 @@ function CustomerDashboard() {
         const data = await apiRequest("/api/users/me/transactions");
         if (cancelled) return;
         const items = Array.isArray(data?.items) ? data.items : [];
-        const income = 0; // not implemented yet
-        const expenses = items.reduce(
-          (sum, t) => sum + (Number(t.amount) || 0),
-          0
-        );
+        const toZar = {
+          ZAR: 1,
+          USD: 18.75,
+          EUR: 19.95,
+          GBP: 22.9,
+          JPY: 0.125,
+          CAD: 13.8,
+          AUD: 12.1,
+        };
+        const income = 0;
+        const expenses = items.reduce((sum, t) => {
+          const amt = Number(t.amount) || 0;
+          const code = (t.currencyCode || "ZAR").toUpperCase();
+          const rate = toZar[code] || 1;
+          return sum + amt * rate;
+        }, 0);
         const balance = income - expenses;
         setSummaryTotals({ income, expenses, balance });
         const sorted = items

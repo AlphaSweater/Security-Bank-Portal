@@ -18,7 +18,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { validateData } from "#middlewares/validationMiddleware.js";
 import * as transactionValidation from "#utils/validation/transactionValidation.js";
-import * as loggerSpyHelper from "../../loggerTestSpyHelpers.js";
+import * as loggerSpyHelper from "../../../loggerTestSpyHelpers.js";
 import logger from "#utils/logger.js";
 
 // -----------------------------------------------------------------------------
@@ -64,7 +64,7 @@ describe("[Transaction] Create Data Validation", () => {
         amount: 250.5,
         currencyCode: "USD",
         beneficiaryType: "Individual",
-        beneficiaryFullName: "Jane O'Connor & Sons (Intl.)",
+        beneficiaryFullName: "Jane O'Connor & Sons - International",
         beneficiaryNote: "Rent",
         destinationCountryCode: "US",
         destinationBankName: "Bank of America",

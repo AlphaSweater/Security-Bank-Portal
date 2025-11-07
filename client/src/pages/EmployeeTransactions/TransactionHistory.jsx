@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { FiArrowLeft, FiClock, FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import { FiArrowLeft, FiClock, FiCheckCircle, FiXCircle, FiSearch, FiDollarSign, FiUser, FiCreditCard, FiFileText } from 'react-icons/fi';
+import SearchBar from '../../components/SearchBar/SearchBar';
+import Dropdown from '../../components/Common/Dropdown/Dropdown';
 import styles from './TransactionHistory.module.css';
 
 const TransactionHistory = () => {
@@ -31,7 +33,7 @@ const TransactionHistory = () => {
       date: '2025-10-20T09:45:00',
       type: 'Bill Payment',
       amount: 89.99,
-      status: 'completed',
+      status: 'pending',
       beneficiary: 'Electric Company',
       accountNumber: 'UTIL-12345',
       reference: 'Monthly bill'
@@ -59,10 +61,20 @@ const TransactionHistory = () => {
     }
   ]);
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all'); // Status filter options for dropdown
+  const statusOptions = [
+    { value: 'all', label: 'All Statuses' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'failed', label: 'Failed' }
+  ];
+
+
   const formatDate = (dateString) => {
-    const options = { 
-      year: 'numeric', 
-      month: 'short', 
+    const options = {
+      year: 'numeric',
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -70,100 +82,165 @@ const TransactionHistory = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'completed':
-        return <FiCheckCircle className={styles.completedIcon} />;
-      case 'failed':
-        return <FiXCircle className={styles.failedIcon} />;
+  const getStatusBadge = (status) => {
+    const statusClasses = {
+      completed: styles.statusCompleted,
+      pending: styles.statusPending,
+      failed: styles.statusFailed
+    };
+
+    const statusIcons = {
+      completed: <FiCheckCircle className={styles.statusIcon} />,
+      pending: <FiClock className={styles.statusIcon} />,
+      failed: <FiXCircle className={styles.statusIcon} />
+    };
+
+    return (
+      <span className={`${styles.statusBadge} ${statusClasses[status] || ''}`}>
+        {statusIcons[status]}
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </span>
+    );
+  };
+
+  const getTypeIcon = (type) => {
+    switch (type) {
+      case 'Domestic Transfer':
+        return <FiDollarSign className={styles.typeIcon} />;
+      case 'International Transfer':
+        return <FiCreditCard className={styles.typeIcon} />;
+      case 'Bill Payment':
+        return <FiFileText className={styles.typeIcon} />;
       default:
-        return <FiClock className={styles.pendingIcon} />;
+        return <FiDollarSign className={styles.typeIcon} />;
     }
   };
 
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter(txn => {
+      // Filter by status
+      if (statusFilter !== 'all' && txn.status !== statusFilter) {
+        return false;
+      }
+
+      // Filter by search term
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        return (
+          txn.id.toLowerCase().includes(searchLower) ||
+          txn.beneficiary.toLowerCase().includes(searchLower) ||
+          txn.accountNumber.toLowerCase().includes(searchLower) ||
+          txn.reference.toLowerCase().includes(searchLower) ||
+          txn.amount.toString().includes(searchTerm)
+        );
+      }
+
+      return true;
+    });
+  }, [transactions, searchTerm, statusFilter]);
+
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
+  <div className={styles.pageWrapper}>
+    <main className={styles.mainContent}>
+      <div className={styles.topBar}>
         <Link to="/dashboard" className={styles.backLink}>
           <FiArrowLeft className={styles.backIcon} /> Back to Dashboard
         </Link>
-        <h1>Transaction History</h1>
       </div>
 
-      <div className={styles.filters}>
-        <div className={styles.searchBox}>
-          <input 
-            type="text" 
-            placeholder="Search transactions..."
-            className={styles.searchInput}
-          />
+      <header className={styles.pageHeader}>
+        <h1 className={styles.heading}>Transaction History</h1>
+        <div className={styles.subheading}>
+          <span className={styles.iconPill} aria-hidden>
+            <FiFileText />
+          </span>
+          View and manage all transactions
         </div>
-        <div className={styles.filterGroup}>
-          <select className={styles.filterSelect}>
-            <option value="">All Types</option>
-            <option value="domestic">Domestic Transfer</option>
-            <option value="international">International Transfer</option>
-            <option value="bill">Bill Payment</option>
-          </select>
-          <select className={styles.filterSelect}>
-            <option value="">All Statuses</option>
-            <option value="completed">Completed</option>
-            <option value="pending">Pending</option>
-            <option value="failed">Failed</option>
-          </select>
-        </div>
-      </div>
+      </header>
 
-      <div className={styles.transactionsList}>
-        {transactions.map((txn) => (
-          <div key={txn.id} className={`${styles.transactionCard} ${styles[txn.status]}`}>
-            <div className={styles.transactionHeader}>
-              <div className={styles.transactionInfo}>
-                <span className={styles.transactionId}>#{txn.id}</span>
-                <span className={styles.transactionType}>{txn.type}</span>
-              </div>
-              <div className={styles.transactionAmount}>
-                ${txn.amount.toFixed(2)}
-              </div>
+        <div className={styles.toolbar}>
+          <div className={styles.searchAndFilter}>
+            <div className={styles.searchBox}>
+              <FiSearch aria-hidden />
+              <input
+                id="transactionSearch"
+                aria-label="Search transactions"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search transactions..."
+                type="search"
+              />
             </div>
-            
-            <div className={styles.transactionDetails}>
-              <div className={styles.detailRow}>
-                <span className={styles.detailLabel}>Date:</span>
-                <span>{formatDate(txn.date)}</span>
-              </div>
-              <div className={styles.detailRow}>
-                <span className={styles.detailLabel}>Beneficiary:</span>
-                <span>{txn.beneficiary}</span>
-              </div>
-              <div className={styles.detailRow}>
-                <span className={styles.detailLabel}>Account:</span>
-                <span>{txn.accountNumber}</span>
-              </div>
-              <div className={styles.detailRow}>
-                <span className={styles.detailLabel}>Reference:</span>
-                <span>{txn.reference}</span>
-              </div>
-              {txn.failureReason && (
-                <div className={`${styles.detailRow} ${styles.failureReason}`}>
-                  <span className={styles.detailLabel}>Reason:</span>
-                  <span>{txn.failureReason}</span>
-                </div>
-              )}
-            </div>
-            
-            <div className={styles.transactionFooter}>
-              <div className={styles.statusBadge}>
-                {getStatusIcon(txn.status)}
-                <span>{txn.status.charAt(0).toUpperCase() + txn.status.slice(1)}</span>
-              </div>
-              <button className={styles.viewButton}>
-                View Details
-              </button>
+            <div className={styles.filterDropdown}>
+              <Dropdown
+                id="status-filter"
+                value={statusFilter}
+                options={statusOptions}
+                onChange={(value) => setStatusFilter(value)}
+                className={styles.statusDropdown}
+              />
             </div>
           </div>
-        ))}
+        </div>
+
+      <div className={styles.tableWrapper}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>Transaction ID</th>
+              <th>Type</th>
+              <th>Details</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredTransactions.length > 0 ? (
+              filteredTransactions.map((txn) => (
+                <tr key={txn.id} className={styles.tableRow}>
+                  <td className={styles.idCell}>
+                    <div className={styles.transactionId}>#{txn.id}</div>
+                    <div className={styles.reference}>{txn.reference}</div>
+                  </td>
+                  <td className={styles.typeCell}>
+                    <div className={styles.typeWrapper}>
+                      {getTypeIcon(txn.type)}
+                      <span>{txn.type}</span>
+                    </div>
+                  </td>
+                  <td className={styles.detailsCell}>
+                    <div className={styles.beneficiary}>
+                      <FiUser className={styles.detailIcon} />
+                      {txn.beneficiary}
+                    </div>
+                    <div className={styles.account}>
+                      <FiCreditCard className={styles.detailIcon} />
+                      {txn.accountNumber}
+                    </div>
+                  </td>
+                  <td className={styles.amountCell}>
+                    ${txn.amount.toFixed(2)}
+                  </td>
+                  <td className={styles.dateCell}>
+                    {formatDate(txn.date)}
+                  </td>
+                  <td className={styles.statusCell}>
+                    {getStatusBadge(txn.status)}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6" className={styles.noResults}>
+                  No transactions found matching your criteria
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
+      </main>
     </div>
   );
 };
