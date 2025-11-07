@@ -90,8 +90,7 @@
 
 .table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 8px;
+  border-collapse: collapse;
   table-layout: auto;
 }
 
@@ -104,12 +103,6 @@
   white-space: nowrap;
 }
 
-.table tbody tr {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-}
-
 .table tbody td {
   padding: 0.75rem;
   color: #fffffe;
@@ -118,10 +111,11 @@
 .table th, 
 .table td {
   vertical-align: middle;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.05);
+.table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
 }
 
 /* Empty state */

@@ -1,55 +1,344 @@
-.container {
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 2rem 0;
-  color: #e8e8e8;
+/* Page Layout */
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
-}
-
-.header {
-  margin-bottom: 2rem;
-  position: relative;
-  text-align: center;
-}
-
-.header h1 {
   color: #fffffe;
-  margin: 0.5rem 0 2rem;
-  font-size: 2rem;
-  font-weight: 600;
 }
 
+.mainContent {
+  flex: 1;
+  padding: 2rem 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Back Link */
 .backLink {
-  display: inline-flex;
-  align-items: center;
   color: #b8c1ec;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
   font-size: 0.95rem;
-  margin-bottom: 1rem;
+  margin: 0 0 0.5rem 0;
+  padding: 0.5rem 0;
   transition: color 0.2s;
-  position: absolute;
-  left: 0;
-  top: 0.5rem;
 }
 
 .backLink:hover {
   color: #eebbc3;
+  text-decoration: underline;
 }
 
 .backIcon {
   margin-right: 0.5rem;
 }
 
-/* Filters */
-.filters {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+
+
+.heading {
+  color: #fffffe;
+  font-size: 2rem;
+  margin: 0 0 0.5rem 0;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
 }
 
+.subheading {
+  font-size: 1rem;
+  color: #b8c1ec;
+  display: flex;
+  align-items: center;
+  margin: 0.25rem 0 0 0;
+  padding: 0;
+}
+
+.iconPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(238, 187, 195, 0.12);
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1rem 0 1.5rem 0;
+  align-items: center;
+}
+
+.searchAndFilter {
+  display: flex;
+  flex: 1;
+  gap: 1rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #232946;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0 0.75rem;
+  border-radius: 8px;
+  color: #b8c1ec;
+  height: 42px;
+  flex: 1;
+  max-width: 500px;
+  transition: all 0.2s;
+}
+
+.searchBox:focus-within {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.searchBox input {
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: #fffffe;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  font-size: 0.95rem;
+}
+
+.filterDropdown {
+  min-width: 200px;
+}
+
+.statusDropdown {
+  margin: 0;
+  width: 100%;
+}
+
+.statusDropdown :global(.dropdownButton) {
+  background: #232946;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #b8c1ec;
+  border-radius: 8px;
+  padding: 0 0.75rem;
+  height: 42px;
+  width: 100%;
+  justify-content: space-between;
+  transition: all 0.2s;
+}
+
+.statusDropdown :global(.dropdownButton:hover) {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Table styles */
+.tableWrapper {
+  background: #232946;
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  overflow-x: auto;
+  width: 100%;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: middle;
+}
+
+.table th {
+  color: #b8c1ec;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Table cell styles */
+.idCell {
+  min-width: 180px;
+}
+
+.transactionId {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.95rem;
+  color: #e2e8f0;
+  font-weight: 500;
+}
+
+.reference {
+  font-size: 0.85rem;
+  color: #b8c1ec;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.typeCell {
+  min-width: 160px;
+}
+
+.typeWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.typeIcon {
+  color: #b8c1ec;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.detailsCell {
+  min-width: 200px;
+}
+
+.beneficiary, .account {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.beneficiary {
+  color: #e2e8f0;
+  margin-bottom: 0.25rem;
+}
+
+.account {
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+.detailIcon {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.amountCell {
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 600;
+  color: #e2e8f0;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.dateCell {
+  white-space: nowrap;
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+/* Status badges */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  width: fit-content;
+}
+
+.statusIcon {
+  font-size: 1rem;
+}
+
+.statusCompleted {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #34d399;
+}
+
+.statusPending {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #fbbf24;
+}
+
+.statusFailed {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+}
+
+/* No results */
+.noResults {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .container {
+    padding: 1.25rem;
+  }
+  .table th, .table td {
+    padding: 0.85rem 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+  }
+  .searchContainer {
+    max-width: 100%;
+  }
+  .filtersRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .tableWrapper {
+    border-radius: 8px;
+  }
+}
+
+/* Animation for table rows */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.table tbody tr {
+  animation: fadeIn 0.3s ease-out forwards;
+  opacity: 0;
+}
+
+.table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+.table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+.table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+.table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+.table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+.table tbody tr:nth-child(6) { animation-delay: 0.3s; }
+
+/* Search box */
 .searchBox {
   flex: 1;
   min-width: 250px;
@@ -112,16 +401,16 @@
 
 /* Back Link */
 .backLink {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  transform: none !important;
   display: inline-flex;
   align-items: center;
-  color: #b8c1ec;
-  text-decoration: none;
-  font-size: 0.95rem;
-  margin-bottom: 1rem;
-  transition: color 0.2s;
-  position: absolute;
-  left: 0;
-  top: 0.5rem;
+  margin: 0;
+  padding: 0.5rem 0;
+  z-index: 2;
+  white-space: nowrap;
 }
 
 .backLink:hover {
@@ -131,6 +420,12 @@
 
 .backIcon {
   margin-right: 0.5rem;
+}
+
+/* Header */
+.pageHeader {
+  margin: 0;
+  padding: 0;
 }
 
 /* Filters */
@@ -232,7 +527,6 @@
   background: rgba(25, 29, 43, 0.8);
 }
 
-/* Style the dropdown options */
 .filterSelect option {
   background: #1a1f33;
   color: #e8e8e8;
@@ -240,7 +534,6 @@
   border: none;
 }
 
-/* Style the dropdown when it's open */
 .filterSelect:focus option:checked {
   background: #b8c1ec;
   color: #232946;
@@ -261,23 +554,19 @@
   box-sizing: border-box;
 }
 
-/* Ensure cards maintain a good aspect ratio and don't get too wide */
 .transactionCard {
-  min-width: 0; /* Prevents flex items from overflowing */
+  min-width: 0;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
   margin: 0 auto;
 }
 
-/* Responsive adjustments */
-/* Responsive adjustments */
 @media (min-width: 1600px) {
   .transactionsList,
   .filters {
     padding: 0 4rem;
   }
-  
   .transactionsList {
     grid-template-columns: repeat(2, minmax(500px, 600px));
     gap: 2.5rem;
@@ -296,7 +585,6 @@
     grid-template-columns: repeat(auto-fit, minmax(450px, 500px));
     gap: 2rem;
   }
-  
   .filters {
     padding: 0 2.5rem;
   }
@@ -307,7 +595,6 @@
     grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
     gap: 1.75rem;
   }
-  
   .filters {
     padding: 0 2rem;
     gap: 1.25rem;
@@ -319,22 +606,18 @@
     grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
     gap: 1.5rem;
   }
-  
   .filters {
     padding: 0 1.5rem;
     gap: 1rem;
   }
-  
   .searchBox {
     min-width: 100%;
     max-width: 100%;
   }
-  
   .filterGroup {
     width: 100%;
     justify-content: space-between;
   }
-  
   .filterSelect {
     flex: 1;
     min-width: auto;
@@ -346,12 +629,10 @@
     grid-template-columns: minmax(300px, 600px);
     padding: 0 1.25rem;
   }
-  
   .filters {
     padding: 0 1.25rem;
     margin-bottom: 2rem;
   }
-  
   .transactionCard {
     width: 100%;
     max-width: 100%;
@@ -363,12 +644,10 @@
   .filters {
     padding: 0 1rem;
   }
-  
   .filterGroup {
     flex-direction: column;
     gap: 0.75rem;
   }
-  
   .filterSelect {
     width: 100%;
   }
@@ -595,7 +874,6 @@
   .container {
     padding: 1.5rem;
   }
-  
   .transactionsList {
     grid-template-columns: 1fr;
   }
@@ -605,7 +883,6 @@
   .container {
     padding: 1.5rem;
   }
-  
   .transactionsList {
     grid-template-columns: 1fr;
   }
@@ -616,24 +893,19 @@
     flex-direction: column;
     align-items: stretch;
   }
-  
   .searchBox {
     max-width: 100%;
   }
-  
   .filterGroup {
     width: 100%;
   }
-  
   .filterSelect {
     flex: 1;
   }
-  
   .detailRow {
     flex-direction: column;
     gap: 0.25rem;
   }
-  
   .detailLabel {
     margin-bottom: 0.25rem;
   }
@@ -643,27 +915,22 @@
   .container {
     padding: 1rem;
   }
-  
   .header h1 {
     font-size: 1.75rem;
     margin-top: 1.5rem;
   }
-  
   .backLink {
     position: static;
     margin-bottom: 1.5rem;
   }
-  
   .transactionCard {
     padding: 1.25rem;
   }
-  
   .transactionFooter {
     flex-direction: column;
     gap: 1rem;
     align-items: flex-start;
   }
-  
   .viewButton {
     width: 100%;
     text-align: center;
