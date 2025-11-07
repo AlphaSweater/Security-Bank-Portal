@@ -70,3 +70,149 @@ export async function authenticateUser({ email, password }) {
   logger.debug(`User authenticated successfully!`);
   return user;
 }
+
+/* ---------------------------------------------------------------------------
+ * User helper functions (moved from userService)
+ * These provide small profile lookups and profile updates used by session
+ * management and other services. Kept here to centralize authentication- and
+ * profile-related helpers.
+ * ------------------------------------------------------------------------ */
+
+/**
+ * Returns basic user info using the userId.
+ * Used for session management and profile display.
+ *
+ * @param {string} userId - User ID
+ * @returns {Promise<Object|null>} - Basic user info or null
+ */
+export async function getBasicUserInfo(userId) {
+  if (!userId) return null;
+
+  try {
+    const user = await userRepo.getUserById(userId);
+    if (!user) return null;
+
+    return {
+      id: user._id.toString(),
+      email: user.email,
+      role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
+  } catch (error) {
+    logger.error("Failed to get basic user info", {
+      error: error.message,
+      userId,
+    });
+    throw error;
+  }
+}
+
+/**
+ * Gets full user profile with additional details.
+ *
+ * @param {string} userId - User ID
+ * @returns {Promise<Object|null>} - Full user profile or null
+ */
+export async function getUserProfile(userId) {
+  if (!userId) return null;
+
+  try {
+    const user = await userRepo.getUserById(userId);
+    if (!user) return null;
+
+    return {
+      id: user._id.toString(),
+      email: user.email,
+      role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      createdAt: user.createdAt,
+      // Add any other profile fields here
+    };
+  } catch (error) {
+    logger.error("Failed to get user profile", {
+      error: error.message,
+      userId,
+    });
+    throw error;
+  }
+}
+
+/**
+ * Checks if a user exists and is active.
+ * Used for authorization and validation.
+ *
+ * @param {string} userId - User ID
+ * @returns {Promise<boolean>} - True if user exists
+ */
+export async function isActiveUser(userId) {
+  if (!userId) return false;
+
+  try {
+    const user = await userRepo.getUserById(userId);
+    return !!user;
+  } catch (error) {
+    logger.error("Failed to check if user is active", {
+      error: error.message,
+      userId,
+    });
+    return false;
+  }
+}
+
+/**
+ * Updates user profile information.
+ *
+ * @param {string} userId - User ID
+ * @param {Object} updates - Fields to update (firstName, lastName, etc.)
+ * @returns {Promise<Object>} - Updated user info
+ */
+export async function updateUserProfile(userId, updates) {
+  if (!userId) {
+    throw new Error("User ID is required");
+  }
+
+  // Whitelist allowed fields for security
+  const allowedFields = ["firstName", "lastName"];
+  const sanitizedUpdates = {};
+
+  for (const field of allowedFields) {
+    if (updates[field] !== undefined) {
+      sanitizedUpdates[field] = updates[field];
+    }
+  }
+
+  if (Object.keys(sanitizedUpdates).length === 0) {
+    throw new Error("No valid fields to update");
+  }
+
+  try {
+    logger.info("Updating user profile", {
+      userId,
+      fields: Object.keys(sanitizedUpdates),
+    });
+
+    const updatedUser = await userRepo.updateUser(userId, sanitizedUpdates);
+
+    if (!updatedUser) {
+      throw new Error("User not found");
+    }
+
+    logger.info("User profile updated successfully", { userId });
+
+    return {
+      id: updatedUser._id.toString(),
+      email: updatedUser.email,
+      role: updatedUser.role,
+      firstName: updatedUser.firstName,
+      lastName: updatedUser.lastName,
+    };
+  } catch (error) {
+    logger.error("Failed to update user profile", {
+      error: error.message,
+      userId,
+    });
+    throw error;
+  }
+}
