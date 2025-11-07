@@ -195,18 +195,38 @@ npm run dev
 
 ```
 project/
-├─ src/
-│  ├─ controllers/           # Controller logic (auth, transactions)
-│  ├─ middlewares/           # validationMiddleware.js, rateLimitMiddleware.js
-│  ├─ models/                # userModel.js, transactionModel.js
-│  ├─ routes/                # authRoutes.js, transactionRoutes.js
-│  ├─ services/              # authService.js (Argon2), transactionService.js
-│  ├─ utils/                 # asyncHandler.js, logger.js, validation helpers
-│  └─ utils/validation/      # userValidation.js, transactionValidation.js
-├─ certs/                    # local HTTPS certs (mkcert)
-├─ tests/                    # Vitest suites
-├─ .env
-└─ package.json
+├─ client/                          # React frontend
+│  ├─ src/
+|  |  ├─ assets/                    # Assets for client
+│  │  ├─ components/                # Reusable UI components
+│  │  ├─ pages/                     # Auth, Dashboard, EmployeeTransactions, Landing, ManageEmployees, TestAuth, Transaction, Unauthorized pages
+│  │  ├─ routing/                   # PrivateRoute.js, routes.js
+│  │  ├─ utils/                     # Frontend helpers, validators
+│  │  └─ App.jsx / main.js          # React entry files
+│  └─ package.json
+│
+├─ server/                          # Backend API
+│  ├─ src/
+│  │  ├─ config/                    # Config files
+│  │  ├─ controllers/               # Controller logic (auth, transaction, user)
+│  │  ├─ middlewares/               # authMiddleware.js, errorHandlerMiddleware.js, rateLimitMiddleware.js, roleMiddleware.js, sessionMiddleware.js, validationMiddleware.js 
+│  │  ├─ models/                    # userModel.js, transactionModel.js
+│  │  ├─ routes/                    # authRoutes.js, transactionRoutes.js, userRoutes.js
+│  │  ├─ services/                  # authService.js (Argon2), transactionService.js, userService.js
+│  │  └─ utils/                     # app.js, server.js
+│  │ 
+│  ├─ tests/                        # Vitest suites (unit + integration)
+│  │  ├─ integration/               # securityIntegration.test.js
+|  |  ├─ unit/                      # securityValidation.test.js, transactionValidation.test.js, userValidation.test.js
+│  ├─ .env                          # Environment variables
+│  ├─ loggerTestSpyHelpers.js       # Logger spy helpers for the tests
+│  └─ package.json
+│
+├─ sonar-project.properties          # SonarQube configuration
+├─ .circleci/
+│  └─ config.yml                    # CircleCI pipeline (SonarQube + tests)
+├─ .gitignore
+└─ README.md
 ```
 
 <br>
@@ -226,7 +246,7 @@ project/
 ## 🎥 Video Demo
 
 📺 **Watch the full walkthrough of Security Bank Portal on YouTube:**
-👉 [Click here to view](https://www.youtube.com/watch?v=fku6-EeaMf4)
+👉 [Click here to view](PUT YOUTUBE VIDEO!)
 
 <br>
 
