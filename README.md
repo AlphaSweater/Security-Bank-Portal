@@ -20,7 +20,7 @@ Security Bank Portal is a secure Node.js / Express prototype that lets users reg
 - [📚 Table of Contents](#-table-of-contents)
 - [🌟 Features](#-features)
 - [🔐 Security Features](#-security-features)
-  - [⚙️ How to Install and Setup](#️-how-to-install-and-setup)
+- [⚙️ How to Install and Setup](#️-how-to-install-and-setup)
   - [1. Clone repo](#1-clone-repo)
   - [2. Generate HTTPS certs](#3-generate-https-certs)
   - [2.1. Install mkcert](#31-install-mkcert)
@@ -32,12 +32,14 @@ Security Bank Portal is a secure Node.js / Express prototype that lets users reg
   - [5. Run client (dev)](#5-run-client-dev)
 - [🔧 Tech Stack](#-tech-stack)
 - [🏗️ Architecture](#️-architecture)
+- [📸 Screenshots](#-screenshots)
 - [🎥 Video Demo](#-video-demo)
 - [👥 contributors](#-contributors)
 - [🧠 Learning Outcomes](#-learning-outcomes)
 - [📚 References](#-references)
 
 <br>
+
 ## 🌟 Features
 
 - Secure Sign Up and Login flows
