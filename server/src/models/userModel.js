@@ -21,6 +21,32 @@ const ALLOWED_ROLES = new Set(Object.values(USER_ROLES));
 const getUsersCollection = () => getDB().collection("users");
 
 /* =============================================================================
+ * PROJECTIONS (Optional Safe Views)
+ * ---------------------------------------------------------------------------
+ * - These can be passed into any get* method as { projection }.
+ * - Defaults remain unchanged (full doc returned if no projection provided).
+ * - Use PUBLIC_PROFILE for dashboards or customer-facing endpoints.
+ * - Use AUTH_MINIMAL for login/auth services.
+ * ========================================================================== */
+
+export const PROJECTIONS = Object.freeze({
+  PUBLIC_PROFILE: {
+    _id: 1,
+    firstName: 1,
+    lastName: 1,
+    email: 1,
+    role: 1,
+    createdAt: 1,
+  },
+  AUTH: {
+    _id: 1,
+    email: 1,
+    passwordHash: 1,
+    role: 1,
+  },
+});
+
+/* =============================================================================
  * HELPER FUNCTIONS (Internal Use Only)
  * ========================================================================== */
 
@@ -40,25 +66,6 @@ function validateRole(role) {
       `Invalid role "${role}". Must be one of: ${[...ALLOWED_ROLES].join(", ")}`
     );
   }
-}
-
-/* =============================================================================
- * DATABASE SETUP
- * ========================================================================== */
-
-/**
- * Creates database indexes for optimal query performance.
- * Call this once when your server starts up.
- *
- * Usage: await ensureUserIndexes();
- */
-export async function ensureUserIndexes() {
-  const col = getUsersCollection();
-  await col.createIndexes([
-    { key: { email: 1 }, name: "email_unique", unique: true },
-    { key: { role: 1 }, name: "role_index" },
-    { key: { createdAt: -1 }, name: "created_desc" },
-  ]);
 }
 
 /* =============================================================================
@@ -93,7 +100,7 @@ export async function insertUser(doc) {
 /**
  * Fetches a user by their email address.
  *
- * Usage: const user = await getUserByEmail("john@example.com");
+ * Usage: const user = await getUserByEmail("john@example.com", { projection: PROJECTIONS.PUBLIC_PROFILE });
  * Returns: User object or null if not found
  */
 export async function getUserByEmail(email, { projection } = {}) {
@@ -103,7 +110,7 @@ export async function getUserByEmail(email, { projection } = {}) {
 /**
  * Fetches a user by their ID.
  *
- * Usage: const user = await getUserById("507f1f77bcf86cd799439011");
+ * Usage: const user = await getUserById("507f1f77bcf86cd799439011", { projection: PROJECTIONS.PUBLIC_PROFILE });
  * Returns: User object or null if not found
  */
 export async function getUserById(id, { projection } = {}) {
@@ -116,7 +123,7 @@ export async function getUserById(id, { projection } = {}) {
 /**
  * Fetches a user by their ID and role (for authorization checks).
  *
- * Usage: const employee = await getUserByIdAndRole("507f...", "employee");
+ * Usage: const employee = await getUserByIdAndRole("507f...", "employee", { projection: PROJECTIONS.PUBLIC_PROFILE });
  * Returns: User object or null if not found or role doesn't match
  */
 export async function getUserByIdAndRole(id, role, { projection } = {}) {
@@ -134,7 +141,7 @@ export async function getUserByIdAndRole(id, role, { projection } = {}) {
 /**
  * Gets all users with a specific role.
  *
- * Usage: const employees = await getUsersByRole("employee", { limit: 50 });
+ * Usage: const employees = await getUsersByRole("employee", { limit: 50, projection: PROJECTIONS.PUBLIC_PROFILE });
  * Returns: Array of user objects
  */
 export async function getUsersByRole(role, { limit = 100, projection } = {}) {
@@ -150,7 +157,7 @@ export async function getUsersByRole(role, { limit = 100, projection } = {}) {
 /**
  * Gets all users (admin function - use with caution).
  *
- * Usage: const allUsers = await getAllUsers({ limit: 100 });
+ * Usage: const allUsers = await getAllUsers({ limit: 100, projection: PROJECTIONS.PUBLIC_PROFILE });
  * Returns: Array of user objects
  */
 export async function getAllUsers({ limit = 100, projection } = {}) {
@@ -294,8 +301,11 @@ export async function userExistsById(id) {
 /**
  * {
  *   _id: ObjectId,
+ *   firstName: String,
+ *   lastName: String,
+ *   saIdNumber: String,       // sensitive
  *   email: String (unique),
- *   passwordHash: String,
+ *   passwordHash: String,     // sensitive
  *   role: "customer" | "employee" | "admin",
  *   createdAt: Date,
  *   updatedAt?: Date

@@ -14,10 +14,6 @@ const logger = getLogger(import.meta.url);
  * - Bulk approvals
  * - Review performance tracking
  * - System analytics
- *
- * Authorization differences:
- * - Employees: Cannot approve high-value transactions (≥$10k)
- * - Admins: Can approve any transaction (no restrictions)
  * ========================================================================== */
 
 const REVIEW_CONFIG = {

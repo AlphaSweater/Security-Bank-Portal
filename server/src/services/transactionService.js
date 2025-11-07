@@ -1,34 +1,51 @@
+// transactionService.js
 import * as transactionRepo from "#models/transactionModel.js";
+import { getCustomerTransactionStats } from "#services/customerService.js";
 import { getLogger } from "#utils/logger.js";
 
 const logger = getLogger(import.meta.url);
 
 /* =============================================================================
- * TRANSACTION SERVICE - Core Transaction Operations
- *
- * This service focuses on:
- * - Transaction creation with risk assessment
- * - Transaction retrieval (single and list operations)
- * - Business rule enforcement (limits, risk scoring)
+ * TRANSACTION SERVICE
  * ========================================================================== */
 
 /* =============================================================================
- * BUSINESS LOGIC CONSTANTS
+ * RISK THRESHOLDS
+ * ---------------------------------------------------------------------------
+ * Each factor (amount, frequency, volume) defines:
+ * - A BASE value (acceptable safe range)
+ * - Derived thresholds as % increases over that base
  * ========================================================================== */
 
-const BUSINESS_RULES = {
-  // Rate limiting thresholds
-  MAX_TRANSACTIONS_PER_DAY: 10,
-  MAX_DAILY_VOLUME: 50000,
+const BASE_VALUES = {
+  AMOUNT: 5000, // acceptable transaction amount
+  FREQUENCY: 5, // acceptable number of daily transactions
+  VOLUME: 10000, // acceptable daily total volume
+};
 
-  // Risk assessment thresholds
-  HIGH_VALUE_THRESHOLD: 10000, // Used for risk scoring
-  HIGH_FREQUENCY_THRESHOLD: 5, // Transactions in a day before flagging
-  HIGH_VOLUME_PERCENTAGE: 0.7, // 70% of daily limit triggers medium risk
+// Multipliers as % increases over the base
+const THRESHOLD_LEVELS = {
+  LOW: 1.5, // +50%
+  MEDIUM: 2, // +100%
+  HIGH: 3, // +200%
+};
 
-  // Pagination defaults
-  DEFAULT_PAGE_SIZE: 25,
-  MAX_PAGE_SIZE: 100,
+// Derived thresholds
+const THRESHOLDS = {
+  // Amount thresholds
+  LOW_AMOUNT_THRESHOLD: BASE_VALUES.AMOUNT * THRESHOLD_LEVELS.LOW,
+  MEDIUM_AMOUNT_THRESHOLD: BASE_VALUES.AMOUNT * THRESHOLD_LEVELS.MEDIUM,
+  HIGH_AMOUNT_THRESHOLD: BASE_VALUES.AMOUNT * THRESHOLD_LEVELS.HIGH,
+
+  // Frequency thresholds
+  LOW_FREQUENCY_THRESHOLD: BASE_VALUES.FREQUENCY * THRESHOLD_LEVELS.LOW,
+  MEDIUM_FREQUENCY_THRESHOLD: BASE_VALUES.FREQUENCY * THRESHOLD_LEVELS.MEDIUM,
+  HIGH_FREQUENCY_THRESHOLD: BASE_VALUES.FREQUENCY * THRESHOLD_LEVELS.HIGH,
+
+  // Volume thresholds
+  LOW_VOLUME_THRESHOLD: BASE_VALUES.VOLUME * THRESHOLD_LEVELS.LOW,
+  MEDIUM_VOLUME_THRESHOLD: BASE_VALUES.VOLUME * THRESHOLD_LEVELS.MEDIUM,
+  HIGH_VOLUME_THRESHOLD: BASE_VALUES.VOLUME * THRESHOLD_LEVELS.HIGH,
 };
 
 /* =============================================================================
@@ -36,75 +53,41 @@ const BUSINESS_RULES = {
  * ========================================================================== */
 
 /**
- * Creates a transaction with business rule enforcement.
- * - Applies risk assessment
- * - Enforces volume limits
+ * Creates a transaction with risk assessment.
+ * - Applies risk assessment based on thresholds
  * - Adds metadata for compliance
+ * - Stores risk level and factors in the database
  *
  * @param {Object} payload - Transaction data
- * @param {Object} context - Additional context (userRole, ipAddress, etc.)
- * @returns {Promise<{transactionId: ObjectId, status: string, riskLevel: string}>}
+ * @returns {Promise<{transactionId: ObjectId, status: string, riskLevel: string, message: string}>}
  */
-export async function createTransaction(payload, context = {}) {
-  logger.info("Creating new transaction", {
+export async function createTransaction(payload) {
+  logger.info("Creating new transaction...", {
     userId: payload.userId,
     amount: payload.amount,
   });
 
   try {
-    // Business Rule: Check daily limits for this user
-    const todayStats = await getUserDailyTransactionStats(payload.userId);
+    const todayStats = await getCustomerTransactionStats(payload.userId, "day");
+    const riskAssessment = assessTransactionRisk(payload, todayStats);
 
-    // Enforce daily transaction count limit
-    if (todayStats.count >= BUSINESS_RULES.MAX_TRANSACTIONS_PER_DAY) {
-      logger.warn("Daily transaction limit exceeded", {
-        userId: payload.userId,
-        count: todayStats.count,
-        limit: BUSINESS_RULES.MAX_TRANSACTIONS_PER_DAY,
-      });
-      throw new Error(
-        `Daily transaction limit exceeded. Maximum ${BUSINESS_RULES.MAX_TRANSACTIONS_PER_DAY} transactions per day.`
-      );
-    }
-
-    // Enforce daily volume limit
-    if (
-      todayStats.totalVolume + payload.amount >
-      BUSINESS_RULES.MAX_DAILY_VOLUME
-    ) {
-      logger.warn("Daily volume limit exceeded", {
-        userId: payload.userId,
-        currentVolume: todayStats.totalVolume,
-        attemptedAmount: payload.amount,
-        limit: BUSINESS_RULES.MAX_DAILY_VOLUME,
-      });
-      throw new Error(
-        `Daily transaction volume limit exceeded. Maximum ${BUSINESS_RULES.MAX_DAILY_VOLUME} per day.`
-      );
-    }
-
-    // Business Rule: Assess risk level
-    const riskAssessment = assessTransactionRisk(payload, todayStats, context);
-
-    // Add enriched data
-    const enrichedPayload = {
+    const doc = {
       ...payload,
+      riskLevel: riskAssessment.level,
+      riskFactors: riskAssessment.factors,
       metadata: {
-        riskLevel: riskAssessment.level,
-        riskFactors: riskAssessment.factors,
-        ipAddress: context.ipAddress,
-        userAgent: context.userAgent,
         dailyTransactionCount: todayStats.count + 1,
-        dailyVolume: todayStats.totalVolume + payload.amount,
+        dailyVolume: todayStats.totalVolume + Number(payload.amount || 0),
       },
     };
 
-    const result = await transactionRepo.insertTransaction(enrichedPayload);
+    const result = await transactionRepo.insertTransaction(doc);
 
     logger.info("Transaction created successfully", {
-      transactionId: result.insertedId.toString(),
-      riskLevel: riskAssessment.level,
+      transactionId: result.insertedId?.toString?.(),
       amount: payload.amount,
+      riskLevel: riskAssessment.level,
+      factors: riskAssessment.factors,
     });
 
     return {
@@ -122,79 +105,20 @@ export async function createTransaction(payload, context = {}) {
   }
 }
 
-/**
- * Assesses risk level for a transaction based on business rules.
- * @private
- */
-function assessTransactionRisk(transaction, dailyStats, context) {
-  const factors = [];
-  let level = "low";
-
-  // High-value transaction
-  if (transaction.amount >= BUSINESS_RULES.HIGH_VALUE_THRESHOLD) {
-    factors.push("high_value");
-    level = "high";
-  }
-
-  // Unusual frequency
-  if (dailyStats.count >= BUSINESS_RULES.HIGH_FREQUENCY_THRESHOLD) {
-    factors.push("high_frequency");
-    level = level === "high" ? "high" : "medium";
-  }
-
-  // High daily volume
-  const projectedVolume = dailyStats.totalVolume + transaction.amount;
-  if (
-    projectedVolume >
-    BUSINESS_RULES.MAX_DAILY_VOLUME * BUSINESS_RULES.HIGH_VOLUME_PERCENTAGE
-  ) {
-    factors.push("high_daily_volume");
-    level = level === "high" ? "high" : "medium";
-  }
-
-  // International transfer
-  if (transaction.destinationCountryCode !== "US") {
-    factors.push("international");
-    if (level === "low") level = "medium";
-  }
-
-  // New device/IP (if available)
-  if (context.isNewDevice) {
-    factors.push("new_device");
-    if (level === "low") level = "medium";
-  }
-
-  const messages = {
-    low: "Transaction approved - standard processing",
-    medium: "Transaction flagged for review - moderate risk",
-    high: "Transaction requires manual approval - high risk detected",
-  };
-
-  return {
-    level,
-    factors,
-    message: messages[level],
-  };
-}
-
-/* =============================================================================
- * READ OPERATIONS
- * ========================================================================== */
-
 /* =============================================================================
  * READ OPERATIONS
  * ========================================================================== */
 
 /**
- * Get a single user transaction by ID.
+ * Get a single user transaction by ID (default safe detail projection).
  *
  * @param {string} id - Transaction ID
- * @param {Object} options
- * @param {Object} options.projection - Mongo projection
+ * @param {{ projection?: Object }} [options]
  * @returns {Promise<Object|null>} - Transaction or null
  */
 export async function getUserTransactionById(id, options = {}) {
-  const { projection } = options;
+  const projection =
+    options.projection || transactionRepo.PROJECTIONS.DETAIL_PUBLIC;
 
   if (!id) {
     logger.warn("Transaction ID is required to fetch user transaction");
@@ -213,11 +137,10 @@ export async function getUserTransactionById(id, options = {}) {
 }
 
 /**
- * Get a user's transactions with an optional status filter.
+ * Get a user's transactions with an optional status filter (default safe list projection).
  *
  * @param {string} userId - The user's ID
  * @param {Object} options - Filter & pagination (status, limit, after, startEpoch, endEpoch, projection)
- * @param {string} options.status - "pending" | "approved" | "rejected"
  * @returns {Promise<{ items: Array, nextCursor: string|null }>}
  */
 export async function getUserTransactions(userId, options = {}) {
@@ -226,7 +149,11 @@ export async function getUserTransactions(userId, options = {}) {
     return { items: [], nextCursor: null };
   }
 
-  const { status, ...paginationOptions } = options;
+  const {
+    status,
+    projection = transactionRepo.PROJECTIONS.CUSTOMER_LIST,
+    ...paginationOptions
+  } = options;
 
   try {
     let result;
@@ -238,7 +165,7 @@ export async function getUserTransactions(userId, options = {}) {
       result = await transactionRepo.getTransactionsMadeByUserByStatus(
         userId,
         status,
-        paginationOptions
+        { projection, ...paginationOptions }
       );
       logger.debug?.("Retrieved user transactions by status", {
         userId,
@@ -247,6 +174,7 @@ export async function getUserTransactions(userId, options = {}) {
       });
     } else {
       result = await transactionRepo.getTransactionsMadeByUser(userId, {
+        projection,
         ...(status ? { status } : {}),
         ...paginationOptions,
       });
@@ -269,34 +197,76 @@ export async function getUserTransactions(userId, options = {}) {
 }
 
 /* =============================================================================
- * HELPER FUNCTIONS
+ * RISK ASSESSMENT LOGIC
  * ========================================================================== */
 
 /**
- * Gets user's daily transaction statistics.
- * Used for rate limiting and fraud detection.
- * @private
+ * Converts a numeric value into a tier: none | low | medium | high
  */
-async function getUserDailyTransactionStats(userId) {
-  const now = Math.floor(Date.now() / 1000);
-  const startOfDay = now - (now % 86400);
-  const endOfDay = startOfDay + 86400;
+function gradeToTier(value, low, medium, high) {
+  if (value >= high) return "high";
+  if (value >= medium) return "medium";
+  if (value >= low) return "low";
+  return "none";
+}
 
-  const transactions = await transactionRepo.getTransactionsMadeByUser(userId, {
-    startEpoch: startOfDay,
-    endEpoch: endOfDay,
-    limit: 1000,
-  });
+/** Rank tiers numerically for easy comparison. */
+function tierRank(t) {
+  return t === "none" ? 0 : t === "low" ? 1 : t === "medium" ? 2 : 3;
+}
 
-  const totalVolume = transactions.items.reduce(
-    (sum, transaction) => sum + transaction.amount,
-    0
+/**
+ * Evaluate the transaction’s risk level.
+ * @returns {{ level: "none"|"low"|"medium"|"high", factors: string[], message: string }}
+ */
+function assessTransactionRisk(txn, daily) {
+  const amount = Number(txn.amount || 0);
+  const projectedCount = Number(daily.count || 0) + 1;
+  const projectedVolume = Number(daily.totalVolume || 0) + amount;
+
+  // Determine individual dimension severities
+  const amountTier = gradeToTier(
+    amount,
+    THRESHOLDS.LOW_AMOUNT_THRESHOLD,
+    THRESHOLDS.MEDIUM_AMOUNT_THRESHOLD,
+    THRESHOLDS.HIGH_AMOUNT_THRESHOLD
   );
 
+  const freqTier = gradeToTier(
+    projectedCount,
+    THRESHOLDS.LOW_FREQUENCY_THRESHOLD,
+    THRESHOLDS.MEDIUM_FREQUENCY_THRESHOLD,
+    THRESHOLDS.HIGH_FREQUENCY_THRESHOLD
+  );
+
+  const volumeTier = gradeToTier(
+    projectedVolume,
+    THRESHOLDS.LOW_VOLUME_THRESHOLD,
+    THRESHOLDS.MEDIUM_VOLUME_THRESHOLD,
+    THRESHOLDS.HIGH_VOLUME_THRESHOLD
+  );
+
+  // Overall risk = highest severity across amount, frequency, volume
+  const finalTier = [amountTier, freqTier, volumeTier].sort(
+    (a, b) => tierRank(b) - tierRank(a)
+  )[0];
+
+  // Build factor list
+  const factors = [];
+  if (amountTier !== "none") factors.push(`amount_${amountTier}`);
+  if (freqTier !== "none") factors.push(`frequency_${freqTier}`);
+  if (volumeTier !== "none") factors.push(`volume_${volumeTier}`);
+
+  const messageByLevel = {
+    none: "Transaction safe - no risk flags.",
+    low: "Transaction safe - low risk.",
+    medium: "Transaction flagged - moderate risk. (Review recommended)",
+    high: "Transaction flagged - high risk. (Requires review)",
+  };
+
   return {
-    count: transactions.items.length,
-    totalVolume,
-    startEpoch: startOfDay,
-    endEpoch: endOfDay,
+    level: finalTier,
+    factors,
+    message: messageByLevel[finalTier],
   };
 }

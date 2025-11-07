@@ -24,6 +24,87 @@ const MAX_PAGE_LIMIT = 200;
 const getTransactionsCollection = () => getDB().collection("transactions");
 
 /* =============================================================================
+ * PROJECTIONS (Optional presets; passing none returns full docs)
+ * ---------------------------------------------------------------------------
+ * Use these from services, e.g.:
+ *   getTransactionsMadeByUser(userId, { projection: PROJECTIONS.CUSTOMER_LIST })
+ * ========================================================================== */
+
+export const PROJECTIONS = Object.freeze({
+  // Compact fields for a customer's dashboard/list
+  CUSTOMER_LIST: {
+    _id: 1,
+    amount: 1,
+    currencyCode: 1,
+    status: 1,
+    createdAtEpoch: 1,
+    statusUpdatedAtEpoch: 1,
+  },
+
+  // Reviewer queue (hide PII-heavy beneficiary account fields by default)
+  REVIEW_QUEUE: {
+    _id: 1,
+    userId: 1,
+    amount: 1,
+    currencyCode: 1,
+    status: 1,
+    createdAtEpoch: 1,
+    riskLevel: 1,
+    riskFactors: 1,
+  },
+
+  // Public-ish transaction detail (safe for customer-facing detail view)
+  DETAIL_PUBLIC: {
+    _id: 1,
+    userId: 1,
+    amount: 1,
+    currencyCode: 1,
+    beneficiaryType: 1,
+    beneficiaryFullName: 1,
+    beneficiaryNote: 1,
+    destinationCountryCode: 1,
+    destinationBankName: 1,
+    status: 1,
+    createdAtEpoch: 1,
+    statusUpdatedAtEpoch: 1,
+    reviewReason: 1,
+  },
+
+  // Internal detail (includes sensitive routing/account fields)
+  DETAIL_INTERNAL: {
+    _id: 1,
+    userId: 1,
+    amount: 1,
+    currencyCode: 1,
+    beneficiaryType: 1,
+    beneficiaryFullName: 1,
+    beneficiaryNote: 1,
+    destinationCountryCode: 1,
+    destinationBankName: 1,
+    destinationBankSwift: 1,
+    destinationAccountNumber: 1, // PII—use only where appropriate
+    status: 1,
+    createdAtEpoch: 1,
+    statusUpdatedAtEpoch: 1,
+    reviewedBy: 1,
+    reviewReason: 1,
+    riskLevel: 1,
+    riskFactors: 1,
+    statusHistory: 1,
+    metadata: 1,
+  },
+
+  // Risk-only slice
+  RISK_ONLY: {
+    _id: 1,
+    riskLevel: 1,
+    riskFactors: 1,
+    status: 1,
+    createdAtEpoch: 1,
+  },
+});
+
+/* =============================================================================
  * HELPER FUNCTIONS (Internal Use Only)
  * ========================================================================== */
 
@@ -82,33 +163,6 @@ function createPaginationCursor(lastDoc) {
 // Ensures limit is within acceptable bounds
 function normalizeLimit(limit) {
   return Math.max(1, Math.min(limit || DEFAULT_PAGE_LIMIT, MAX_PAGE_LIMIT));
-}
-
-/* =============================================================================
- * DATABASE SETUP
- * ========================================================================== */
-
-/**
- * Creates database indexes for optimal query performance.
- * Call this once when your server starts up.
- *
- * Usage: await ensureTransactionIndexes();
- */
-export async function ensureTransactionIndexes() {
-  const col = getTransactionsCollection();
-  await col.createIndexes([
-    { key: { userId: 1, createdAtEpoch: -1 }, name: "user_created_desc" },
-    { key: { status: 1, createdAtEpoch: -1 }, name: "status_created_desc" },
-    {
-      key: { reviewedBy: 1, createdAtEpoch: -1 },
-      name: "reviewer_created_desc",
-    },
-    {
-      key: { createdAtEpoch: -1 },
-      name: "pending_created_desc_partial",
-      partialFilterExpression: { status: TRANSACTION_STATUS.PENDING },
-    },
-  ]);
 }
 
 /* =============================================================================
@@ -229,7 +283,7 @@ async function countByStatus(filters = {}) {
  * Creates a new transaction in pending status.
  * Automatically adds timestamps and initial status history.
  *
- * Usage: const result = await insertTransaction({ userId: "123abc...", amount: 500, ... });
+ * Usage: const result = await insertTransaction({ userId, amount, riskLevel, riskFactors, ... });
  * Returns: MongoDB InsertOneResult with { insertedId, acknowledged }
  */
 export async function insertTransaction(doc) {
@@ -242,6 +296,8 @@ export async function insertTransaction(doc) {
     createdAtTimeZone: doc.createdAtTimeZone || undefined,
     createdAtEpoch,
     statusUpdatedAtEpoch: createdAtEpoch,
+    riskLevel: doc.riskLevel || "low",
+    riskFactors: doc.riskFactors || [],
     statusHistory: [
       {
         status: TRANSACTION_STATUS.PENDING,
@@ -262,7 +318,7 @@ export async function insertTransaction(doc) {
 /**
  * Fetches a single transaction by ID.
  *
- * Usage: const txn = await getTransactionById("507f1f77bcf86cd799439011");
+ * Usage: const txn = await getTransactionById("507f1f77bcf86cd799439011", { projection: PROJECTIONS.DETAIL_PUBLIC });
  * Returns: Transaction object or null if not found
  */
 export async function getTransactionById(id, { projection } = {}) {
@@ -280,9 +336,6 @@ export async function getTransactionById(id, { projection } = {}) {
 
 /**
  * Gets all transactions for a specific user (newest first).
- *
- * Usage: const { items, nextCursor } = await getTransactionsMadeByUser("507f...", { limit: 20 });
- * Returns: { items: [transaction objects], nextCursor: "string or null" }
  */
 export async function getTransactionsMadeByUser(userId, options = {}) {
   return queryTransactions({ userId, ...options });
@@ -290,9 +343,6 @@ export async function getTransactionsMadeByUser(userId, options = {}) {
 
 /**
  * Gets user's transactions filtered by status.
- *
- * Usage: const { items } = await getTransactionsMadeByUserByStatus("507f...", "pending");
- * Returns: { items: [transaction objects], nextCursor: "string or null" }
  */
 export async function getTransactionsMadeByUserByStatus(
   userId,
@@ -304,9 +354,6 @@ export async function getTransactionsMadeByUserByStatus(
 
 /**
  * Gets all transactions reviewed by an employee.
- *
- * Usage: const { items } = await getTransactionsReviewedByEmployee("507f...");
- * Returns: { items: [transaction objects], nextCursor: "string or null" }
  */
 export async function getTransactionsReviewedByEmployee(
   employeeId,
@@ -317,9 +364,6 @@ export async function getTransactionsReviewedByEmployee(
 
 /**
  * Gets employee's reviewed transactions filtered by status.
- *
- * Usage: const { items } = await getTransactionsReviewedByEmployeeByStatus("507f...", "approved");
- * Returns: { items: [transaction objects], nextCursor: "string or null" }
  */
 export async function getTransactionsReviewedByEmployeeByStatus(
   employeeId,
@@ -333,42 +377,18 @@ export async function getTransactionsReviewedByEmployeeByStatus(
  * READ OPERATIONS - Count Transactions
  * ========================================================================== */
 
-/**
- * Counts all transactions grouped by status.
- *
- * Usage: const counts = await countTransactionsByStatus();
- * Returns: { pending: 5, approved: 10, rejected: 2 }
- */
 export async function countTransactionsByStatus(options = {}) {
   return countByStatus(options);
 }
 
-/**
- * Counts all pending transactions (optionally for a specific user).
- *
- * Usage: const count = await countTotalPendingTransactions();
- * Returns: Number (e.g., 42)
- */
 export async function countTotalPendingTransactions(options = {}) {
   return countTransactions({ status: TRANSACTION_STATUS.PENDING, ...options });
 }
 
-/**
- * Counts total transactions made by a user (optionally by status).
- *
- * Usage: const count = await countUserMadeTransactions("507f...", { status: "approved" });
- * Returns: Number (e.g., 15)
- */
 export async function countTransactionsMadeByUser(userId, options = {}) {
   return countTransactions({ userId, ...options });
 }
 
-/**
- * Counts user's transactions grouped by status.
- *
- * Usage: const counts = await countUserMadeTransactionsByStatus("507f...");
- * Returns: { pending: 2, approved: 8, rejected: 1 }
- */
 export async function countTransactionsMadeByUserByStatus(
   userId,
   options = {}
@@ -376,12 +396,6 @@ export async function countTransactionsMadeByUserByStatus(
   return countByStatus({ userId, ...options });
 }
 
-/**
- * Counts total transactions reviewed by an employee (optionally by status).
- *
- * Usage: const count = await countEmployeeReviewedTransactions("507f...");
- * Returns: Number (e.g., 89)
- */
 export async function countTransactionsReviewedByEmployee(
   employeeId,
   options = {}
@@ -389,12 +403,6 @@ export async function countTransactionsReviewedByEmployee(
   return countTransactions({ reviewedBy: employeeId, ...options });
 }
 
-/**
- * Counts employee's reviewed transactions grouped by status.
- *
- * Usage: const counts = await countEmployeeReviewedTransactionsByStatus("507f...");
- * Returns: { approved: 45, rejected: 12 }
- */
 export async function countTransactionsReviewedByEmployeeByStatus(
   employeeId,
   options = {}
@@ -410,14 +418,17 @@ export async function countTransactionsReviewedByEmployeeByStatus(
  * Approves or rejects a pending transaction.
  * Only works on transactions with "pending" status.
  *
- * Usage: const updated = await updateTransactionStatus("507f...", "approved", "employeeId123");
- * Returns: Updated transaction object or null if not found/not pending
+ * Usage:
+ *   const updated = await updateTransactionStatus(id, "approved", employeeId, "ok", {
+ *     returnProjection: PROJECTIONS.DETAIL_INTERNAL
+ *   });
  */
 export async function updateTransactionStatus(
   id,
   status,
   employeeId,
-  reviewReason
+  reviewReason,
+  { returnProjection } = {}
 ) {
   if (!ALLOWED_STATUS.has(status) || status === TRANSACTION_STATUS.PENDING) {
     throw new Error(
@@ -453,7 +464,10 @@ export async function updateTransactionStatus(
         },
       },
     },
-    { returnDocument: "after" }
+    {
+      returnDocument: "after",
+      projection: returnProjection || undefined,
+    }
   );
 
   return result.value; // null if not found or not pending
@@ -479,8 +493,11 @@ export async function updateTransactionStatus(
  *   createdAtEpoch: Number,
  *   statusUpdatedAtEpoch: Number,
  *   createdAtTimeZone?: String,
+ *   riskLevel: "low" | "medium" | "high",
+ *   riskFactors: Array<String>,
  *   reviewedBy?: ObjectId | null,
  *   reviewReason?: String | null,
+ *   metadata?: Object,
  *   statusHistory?: Array<{ status: String, at: Number, by: ObjectId|null, reason: String|null }>
  * }
  */

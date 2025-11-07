@@ -1,18 +1,15 @@
 import * as transactionRepo from "#models/transactionModel.js";
-import * as userRepo from "#models/userModel.js";
+import * as customerRepo from "#models/userModel.js";
 import { getLogger } from "#utils/logger.js";
 
 const logger = getLogger(import.meta.url);
 
 /* =============================================================================
  * CUSTOMER SERVICE - Customer-facing transaction operations
- * Handles transaction creation, viewing own transactions, and customer limits
+ * Handles transaction viewing and dashboard display
  * ========================================================================== */
 
-const CUSTOMER_LIMITS = {
-  MAX_TRANSACTIONS_PER_DAY: 10,
-  MAX_DAILY_VOLUME: 50000,
-  HIGH_VALUE_THRESHOLD: 10000,
+const PAGINATION_DEFAULTS = {
   DEFAULT_PAGE_SIZE: 25,
   MAX_PAGE_SIZE: 100,
 };
@@ -23,11 +20,11 @@ const CUSTOMER_LIMITS = {
 
 /**
  * Gets comprehensive dashboard data for a customer.
- * Includes recent transactions, statistics, and account limits.
+ * Includes recent transactions and statistics.
  *
  * @param {string} userId - Customer user ID
  * @param {Object} options - Pagination options
- * @returns {Promise<{transactions: Object, summary: Object, limits: Object}>}
+ * @returns {Promise<{transactions: Object, summary: Object, user: Object}>}
  */
 export async function getCustomerDashboard(userId, options = {}) {
   if (!userId) {
@@ -36,21 +33,21 @@ export async function getCustomerDashboard(userId, options = {}) {
 
   try {
     const limit = Math.min(
-      options.limit || CUSTOMER_LIMITS.DEFAULT_PAGE_SIZE,
-      CUSTOMER_LIMITS.MAX_PAGE_SIZE
+      options.limit || PAGINATION_DEFAULTS.DEFAULT_PAGE_SIZE,
+      PAGINATION_DEFAULTS.MAX_PAGE_SIZE
     );
 
     // Fetch data in parallel
-    const [transactions, statusCounts, dailyStats, userInfo] =
-      await Promise.all([
-        transactionRepo.getTransactionsMadeByUser(userId, {
-          ...options,
-          limit,
-        }),
-        transactionRepo.countTransactionsMadeByUserByStatus(userId),
-        getCustomerDailyStats(userId),
-        userRepo.getUserById(userId),
-      ]);
+    const [transactions, statusCounts, userInfo] = await Promise.all([
+      transactionRepo.getTransactionsMadeByUser(userId, {
+        ...options,
+        limit,
+      }),
+      transactionRepo.countTransactionsMadeByUserByStatus(userId),
+      customerRepo.getUserById(userId, {
+        projection: customerRepo.PROJECTIONS.PUBLIC_PROFILE,
+      }),
+    ]);
 
     const total = Object.values(statusCounts).reduce(
       (sum, count) => sum + count,
@@ -60,7 +57,6 @@ export async function getCustomerDashboard(userId, options = {}) {
     logger.debug("Retrieved customer dashboard", {
       userId,
       totalTransactions: total,
-      todayCount: dailyStats.count,
     });
 
     return {
@@ -68,35 +64,100 @@ export async function getCustomerDashboard(userId, options = {}) {
       summary: {
         total,
         byStatus: statusCounts,
-        recentActivity: {
-          todayCount: dailyStats.count,
-          todayVolume: dailyStats.totalVolume,
-          averageAmount:
-            dailyStats.count > 0
-              ? Math.round(dailyStats.totalVolume / dailyStats.count)
-              : 0,
-        },
-      },
-      limits: {
-        dailyTransactionLimit: CUSTOMER_LIMITS.MAX_TRANSACTIONS_PER_DAY,
-        dailyVolumeLimit: CUSTOMER_LIMITS.MAX_DAILY_VOLUME,
-        remainingTransactions:
-          CUSTOMER_LIMITS.MAX_TRANSACTIONS_PER_DAY - dailyStats.count,
-        remainingVolume: Math.max(
-          0,
-          CUSTOMER_LIMITS.MAX_DAILY_VOLUME - dailyStats.totalVolume
-        ),
       },
       user: {
         firstName: userInfo?.firstName,
         lastName: userInfo?.lastName,
         email: userInfo?.email,
+        role: userInfo?.role,
       },
     };
   } catch (error) {
     logger.error("Failed to get customer dashboard", {
       error: error.message,
       userId,
+    });
+    throw error;
+  }
+}
+
+/* =============================================================================
+ * HELPER FUNCTIONS
+ * ========================================================================== */
+
+/**
+ * Gets a customer's transaction statistics for a given time period.
+ * Period can be: "day", "week", "month", or "year".
+ *
+ * @param {string} customerId - The customer's ID
+ * @param {"day"|"week"|"month"|"year"} [period="day"] - Time period to fetch stats for
+ * @returns {Promise<{ count: number, totalVolume: number, startEpoch: number, endEpoch: number }>}
+ */
+export async function getCustomerTransactionStats(customerId, period = "day") {
+  if (!customerId) {
+    logger.warn("getCustomerTransactionStats called without customerId");
+    return { count: 0, totalVolume: 0, startEpoch: 0, endEpoch: 0 };
+  }
+
+  const now = new Date();
+  let start = new Date(now);
+
+  switch (period) {
+    case "week": {
+      // Start of current week (Monday 00:00:00)
+      const day = now.getDay(); // Sunday = 0, Monday = 1, ...
+      const diffToMonday = (day + 6) % 7;
+      start.setDate(now.getDate() - diffToMonday);
+      start.setHours(0, 0, 0, 0);
+      break;
+    }
+    case "month": {
+      // Start of current month
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      break;
+    }
+    case "year": {
+      // Start of current year
+      start = new Date(now.getFullYear(), 0, 1);
+      break;
+    }
+    case "day":
+    default: {
+      // Start of today
+      start.setHours(0, 0, 0, 0);
+      break;
+    }
+  }
+
+  const startEpoch = Math.floor(start.getTime() / 1000);
+  const endEpoch = Math.floor(now.getTime() / 1000);
+
+  try {
+    const transactions = await transactionRepo.getTransactionsMadeByUser(
+      customerId,
+      {
+        startEpoch,
+        endEpoch,
+        limit: 5000,
+      }
+    );
+
+    const totalVolume = transactions.items.reduce(
+      (sum, tx) => sum + (Number(tx.amount) || 0),
+      0
+    );
+
+    return {
+      count: transactions.items.length,
+      totalVolume,
+      startEpoch,
+      endEpoch,
+    };
+  } catch (error) {
+    logger.error("Failed to get customer transaction stats", {
+      error: error.message,
+      customerId,
+      period,
     });
     throw error;
   }
