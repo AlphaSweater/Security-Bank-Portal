@@ -188,3 +188,85 @@ export const loginUserSchema = Joi.object({
 })
   .options({ stripUnknown: true })
   .meta({ schemaName: "login" });
+
+// --- Update Profile schema ---
+export const updateProfileSchema = Joi.object({
+  firstName: safeString({
+    label: "First name",
+    minLength: 2,
+    maxLength: 100,
+    regex: /^[A-Za-z\s'-]+$/,
+    regexMsg: "letters, spaces, apostrophes, or hyphens only",
+  }),
+
+  lastName: safeString({
+    label: "Last name",
+    minLength: 2,
+    maxLength: 100,
+    regex: /^[A-Za-z\s'-]+$/,
+    regexMsg: "letters, spaces, apostrophes, or hyphens only",
+  }),
+})
+  .options({ stripUnknown: true })
+  .meta({ schemaName: "updateProfile" });
+
+// --- Create Employee schema (admin only) ---
+export const createEmployeeSchema = Joi.object({
+  firstName: safeString({
+    label: "First name",
+    minLength: 2,
+    maxLength: 100,
+    regex: /^[A-Za-z\s'-]+$/,
+    regexMsg: "letters, spaces, apostrophes, or hyphens only",
+  }).required(),
+
+  lastName: safeString({
+    label: "Last name",
+    minLength: 2,
+    maxLength: 100,
+    regex: /^[A-Za-z\s'-]+$/,
+    regexMsg: "letters, spaces, apostrophes, or hyphens only",
+  }).required(),
+
+  email: safeString({
+    label: "Email",
+    minLength: 5,
+    maxLength: 254,
+    isEmail: true,
+  }).required(),
+
+  password: safePassword(),
+
+  role: Joi.string().valid("employee", "admin").required().messages({
+    "string.empty": "Role is required",
+    "any.required": "Role is required",
+    "any.only": "Role must be either 'employee' or 'admin'",
+  }),
+})
+  .options({ stripUnknown: true })
+  .meta({ schemaName: "createEmployee" });
+
+// --- Update Employee schema (admin only) ---
+export const updateEmployeeSchema = Joi.object({
+  firstName: safeString({
+    label: "First name",
+    minLength: 2,
+    maxLength: 100,
+    regex: /^[A-Za-z\s'-]+$/,
+    regexMsg: "letters, spaces, apostrophes, or hyphens only",
+  }),
+
+  lastName: safeString({
+    label: "Last name",
+    minLength: 2,
+    maxLength: 100,
+    regex: /^[A-Za-z\s'-]+$/,
+    regexMsg: "letters, spaces, apostrophes, or hyphens only",
+  }),
+
+  role: Joi.string().valid("employee", "admin").messages({
+    "any.only": "Role must be either 'employee' or 'admin'",
+  }),
+})
+  .options({ stripUnknown: true })
+  .meta({ schemaName: "updateEmployee" });
