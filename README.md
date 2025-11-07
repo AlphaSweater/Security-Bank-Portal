@@ -22,12 +22,12 @@ Security Bank Portal is a secure Node.js / Express prototype that lets users reg
 - [🔐 Security Features](#-security-features)
   - [⚙️ How to Install and Setup](#️-how-to-install-and-setup)
   - [1. Clone repo](#1-clone-repo)
-  - [2. Install dependencies (client \& server)](#2-install-dependencies-client--server)
-  - [3. Generate HTTPS certs](#3-generate-https-certs)
-  - [3.1. Install mkcert](#31-install-mkcert)
-  - [3.2. Create a project-local CA](#32-create-a-project-local-ca)
-  - [3.3. Generate cert and key](#33-generate-cert-and-key)
-  - [3.4. Clean up (optional)](#34-clean-up-optional)
+  - [2. Generate HTTPS certs](#3-generate-https-certs)
+  - [2.1. Install mkcert](#31-install-mkcert)
+  - [2.2. Create a project-local CA](#32-create-a-project-local-ca)
+  - [2.3. Generate cert and key](#33-generate-cert-and-key)
+  - [2.4. Clean up (optional)](#34-clean-up-optional)
+  - [3. Install dependencies (client \& server)](#2-install-dependencies-client--server)
   - [4. Run server (dev)](#4-run-server-dev)
   - [5. Run client (dev)](#5-run-client-dev)
 - [🔧 Tech Stack](#-tech-stack)
@@ -82,31 +82,17 @@ git clone https://github.com/YourTeam/GlobalBankSecure.git
 cd GlobalBankSecure
 ```
 
-### 2. Install dependencies (client & server)
-
-From the root:
-
-```
-cd client
-npm install
-```
-
-```
-cd ../server
-npm install
-```
-
-### 3. Generate HTTPS certs
+### 2. Generate HTTPS certs
 
 To run local development with trusted HTTPS certs (no browser warnings), use mkcert.
 
-### 3.1. Install mkcert
+### 2.1. Install mkcert
 
 ```
 winget install --id FiloSottile.mkcert -e
 ```
 
-### 3.2. Create a project-local CA
+### 2.2. Create a project-local CA
 
 From the root:
 
@@ -122,7 +108,7 @@ mkdir .certs\ca -Force
 mkcert -install
 ```
 
-### 3.3. Generate cert and key
+### 2.3. Generate cert and key
 
 ```
 mkdir certs -Force
@@ -137,7 +123,7 @@ mkcert -key-file .\certs\localhost.key -cert-file .\certs\localhost.crt localhos
 
 <br>
 
-### 3.4. Clean up (optional)
+### 2.4. Clean up (optional)
 
 ```
 $env:CAROOT = "$PWD\.certs\ca"
@@ -149,6 +135,20 @@ mkcert -uninstall
 
 ```
 Remove-Item -Recurse -Force .\.certs\ca
+```
+
+### 3. Install dependencies (client & server)
+
+From the root:
+
+```
+cd client
+npm install
+```
+
+```
+cd ../server
+npm install
 ```
 
 <br>
