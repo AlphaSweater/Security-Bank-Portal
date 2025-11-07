@@ -49,9 +49,6 @@ export function validateData(schema, options = {}) {
 
     // If valid, replace req[target] with validated data
     req[target] = result.value;
-    if (isDev) {
-      logger.debug(`Validated request ${target} successfully!`);
-    }
 
     next();
   };
