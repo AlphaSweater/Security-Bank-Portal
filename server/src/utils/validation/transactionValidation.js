@@ -231,9 +231,15 @@ export const createTransactionSchema = Joi.object({
   .options({ stripUnknown: true, abortEarly: false })
   .meta({ schemaName: "transaction:create" });
 
+// --- Create Transaction schema for client-facing routes (userId injected server-side) ---
+export const createTransactionSchemaClientFacing = createTransactionSchema.fork(
+  ["userId"],
+  (schema) => schema.optional()
+);
+
 // --- Update Transaction Status schema (minimal, server-side use) ---
 export const updateTransactionStatusSchema = Joi.object({
-  _id: objectId("Transaction ID").required(),
+  id: objectId("Transaction ID").optional(), // Optional because id comes from URL params
   status: Joi.string()
     .valid("pending", "approved", "rejected")
     .required()
@@ -244,6 +250,10 @@ export const updateTransactionStatusSchema = Joi.object({
   reviewReason: Joi.string().trim().max(300).allow("").messages({
     "string.base": "Review reason must be text",
     "string.max": "Review reason must be 300 characters or fewer",
+  }),
+  reason: Joi.string().trim().max(300).allow("").messages({
+    "string.base": "Reason must be text",
+    "string.max": "Reason must be 300 characters or fewer",
   }),
 })
   .options({ stripUnknown: true, abortEarly: false })
@@ -265,6 +275,6 @@ export const transactionIdSchema = makeTransactionIdSchema(
 
 // --- Query/Lookup schema (optional) ---
 export const getTransactionSchema = makeTransactionIdSchema(
-  "_id",
+  "id",
   "transaction:get"
 );

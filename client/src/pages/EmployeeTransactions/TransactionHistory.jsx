@@ -1,162 +1,154 @@
-import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { FiArrowLeft, FiClock, FiCheckCircle, FiXCircle, FiSearch, FiDollarSign, FiUser, FiCreditCard, FiFileText } from 'react-icons/fi';
-import SearchBar from '../../components/SearchBar/SearchBar';
-import Dropdown from '../../components/Common/Dropdown/Dropdown';
-import styles from './TransactionHistory.module.css';
+import React, { useState, useMemo, useEffect } from "react";
+import { Link } from "react-router-dom";
+import {
+  FiArrowLeft,
+  FiClock,
+  FiCheckCircle,
+  FiXCircle,
+  FiSearch,
+  FiDollarSign,
+  FiUser,
+  FiCreditCard,
+  FiFileText,
+} from "react-icons/fi";
+import SearchBar from "../../components/SearchBar/SearchBar";
+import Dropdown from "../../components/Common/Dropdown/Dropdown";
+import { apiRequest } from "../../utils/apiUtil";
+import styles from "./TransactionHistory.module.css";
 
 const TransactionHistory = () => {
-  // Mock data for demonstration
-  const [transactions] = useState([
-    {
-      id: 'TXN1001',
-      date: '2025-10-28T10:30:00',
-      type: 'Domestic Transfer',
-      amount: 1250.75,
-      status: 'completed',
-      beneficiary: 'John Smith',
-      accountNumber: '****3456',
-      reference: 'Rent payment'
-    },
-    {
-      id: 'TXN1002',
-      date: '2025-10-25T14:15:00',
-      type: 'International Transfer',
-      amount: 500.00,
-      status: 'completed',
-      beneficiary: 'Maria Garcia',
-      accountNumber: '****7890',
-      reference: 'Gift'
-    },
-    {
-      id: 'TXN1003',
-      date: '2025-10-20T09:45:00',
-      type: 'Bill Payment',
-      amount: 89.99,
-      status: 'pending',
-      beneficiary: 'Electric Company',
-      accountNumber: 'UTIL-12345',
-      reference: 'Monthly bill'
-    },
-    {
-      id: 'TXN1004',
-      date: '2025-10-15T16:20:00',
-      type: 'Domestic Transfer',
-      amount: 200.00,
-      status: 'failed',
-      beneficiary: 'Robert Johnson',
-      accountNumber: '****9012',
-      reference: 'Dinner',
-      failureReason: 'Insufficient funds'
-    },
-    {
-      id: 'TXN1005',
-      date: '2025-10-10T11:05:00',
-      type: 'International Transfer',
-      amount: 1000.00,
-      status: 'completed',
-      beneficiary: 'Chen Wei',
-      accountNumber: '****5678',
-      reference: 'Business payment'
-    }
-  ]);
+  const [transactions, setTransactions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all'); // Status filter options for dropdown
   const statusOptions = [
-    { value: 'all', label: 'All Statuses' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'failed', label: 'Failed' }
+    { value: "all", label: "All Statuses" },
+    { value: "approved", label: "Approved" },
+    { value: "pending", label: "Pending" },
+    { value: "rejected", label: "Rejected" },
   ];
 
+  // Fetch all reviewed transactions
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      setIsLoading(true);
+      setError("");
+      try {
+        const params = new URLSearchParams({
+          limit: "100",
+        });
 
-  const formatDate = (dateString) => {
-    const options = {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+        // Add status filter if not "all"
+        if (statusFilter !== "all") {
+          params.set("status", statusFilter);
+        }
+
+        const data = await apiRequest(
+          `/api/employees/reviewed-transactions?${params}`
+        );
+        setTransactions(data.items || []);
+      } catch (err) {
+        console.error("Failed to fetch transaction history:", err);
+        setError(err.message || "Failed to load transaction history");
+      } finally {
+        setIsLoading(false);
+      }
     };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+
+    fetchTransactions();
+  }, [statusFilter]);
+
+  const formatDate = (epoch) => {
+    if (!epoch) return "—";
+    const date = new Date(epoch * 1000);
+    const options = {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    };
+    return date.toLocaleDateString(undefined, options);
+  };
+
+  const formatMoney = (value, currency = "ZAR") => {
+    return new Intl.NumberFormat("en-ZA", {
+      style: "currency",
+      currency: currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(Number(value) || 0);
   };
 
   const getStatusBadge = (status) => {
+    const normalizedStatus = (status || "").toLowerCase();
     const statusClasses = {
-      completed: styles.statusCompleted,
+      approved: styles.statusCompleted,
       pending: styles.statusPending,
-      failed: styles.statusFailed
+      rejected: styles.statusFailed,
     };
 
     const statusIcons = {
-      completed: <FiCheckCircle className={styles.statusIcon} />,
+      approved: <FiCheckCircle className={styles.statusIcon} />,
       pending: <FiClock className={styles.statusIcon} />,
-      failed: <FiXCircle className={styles.statusIcon} />
+      rejected: <FiXCircle className={styles.statusIcon} />,
     };
 
     return (
-      <span className={`${styles.statusBadge} ${statusClasses[status] || ''}`}>
-        {statusIcons[status]}
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+      <span
+        className={`${styles.statusBadge} ${
+          statusClasses[normalizedStatus] || ""
+        }`}
+      >
+        {statusIcons[normalizedStatus]}
+        {status ? status.charAt(0).toUpperCase() + status.slice(1) : "Unknown"}
       </span>
     );
   };
 
   const getTypeIcon = (type) => {
-    switch (type) {
-      case 'Domestic Transfer':
-        return <FiDollarSign className={styles.typeIcon} />;
-      case 'International Transfer':
-        return <FiCreditCard className={styles.typeIcon} />;
-      case 'Bill Payment':
-        return <FiFileText className={styles.typeIcon} />;
-      default:
-        return <FiDollarSign className={styles.typeIcon} />;
-    }
+    // Since we don't have type in our transaction data, we'll use a default icon
+    return <FiDollarSign className={styles.typeIcon} />;
   };
 
   const filteredTransactions = useMemo(() => {
-    return transactions.filter(txn => {
-      // Filter by status
-      if (statusFilter !== 'all' && txn.status !== statusFilter) {
-        return false;
-      }
+    if (!searchTerm.trim()) return transactions;
 
-      // Filter by search term
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        return (
-          txn.id.toLowerCase().includes(searchLower) ||
-          txn.beneficiary.toLowerCase().includes(searchLower) ||
-          txn.accountNumber.toLowerCase().includes(searchLower) ||
-          txn.reference.toLowerCase().includes(searchLower) ||
-          txn.amount.toString().includes(searchTerm)
-        );
-      }
-
-      return true;
+    const searchLower = searchTerm.toLowerCase();
+    return transactions.filter((txn) => {
+      return (
+        (txn.id || txn._id || "").toLowerCase().includes(searchLower) ||
+        (txn.senderName || "").toLowerCase().includes(searchLower) ||
+        (txn.recipientName || "").toLowerCase().includes(searchLower) ||
+        (txn.senderAccountNumber || "").toLowerCase().includes(searchLower) ||
+        (txn.recipientAccountNumber || "")
+          .toLowerCase()
+          .includes(searchLower) ||
+        (txn.amount || "").toString().includes(searchTerm)
+      );
     });
-  }, [transactions, searchTerm, statusFilter]);
+  }, [transactions, searchTerm]);
 
   return (
-  <div className={styles.pageWrapper}>
-    <main className={styles.mainContent}>
-      <div className={styles.topBar}>
-        <Link to="/dashboard" className={styles.backLink}>
-          <FiArrowLeft className={styles.backIcon} /> Back to Dashboard
-        </Link>
-      </div>
-
-      <header className={styles.pageHeader}>
-        <h1 className={styles.heading}>Transaction History</h1>
-        <div className={styles.subheading}>
-          <span className={styles.iconPill} aria-hidden>
-            <FiFileText />
-          </span>
-          View and manage all transactions
+    <div className={styles.pageWrapper}>
+      <main className={styles.mainContent}>
+        <div className={styles.topBar}>
+          <Link to="/dashboard" className={styles.backLink}>
+            <FiArrowLeft className={styles.backIcon} /> Back to Dashboard
+          </Link>
         </div>
-      </header>
+
+        <header className={styles.pageHeader}>
+          <h1 className={styles.heading}>Transaction History</h1>
+          <div className={styles.subheading}>
+            <span className={styles.iconPill} aria-hidden>
+              <FiFileText />
+            </span>
+            View and manage all transactions
+          </div>
+        </header>
 
         <div className={styles.toolbar}>
           <div className={styles.searchAndFilter}>
@@ -183,63 +175,71 @@ const TransactionHistory = () => {
           </div>
         </div>
 
-      <div className={styles.tableWrapper}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Transaction ID</th>
-              <th>Type</th>
-              <th>Details</th>
-              <th>Amount</th>
-              <th>Date</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTransactions.length > 0 ? (
-              filteredTransactions.map((txn) => (
-                <tr key={txn.id} className={styles.tableRow}>
-                  <td className={styles.idCell}>
-                    <div className={styles.transactionId}>#{txn.id}</div>
-                    <div className={styles.reference}>{txn.reference}</div>
-                  </td>
-                  <td className={styles.typeCell}>
-                    <div className={styles.typeWrapper}>
-                      {getTypeIcon(txn.type)}
-                      <span>{txn.type}</span>
-                    </div>
-                  </td>
-                  <td className={styles.detailsCell}>
-                    <div className={styles.beneficiary}>
-                      <FiUser className={styles.detailIcon} />
-                      {txn.beneficiary}
-                    </div>
-                    <div className={styles.account}>
-                      <FiCreditCard className={styles.detailIcon} />
-                      {txn.accountNumber}
-                    </div>
-                  </td>
-                  <td className={styles.amountCell}>
-                    ${txn.amount.toFixed(2)}
-                  </td>
-                  <td className={styles.dateCell}>
-                    {formatDate(txn.date)}
-                  </td>
-                  <td className={styles.statusCell}>
-                    {getStatusBadge(txn.status)}
-                  </td>
+        {error && <div className={styles.errorMessage}>{error}</div>}
+
+        <div className={styles.tableWrapper}>
+          {isLoading ? (
+            <div className={styles.loadingState}>
+              Loading transaction history...
+            </div>
+          ) : (
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Transaction ID</th>
+                  <th>Details</th>
+                  <th>Amount</th>
+                  <th>Date</th>
+                  <th>Status</th>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className={styles.noResults}>
-                  No transactions found matching your criteria
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+              </thead>
+              <tbody>
+                {filteredTransactions.length > 0 ? (
+                  filteredTransactions.map((txn) => (
+                    <tr key={txn.id || txn._id} className={styles.tableRow}>
+                      <td className={styles.idCell}>
+                        <div className={styles.transactionId}>
+                          #{txn.id || txn._id}
+                        </div>
+                        <div className={styles.reference}>
+                          {txn.reason || "—"}
+                        </div>
+                      </td>
+                      <td className={styles.detailsCell}>
+                        <div className={styles.beneficiary}>
+                          <FiUser className={styles.detailIcon} />
+                          {txn.senderName} → {txn.recipientName}
+                        </div>
+                        <div className={styles.account}>
+                          <FiCreditCard className={styles.detailIcon} />
+                          {txn.senderAccountNumber || "—"} →{" "}
+                          {txn.recipientAccountNumber || "—"}
+                        </div>
+                      </td>
+                      <td className={styles.amountCell}>
+                        {formatMoney(txn.amount, txn.currency)}
+                      </td>
+                      <td className={styles.dateCell}>
+                        {formatDate(txn.createdAtEpoch)}
+                      </td>
+                      <td className={styles.statusCell}>
+                        {getStatusBadge(txn.status)}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className={styles.noResults}>
+                      {searchTerm
+                        ? "No transactions found matching your criteria"
+                        : "No transaction history available"}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
       </main>
     </div>
   );

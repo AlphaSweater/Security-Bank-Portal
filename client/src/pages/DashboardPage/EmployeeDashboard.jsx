@@ -56,6 +56,9 @@ function PendingTransactionPreview({ transaction }) {
     maximumFractionDigits: 2,
   }).format(Number(transaction.amount) || 0);
 
+  // Handle both id and _id fields
+  const transactionId = transaction.id || transaction._id;
+
   // Format date - handle both epoch timestamps and date strings
   const formatDate = (tx) => {
     if (tx.createdAtEpoch) {
@@ -75,27 +78,27 @@ function PendingTransactionPreview({ transaction }) {
   };
 
   const getRiskBadge = (riskLevel) => {
-    if (!riskLevel || riskLevel === "none") return null;
+    const level = riskLevel || "none";
 
     const riskClasses = {
       high: styles.riskHigh,
       medium: styles.riskMedium,
       low: styles.riskLow,
+      none: styles.riskNone,
     };
 
     return (
-      <span className={`${styles.riskBadge} ${riskClasses[riskLevel] || ""}`}>
-        {riskLevel.toUpperCase()}
+      <span className={`${styles.riskBadge} ${riskClasses[level] || ""}`}>
+        {level.toUpperCase()}
       </span>
     );
   };
 
-  const recipientName =
-    transaction.recipient || transaction.recipientAccountNumber || "Unknown";
+  const senderName = transaction.senderName || "Unknown Sender";
 
   return (
     <Link
-      to={`/transactions/review/${transaction.id}`}
+      to={`/transactions/review/${transactionId}`}
       className={styles.transactionItem}
       style={{ textDecoration: "none", color: "inherit" }}
     >
@@ -103,8 +106,8 @@ function PendingTransactionPreview({ transaction }) {
         <FiClock />
       </div>
       <div className={styles.transactionDetails}>
-        <div className={styles.transactionName} title={recipientName}>
-          {recipientName}
+        <div className={styles.transactionName} title={senderName}>
+          {senderName}
         </div>
         <div className={styles.transactionDate}>{formatDate(transaction)}</div>
       </div>
@@ -342,7 +345,7 @@ function EmployeeDashboard({ role }) {
               ) : (
                 pendingTransactions.map((transaction) => (
                   <PendingTransactionPreview
-                    key={transaction.id}
+                    key={transaction.id || transaction._id}
                     transaction={transaction}
                   />
                 ))

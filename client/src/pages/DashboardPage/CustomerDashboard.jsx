@@ -55,7 +55,9 @@ function CustomerDashboard() {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const itemsPerPage = 10;
+  const [nextCursor, setNextCursor] = useState(null);
+  const [cursorStack, setCursorStack] = useState([null]); // cursor for each page start (page 1 starts at null)
+  const itemsPerPage = 3;
 
   useEffect(() => {
     let cancelled = false;
@@ -66,24 +68,16 @@ function CustomerDashboard() {
         setError(null);
 
         const data = await apiRequest(
-          `/api/customers/dashboard?limit=${itemsPerPage + 1}`,
-          {
-            method: "GET",
-          }
+          `/api/customers/dashboard?limit=${itemsPerPage}`,
+          { method: "GET" }
         );
 
         if (cancelled) return;
 
-        // Check if there are more items for pagination
-        const items = data?.transactions?.items || [];
-        const hasMoreItems = items.length > itemsPerPage;
-
-        // Store only the items for current page
-        if (hasMoreItems) {
-          data.transactions.items = items.slice(0, itemsPerPage);
-        }
-
-        setHasMore(hasMoreItems);
+        // Use server-provided cursor for pagination
+        setNextCursor(data?.transactions?.nextCursor || null);
+        setHasMore(!!data?.transactions?.nextCursor);
+        setCursorStack([null]);
         setDashboardData(data);
       } catch (err) {
         if (cancelled) return;
@@ -114,44 +108,41 @@ function CustomerDashboard() {
     try {
       setIsLoading(true);
       setError(null);
-      setCurrentPage(page);
 
-      // Calculate cursor for pagination
-      const allTransactions = dashboardData?.transactions?.items || [];
-      const startIndex = (page - 1) * itemsPerPage;
+      // Determine navigation direction
+      const goingNext = page > currentPage;
+      const goingPrev = page < currentPage;
 
-      // If we already have the data, just paginate locally
-      if (allTransactions.length >= startIndex + itemsPerPage || page === 1) {
-        // Use local data
-        setIsLoading(false);
-        return;
+      let afterCursor = null;
+      if (page === 1) {
+        afterCursor = null;
+      } else if (goingNext) {
+        afterCursor = nextCursor;
+      } else if (goingPrev) {
+        // Use the stored cursor for the target page
+        afterCursor = cursorStack[page - 1] || null;
       }
-
-      // Otherwise fetch new data with cursor
-      const lastTransaction = allTransactions[allTransactions.length - 1];
-      const after = lastTransaction
-        ? `${lastTransaction.createdAtEpoch}:${lastTransaction._id}`
-        : undefined;
 
       const data = await apiRequest(
-        `/api/customers/dashboard?limit=${itemsPerPage + 1}${
-          after ? `&after=${after}` : ""
-        }`,
-        {
-          method: "GET",
-        }
+        `/api/customers/dashboard?limit=${itemsPerPage}${afterCursor ? `&after=${encodeURIComponent(afterCursor)}` : ""}`,
+        { method: "GET" }
       );
 
-      // Check if there are more items
-      const items = data?.transactions?.items || [];
-      const hasMoreItems = items.length > itemsPerPage;
+      // Update cursors and state
+      const newNextCursor = data?.transactions?.nextCursor || null;
+      setNextCursor(newNextCursor);
+      setHasMore(!!newNextCursor);
 
-      if (hasMoreItems) {
-        data.transactions.items = items.slice(0, itemsPerPage);
+      if (goingNext) {
+        setCursorStack((prev) => [...prev, afterCursor]);
+      } else if (goingPrev) {
+        setCursorStack((prev) => prev.slice(0, page));
+      } else {
+        setCursorStack([null]);
       }
 
-      setHasMore(hasMoreItems);
       setDashboardData(data);
+      setCurrentPage(page);
     } catch (err) {
       setError(err.message || "Failed to load page");
     } finally {

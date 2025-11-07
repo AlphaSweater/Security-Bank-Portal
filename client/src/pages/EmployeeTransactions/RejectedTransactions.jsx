@@ -1,74 +1,79 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FiXCircle, FiEye } from "react-icons/fi";
 import Button from "../../components/Common/Button/Button";
 import SearchBar from "../../components/SearchBar/SearchBar";
+import { apiRequest } from "../../utils/apiUtil";
 import styles from "./RejectedTransactions.module.css";
 
-// Mock data - replace with API call later
-const mockRejected = [
-  {
-    id: "TXN-112233",
-    sender: "Global Corp",
-    recipient: "John Smith",
-    amount: 1500.0,
-    currency: "ZAR",
-    createdAt: "2025-11-02 09:30",
-    rejectedBy: "admin@example.com",
-    rejectedAt: "2025-11-02 10:15",
-    reason: "Insufficient documentation"
-  },
-  {
-    id: "TXN-445566",
-    sender: "Tech Solutions",
-    recipient: "Jane Doe",
-    amount: 2750.5,
-    currency: "ZAR",
-    createdAt: "2025-11-01 14:20",
-    rejectedBy: "manager@example.com",
-    rejectedAt: "2025-11-01 15:00",
-    reason: "Suspicious activity detected"
-  },
-  {
-    id: "TXN-778899",
-    sender: "Innovate Ltd",
-    recipient: "Mike Johnson",
-    amount: 3200.0,
-    currency: "ZAR",
-    createdAt: "2025-10-31 11:45",
-    rejectedBy: "admin@example.com",
-    rejectedAt: "2025-10-31 12:30",
-    reason: "Amount exceeds limit"
-  }
-];
-
-function formatMoney(value) {
-  return new Intl.NumberFormat('en-ZA', {
-    style: 'currency',
-    currency: 'ZAR',
+function formatMoney(value, currency = "ZAR") {
+  return new Intl.NumberFormat("en-ZA", {
+    style: "currency",
+    currency: currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(Number(value) || 0);
 }
 
+function formatDate(epoch) {
+  if (!epoch) return "—";
+  const date = new Date(epoch * 1000);
+  return date.toLocaleString("en-ZA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 const RejectedTransactions = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [transactions, setTransactions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Fetch rejected transactions from API
+  useEffect(() => {
+    const fetchRejectedTransactions = async () => {
+      setIsLoading(true);
+      setError("");
+      try {
+        const params = new URLSearchParams({
+          status: "rejected",
+          limit: "100",
+        });
+        const data = await apiRequest(
+          `/api/employees/reviewed-transactions?${params}`
+        );
+        setTransactions(data.items || []);
+      } catch (err) {
+        console.error("Failed to fetch rejected transactions:", err);
+        setError(err.message || "Failed to load rejected transactions");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRejectedTransactions();
+  }, []);
 
   const filteredRejected = useMemo(() => {
-    if (!searchTerm.trim()) return mockRejected;
-    
+    if (!searchTerm.trim()) return transactions;
+
     const searchLower = searchTerm.toLowerCase();
-    return mockRejected.filter(txn => 
-      txn.id.toLowerCase().includes(searchLower) ||
-      txn.sender.toLowerCase().includes(searchLower) ||
-      txn.recipient.toLowerCase().includes(searchLower) ||
-      txn.amount.toString().includes(searchTerm) ||
-      txn.rejectedBy.toLowerCase().includes(searchLower) ||
-      txn.reason.toLowerCase().includes(searchLower)
+    return transactions.filter(
+      (txn) =>
+        (txn.id || txn._id || "").toLowerCase().includes(searchLower) ||
+        (txn.senderName || "").toLowerCase().includes(searchLower) ||
+        (txn.recipientName || "").toLowerCase().includes(searchLower) ||
+        (txn.amount || "").toString().includes(searchTerm) ||
+        (txn.reviewedBy || "").toLowerCase().includes(searchLower) ||
+        (txn.reason || "").toLowerCase().includes(searchLower)
     );
-  }, [searchTerm]);
-  
+  }, [searchTerm, transactions]);
+
   return (
     <div className={styles.pageWrapper}>
       <main className={styles.mainContent}>
@@ -83,7 +88,7 @@ const RejectedTransactions = () => {
             </span>
             View all rejected transactions
           </div>
-          
+
           <div className={styles.searchContainer}>
             <SearchBar
               searchTerm={searchTerm}
@@ -94,67 +99,77 @@ const RejectedTransactions = () => {
           </div>
         </div>
 
+        {error && <div className={styles.errorMessage}>{error}</div>}
+
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h3>Rejection History</h3>
             <div className={styles.queueCount}>
-              {filteredRejected.length} rejected
+              {isLoading ? "Loading..." : `${filteredRejected.length} rejected`}
             </div>
           </div>
 
           <div className={styles.tableWrapper}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Transaction ID</th>
-                  <th>Sender</th>
-                  <th>Recipient</th>
-                  <th>Amount</th>
-                  <th>Currency</th>
-                  <th>Created</th>
-                  <th>Rejected By</th>
-                  <th>Rejected At</th>
-                  <th>Reason</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRejected.length > 0 ? (
-                  filteredRejected.map((t) => (
-                  <tr key={t.id}>
-                    <td className={styles.mono}>{t.id}</td>
-                    <td>{t.sender}</td>
-                    <td>{t.recipient}</td>
-                    <td>{formatMoney(t.amount)}</td>
-                    <td>{t.currency}</td>
-                    <td>{t.createdAt}</td>
-                    <td>{t.rejectedBy}</td>
-                    <td>{t.rejectedAt}</td>
-                    <td>{t.reason}</td>
-                    <td>
-                      <Button 
-                        size="small" 
-                        variant="outline" 
-                        aria-label={`View ${t.id}`} 
-                        onClick={() => navigate(`/transactions/review/${t.id}`)}
-                        icon={FiEye}
-                      >
-                        View
-                      </Button>
-                    </td>
-                  </tr>
-                  ))
-                ) : (
+            {isLoading ? (
+              <div className={styles.loadingState}>Loading transactions...</div>
+            ) : (
+              <table className={styles.table}>
+                <thead>
                   <tr>
-                    <td colSpan="10" className={styles.noResults}>
-                      No rejected transactions found matching your search
-                    </td>
+                    <th>Transaction ID</th>
+                    <th>Sender</th>
+                    <th>Recipient</th>
+                    <th>Amount</th>
+                    <th>Currency</th>
+                    <th>Created</th>
+                    <th>Rejected At</th>
+                    <th>Reason</th>
+                    <th>Action</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
-            {mockRejected.length === 0 && (
-              <div className={styles.emptyState}>No rejected transactions found</div>
+                </thead>
+                <tbody>
+                  {filteredRejected.length > 0 ? (
+                    filteredRejected.map((t) => (
+                      <tr key={t.id || t._id}>
+                        <td className={styles.mono}>{t.id || t._id}</td>
+                        <td>{t.senderName || "—"}</td>
+                        <td>{t.recipientName || "—"}</td>
+                        <td>{formatMoney(t.amount, t.currency)}</td>
+                        <td>{t.currency || "ZAR"}</td>
+                        <td>{formatDate(t.createdAtEpoch)}</td>
+                        <td>{formatDate(t.statusUpdatedAtEpoch)}</td>
+                        <td>{t.reason || "—"}</td>
+                        <td>
+                          <Button
+                            size="small"
+                            variant="outline"
+                            aria-label={`View ${t.id || t._id}`}
+                            onClick={() =>
+                              navigate(`/transactions/review/${t.id || t._id}`)
+                            }
+                            icon={FiEye}
+                          >
+                            View
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="9" className={styles.noResults}>
+                        {searchTerm
+                          ? "No rejected transactions found matching your search"
+                          : "No rejected transactions found"}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
+            {!isLoading && transactions.length === 0 && !error && (
+              <div className={styles.emptyState}>
+                No rejected transactions found
+              </div>
             )}
           </div>
         </div>

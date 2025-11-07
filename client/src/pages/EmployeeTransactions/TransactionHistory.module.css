@@ -36,8 +36,6 @@
   margin-right: 0.5rem;
 }
 
-
-
 .heading {
   color: #fffffe;
   font-size: 2rem;
@@ -173,7 +171,8 @@
   border-radius: 16px;
   padding: 1.5rem;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   overflow-x: auto;
   width: 100%;
 }
@@ -236,7 +235,8 @@
   min-width: 200px;
 }
 
-.beneficiary, .account {
+.beneficiary,
+.account {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -259,7 +259,7 @@
 }
 
 .amountCell {
-  font-family: 'Roboto Mono', monospace;
+  font-family: "Roboto Mono", monospace;
   font-weight: 600;
   color: #e2e8f0;
   text-align: right;
@@ -316,7 +316,8 @@
   .container {
     padding: 1.25rem;
   }
-  .table th, .table td {
+  .table th,
+  .table td {
     padding: 0.85rem 1rem;
   }
 }
@@ -340,8 +341,14 @@
 
 /* Animation for table rows */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .table tbody tr {
@@ -349,12 +356,24 @@
   opacity: 0;
 }
 
-.table tbody tr:nth-child(1) { animation-delay: 0.05s; }
-.table tbody tr:nth-child(2) { animation-delay: 0.1s; }
-.table tbody tr:nth-child(3) { animation-delay: 0.15s; }
-.table tbody tr:nth-child(4) { animation-delay: 0.2s; }
-.table tbody tr:nth-child(5) { animation-delay: 0.25s; }
-.table tbody tr:nth-child(6) { animation-delay: 0.3s; }
+.table tbody tr:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.table tbody tr:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.table tbody tr:nth-child(3) {
+  animation-delay: 0.15s;
+}
+.table tbody tr:nth-child(4) {
+  animation-delay: 0.2s;
+}
+.table tbody tr:nth-child(5) {
+  animation-delay: 0.25s;
+}
+.table tbody tr:nth-child(6) {
+  animation-delay: 0.3s;
+}
 
 .searchInput {
   width: 100%;
@@ -461,7 +480,6 @@
   padding: 0 !important;
   outline: none !important;
 }
-
 
 .searchInput {
   width: 100%;
@@ -671,7 +689,7 @@
 }
 
 .transactionCard::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -810,6 +828,27 @@
   font-size: 0.95rem;
   font-weight: 500;
   word-break: break-word;
+}
+
+/* Loading State */
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #b8c1ec;
+  font-size: 1rem;
+}
+
+/* Error Message */
+.errorMessage {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
 }
 
 .failureReason {
