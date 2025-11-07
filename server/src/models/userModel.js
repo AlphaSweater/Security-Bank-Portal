@@ -9,6 +9,7 @@ import { ObjectId } from "mongodb";
 export const USER_ROLES = Object.freeze({
   CUSTOMER: "customer",
   EMPLOYEE: "employee",
+  ADMIN: "admin",
 });
 
 const ALLOWED_ROLES = new Set(Object.values(USER_ROLES));
@@ -32,7 +33,7 @@ function toObjectId(id, fieldName = "id") {
   return new ObjectId(value);
 }
 
-// Validates role is one of: customer, employee
+// Validates role is one of: customer, employee, admin
 function validateRole(role) {
   if (!ALLOWED_ROLES.has(role)) {
     throw new Error(
@@ -295,7 +296,7 @@ export async function userExistsById(id) {
  *   _id: ObjectId,
  *   email: String (unique),
  *   passwordHash: String,
- *   role: "customer" | "employee",
+ *   role: "customer" | "employee" | "admin",
  *   createdAt: Date,
  *   updatedAt?: Date
  * }
