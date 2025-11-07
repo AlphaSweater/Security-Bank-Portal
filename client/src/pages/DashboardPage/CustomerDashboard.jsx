@@ -2,11 +2,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  FiArrowUpRight,
-  FiArrowDownRight,
   FiCreditCard,
   FiDollarSign,
   FiTrendingUp,
+  FiClock,
+  FiCalendar,
+  FiChevronLeft,
+  FiChevronRight,
 } from "react-icons/fi";
 
 // Components
@@ -17,15 +19,18 @@ import TransactionItem from "../../components/Common/TransactionItem";
 // Styles
 import styles from "./DashboardPage.module.css";
 
-function StatCard({ title, value, change, isPositive, icon }) {
+function StatCard({ title, value, icon, variant, isCurrency }) {
   const Icon = icon;
-  const formatted = new Intl.NumberFormat("en-ZA", {
-    style: "currency",
-    currency: "ZAR",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(Number(value) || 0);
-  const display = formatted.length > 16 ? formatted.slice(0, 16) + "…" : formatted;
+
+  const displayValue = isCurrency
+    ? new Intl.NumberFormat("en-ZA", {
+        style: "currency",
+        currency: "ZAR",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(Number(value) || 0)
+    : value;
+
   return (
     <div className={styles.statCard}>
       <div className={styles.statHeader}>
@@ -34,27 +39,9 @@ function StatCard({ title, value, change, isPositive, icon }) {
         </div>
         <span className={styles.statTitle}>{title}</span>
       </div>
-      <div
-        className={`${styles.statValue} ${
-          isPositive === true
-            ? styles.positive
-            : isPositive === false
-            ? styles.negative
-            : ""
-        }`}
-      >
-        {display}
+      <div className={`${styles.statValue} ${variant ? styles[variant] : ""}`}>
+        {displayValue}
       </div>
-      {change !== undefined && (
-        <div
-          className={`${styles.statChange} ${
-            isPositive ? styles.positive : styles.negative
-          }`}
-        >
-          {isPositive ? <FiArrowUpRight /> : <FiArrowDownRight />}
-          {Math.abs(change)}% from last month
-        </div>
-      )}
     </div>
   );
 }
@@ -64,74 +51,50 @@ function CustomerDashboard() {
   const [workInProgressMessage, setWorkInProgressMessage] = useState(
     "This feature is a work in progress and will be implemented later."
   );
-  const [profileName, setProfileName] = useState("");
-  const [isWelcomeLoading, setIsWelcomeLoading] = useState(true);
-  const [recentTransactions, setRecentTransactions] = useState([]);
-  const [isTransactionsLoading, setIsTransactionsLoading] = useState(true);
-  const [summaryTotals, setSummaryTotals] = useState({
-    income: 0,
-    expenses: 0,
-    balance: 0,
-  });
+  const [dashboardData, setDashboardData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     let cancelled = false;
-    async function loadProfile() {
-      try {
-        const data = await apiRequest("/api/users/me");
-        if (cancelled) return;
-        const user = data?.user;
-        const first = user?.firstName;
-        const last = user?.lastName;
-        const full = [first, last].filter(Boolean).join(" ").trim();
-        setProfileName(full || "User");
-      } finally {
-        if (!cancelled) setIsWelcomeLoading(false);
-      }
-    }
-    loadProfile();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function loadTransactions() {
+    async function loadDashboard() {
       try {
-        const data = await apiRequest("/api/users/me/transactions");
+        setIsLoading(true);
+        setError(null);
+
+        const data = await apiRequest(
+          `/api/customers/dashboard?limit=${itemsPerPage + 1}`,
+          {
+            method: "GET",
+          }
+        );
+
         if (cancelled) return;
-        const items = Array.isArray(data?.items) ? data.items : [];
-        const toZar = {
-          ZAR: 1,
-          USD: 18.75,
-          EUR: 19.95,
-          GBP: 22.9,
-          JPY: 0.125,
-          CAD: 13.8,
-          AUD: 12.1,
-        };
-        const income = 0;
-        const expenses = items.reduce((sum, t) => {
-          const amt = Number(t.amount) || 0;
-          const code = (t.currencyCode || "ZAR").toUpperCase();
-          const rate = toZar[code] || 1;
-          return sum + amt * rate;
-        }, 0);
-        const balance = income - expenses;
-        setSummaryTotals({ income, expenses, balance });
-        const sorted = items
-          .slice()
-          .sort((a, b) => (b.createdAtEpoch || 0) - (a.createdAtEpoch || 0));
-        setRecentTransactions(sorted.slice(0, 3));
-      } catch {
-        setRecentTransactions([]);
-        setSummaryTotals({ income: 0, expenses: 0, balance: 0 });
+
+        // Check if there are more items for pagination
+        const items = data?.transactions?.items || [];
+        const hasMoreItems = items.length > itemsPerPage;
+
+        // Store only the items for current page
+        if (hasMoreItems) {
+          data.transactions.items = items.slice(0, itemsPerPage);
+        }
+
+        setHasMore(hasMoreItems);
+        setDashboardData(data);
+      } catch (err) {
+        if (cancelled) return;
+        setError(err.message || "Failed to load dashboard");
       } finally {
-        if (!cancelled) setIsTransactionsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     }
-    loadTransactions();
+
+    loadDashboard();
     return () => {
       cancelled = true;
     };
@@ -146,13 +109,85 @@ function CustomerDashboard() {
     setIsWorkInProgressOpen(false);
   }
 
+  async function loadPage(page) {
+    if (page < 1) return;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      setCurrentPage(page);
+
+      // Calculate cursor for pagination
+      const allTransactions = dashboardData?.transactions?.items || [];
+      const startIndex = (page - 1) * itemsPerPage;
+
+      // If we already have the data, just paginate locally
+      if (allTransactions.length >= startIndex + itemsPerPage || page === 1) {
+        // Use local data
+        setIsLoading(false);
+        return;
+      }
+
+      // Otherwise fetch new data with cursor
+      const lastTransaction = allTransactions[allTransactions.length - 1];
+      const after = lastTransaction
+        ? `${lastTransaction.createdAtEpoch}:${lastTransaction._id}`
+        : undefined;
+
+      const data = await apiRequest(
+        `/api/customers/dashboard?limit=${itemsPerPage + 1}${
+          after ? `&after=${after}` : ""
+        }`,
+        {
+          method: "GET",
+        }
+      );
+
+      // Check if there are more items
+      const items = data?.transactions?.items || [];
+      const hasMoreItems = items.length > itemsPerPage;
+
+      if (hasMoreItems) {
+        data.transactions.items = items.slice(0, itemsPerPage);
+      }
+
+      setHasMore(hasMoreItems);
+      setDashboardData(data);
+    } catch (err) {
+      setError(err.message || "Failed to load page");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function handlePreviousPage() {
+    if (currentPage > 1) {
+      loadPage(currentPage - 1);
+    }
+  }
+
+  function handleNextPage() {
+    if (hasMore) {
+      loadPage(currentPage + 1);
+    }
+  }
+
+  // Derived data
+  const user = dashboardData?.user || {};
+  const profileName =
+    [user.firstName, user.lastName].filter(Boolean).join(" ").trim() || "User";
+
+  const summary = dashboardData?.summary || { total: 0, byStatus: {} };
+  const monthStats = dashboardData?.monthStats || { count: 0, totalVolume: 0 };
+  const recentTransactions = dashboardData?.transactions?.items || [];
+
   return (
     <div className={styles.pageWrapper}>
       <main className={styles.mainContent}>
         <div className={styles.pageHeader}>
           <h1 className={styles.heading}>Dashboard</h1>
           <div className={styles.welcome} aria-live="polite">
-            {isWelcomeLoading ? (
+            {isLoading ? (
               "Welcome back, ..."
             ) : (
               <>
@@ -163,50 +198,46 @@ function CustomerDashboard() {
           </div>
         </div>
 
+        {error && (
+          <div className={styles.errorBanner} role="alert">
+            <strong>Error:</strong> {error}
+          </div>
+        )}
+
         <div className={styles.statsGrid}>
           <StatCard
-            title="Total Balance"
-            value={summaryTotals.balance}
-            isPositive={summaryTotals.balance >= 0}
+            title="Transactions This Month"
+            value={monthStats.count}
+            icon={FiCalendar}
+          />
+          <StatCard
+            title="Sent This Month"
+            value={monthStats.totalVolume}
             icon={FiDollarSign}
+            isCurrency
           />
           <StatCard
-            title="Income"
-            value={summaryTotals.income}
-            icon={FiTrendingUp}
-          />
-          <StatCard
-            title="Expenses"
-            value={summaryTotals.expenses}
-            isPositive={false}
-            icon={FiCreditCard}
+            title="Pending Transactions"
+            value={summary.byStatus?.pending || 0}
+            icon={FiClock}
+            variant="warning"
           />
         </div>
 
         <div className={styles.dashboardGrid}>
           <div className={styles.card}>
             <div className={styles.cardHeader}>
-              <h3>Recent Transactions</h3>
-              <button
-                type="button"
-                className={styles.viewAll}
-                onClick={() =>
-                  openWorkInProgress(
-                    "The full transactions list is coming soon."
-                  )
-                }
-              >
-                View All
-              </button>
+              <h3>Your Transactions</h3>
+              <div className={styles.paginationInfo}>Page {currentPage}</div>
             </div>
             <div className={styles.transactionsList}>
-              {isTransactionsLoading ? (
+              {isLoading ? (
                 <div className={styles.transactionSkeleton}>
                   Loading transactions…
                 </div>
               ) : recentTransactions.length === 0 ? (
                 <div className={styles.transactionEmpty}>
-                  No recent transactions
+                  No transactions found
                 </div>
               ) : (
                 recentTransactions.map((transaction) => (
@@ -218,6 +249,31 @@ function CustomerDashboard() {
                 ))
               )}
             </div>
+            {!isLoading && recentTransactions.length > 0 && (
+              <div className={styles.paginationControls}>
+                <button
+                  type="button"
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                  className={styles.paginationButton}
+                  aria-label="Previous page"
+                >
+                  <FiChevronLeft />
+                  <span>Previous</span>
+                </button>
+                <span className={styles.pageIndicator}>Page {currentPage}</span>
+                <button
+                  type="button"
+                  onClick={handleNextPage}
+                  disabled={!hasMore}
+                  className={styles.paginationButton}
+                  aria-label="Next page"
+                >
+                  <span>Next</span>
+                  <FiChevronRight />
+                </button>
+              </div>
+            )}
           </div>
 
           <div className={styles.card}>

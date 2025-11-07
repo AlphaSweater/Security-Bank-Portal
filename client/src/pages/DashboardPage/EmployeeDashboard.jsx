@@ -1,5 +1,5 @@
 // External Dependencies
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   FiClock,
@@ -8,6 +8,9 @@ import {
   FiList,
   FiFileText,
   FiTrendingUp,
+  FiAlertTriangle,
+  FiActivity,
+  FiDollarSign,
 } from "react-icons/fi";
 
 // Components
@@ -17,8 +20,11 @@ import Button from "../../components/Common/Button/Button";
 // Styles
 import styles from "./DashboardPage.module.css";
 
-function StatCard({ title, value, icon, colorClass }) {
+function StatCard({ title, value, icon, colorClass, subtitle }) {
   const Icon = icon;
+  // Convert value to string for tooltip
+  const valueStr = typeof value === "number" ? value.toString() : value;
+
   return (
     <div className={styles.statCard}>
       <div className={styles.statHeader}>
@@ -27,7 +33,17 @@ function StatCard({ title, value, icon, colorClass }) {
         </div>
         <span className={styles.statTitle}>{title}</span>
       </div>
-      <div className={`${styles.statValue} ${colorClass || ""}`}>{value}</div>
+      <div
+        className={`${styles.statValue} ${colorClass || ""}`}
+        title={valueStr}
+      >
+        {value}
+      </div>
+      {subtitle && (
+        <div className={styles.statSubtitle} title={subtitle}>
+          {subtitle}
+        </div>
+      )}
     </div>
   );
 }
@@ -43,7 +59,7 @@ function PendingTransactionPreview({ transaction }) {
   // Format date - handle both epoch timestamps and date strings
   const formatDate = (tx) => {
     if (tx.createdAtEpoch) {
-      const date = new Date(tx.createdAtEpoch);
+      const date = new Date(tx.createdAtEpoch * 1000);
       const now = new Date();
       const diffMs = now - date;
       const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
@@ -58,6 +74,25 @@ function PendingTransactionPreview({ transaction }) {
     return tx.date || "Unknown date";
   };
 
+  const getRiskBadge = (riskLevel) => {
+    if (!riskLevel || riskLevel === "none") return null;
+
+    const riskClasses = {
+      high: styles.riskHigh,
+      medium: styles.riskMedium,
+      low: styles.riskLow,
+    };
+
+    return (
+      <span className={`${styles.riskBadge} ${riskClasses[riskLevel] || ""}`}>
+        {riskLevel.toUpperCase()}
+      </span>
+    );
+  };
+
+  const recipientName =
+    transaction.recipient || transaction.recipientAccountNumber || "Unknown";
+
   return (
     <Link
       to={`/transactions/review/${transaction.id}`}
@@ -68,17 +103,21 @@ function PendingTransactionPreview({ transaction }) {
         <FiClock />
       </div>
       <div className={styles.transactionDetails}>
-        <div className={styles.transactionName}>
-          {transaction.recipient ||
-            transaction.recipientAccountNumber ||
-            "Unknown"}
+        <div className={styles.transactionName} title={recipientName}>
+          {recipientName}
         </div>
         <div className={styles.transactionDate}>{formatDate(transaction)}</div>
       </div>
-      <div className={`${styles.statusPill} ${styles.statusPending}`}>
-        Pending
+      <div className={styles.transactionBadges}>
+        {getRiskBadge(transaction.riskLevel)}
+        <span className={`${styles.statusPill} ${styles.statusPending}`}>
+          Pending
+        </span>
       </div>
-      <div className={`${styles.transactionAmount} ${styles.expense}`}>
+      <div
+        className={`${styles.transactionAmount} ${styles.expense}`}
+        title={formatted}
+      >
         {formatted}
       </div>
     </Link>
@@ -87,87 +126,71 @@ function PendingTransactionPreview({ transaction }) {
 
 function EmployeeDashboard({ role }) {
   const [profileName, setProfileName] = useState("");
-  const [isWelcomeLoading, setIsWelcomeLoading] = useState(true);
-  const [pendingTransactions, setPendingTransactions] = useState([]);
-  const [isTransactionsLoading, setIsTransactionsLoading] = useState(true);
-  const [stats, setStats] = useState({
-    pending: 0,
-    approved: 0,
-    rejected: 0,
-  });
-  const [transactionsError, setTransactionsError] = useState("");
-  const mountedRef = useRef(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [error, setError] = useState("");
 
-  async function fetchPendingTransactions() {
+  // Fetch dashboard data from the new unified endpoint
+  const fetchDashboard = useCallback(async () => {
     try {
-      setIsTransactionsLoading(true);
-      setTransactionsError("");
-      // TODO: Replace with actual employee transactions endpoint
-      const data = await apiRequest("/api/transactions/pending");
-      if (!mountedRef.current) return;
+      setIsLoading(true);
+      setError("");
 
-      const items = Array.isArray(data?.transactions) ? data.transactions : [];
+      const [userResponse, dashboardResponse] = await Promise.all([
+        apiRequest("/api/users/me"),
+        apiRequest("/api/employees/dashboard"),
+      ]);
 
-      // Calculate stats
-      const pending = items.filter((t) => t.status === "pending").length;
-      const approved = items.filter((t) => t.status === "approved").length;
-      const rejected = items.filter((t) => t.status === "rejected").length;
+      // Set user profile
+      const user = userResponse?.user;
+      const firstName = user?.firstName;
+      const lastName = user?.lastName;
+      const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
+      setProfileName(fullName || "Employee");
 
-      if (!mountedRef.current) return;
-      setStats({ pending, approved, rejected });
-
-      // Show only pending transactions, sorted by most recent
-      const pendingOnly = items
-        .filter((t) => t.status === "pending")
-        .sort((a, b) => (b.createdAtEpoch || 0) - (a.createdAtEpoch || 0))
-        .slice(0, 5); // Show top 5
-
-      if (!mountedRef.current) return;
-      setPendingTransactions(pendingOnly);
+      // Set dashboard data
+      setDashboardData(dashboardResponse);
     } catch (err) {
-      if (!mountedRef.current) return;
-      setPendingTransactions([]);
-      setStats({ pending: 0, approved: 0, rejected: 0 });
-      setTransactionsError(err?.message || "Failed to load transactions");
+      setError(err?.message || "Failed to load dashboard");
       // eslint-disable-next-line no-console
-      console.error("Failed to load pending transactions:", err);
+      console.error("Failed to load dashboard:", err);
     } finally {
-      if (mountedRef.current) setIsTransactionsLoading(false);
+      setIsLoading(false);
     }
-  }
+  }, []);
 
-  // Load employee profile
   useEffect(() => {
-    let cancelled = false;
-    async function loadProfile() {
-      try {
-        const data = await apiRequest("/api/users/me");
-        if (cancelled) return;
-        const user = data?.user;
-        const first = user?.firstName;
-        const last = user?.lastName;
-        const full = [first, last].filter(Boolean).join(" ").trim();
-        setProfileName(full || "Employee");
-      } catch (err) {
-        if (!cancelled) setProfileName("Employee");
-      } finally {
-        if (!cancelled) setIsWelcomeLoading(false);
+    fetchDashboard();
+  }, [fetchDashboard]);
+
+  // Format currency
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat("en-ZA", {
+      style: "currency",
+      currency: "ZAR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(Number(value) || 0);
+  };
+
+  // Calculate stats from dashboard data
+  const stats = dashboardData
+    ? {
+        pending: dashboardData.overview?.pendingCount || 0,
+        approvalRate: dashboardData.metrics?.approvalRate || 0,
+        rejectionRate: dashboardData.metrics?.rejectionRate || 0,
+        totalVolume: dashboardData.overview?.totalVolume || 0,
+        totalTransactions: dashboardData.overview?.totalTransactions || 0,
+        avgReviewTime: dashboardData.myPerformance?.avgReviewTime || 0,
+        myTotal: dashboardData.myPerformance?.total || 0,
+        myApprovalRate: dashboardData.myPerformance?.approvalRate || 0,
       }
-    }
-    loadProfile();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    : null;
 
-  // Load pending transactions for employee review
-  useEffect(() => {
-    mountedRef.current = true;
-    fetchPendingTransactions();
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
+  const pendingTransactions = dashboardData?.queue?.recentItems || [];
+  const queueStats = dashboardData?.queue?.stats || {};
+  const systemHealth = dashboardData?.systemHealth || {};
+  const riskDistribution = dashboardData?.riskDistribution || {};
 
   return (
     <div className={styles.pageWrapper}>
@@ -177,7 +200,7 @@ function EmployeeDashboard({ role }) {
             {role === "admin" ? "Admin Dashboard" : "Employee Dashboard"}
           </h1>
           <div className={styles.welcome} aria-live="polite">
-            {isWelcomeLoading ? (
+            {isLoading ? (
               "Welcome back, ..."
             ) : (
               <>
@@ -188,46 +211,125 @@ function EmployeeDashboard({ role }) {
           </div>
         </div>
 
-        <div className={styles.statsGrid}>
-          <StatCard
-            title="Pending Review"
-            value={stats.pending}
-            icon={FiClock}
-            colorClass={styles.pending}
-          />
-          <StatCard
-            title="Approved Today"
-            value={stats.approved}
-            icon={FiCheckCircle}
-            colorClass={styles.positive}
-          />
-          <StatCard
-            title="Rejected Today"
-            value={stats.rejected}
-            icon={FiXCircle}
-            colorClass={styles.negative}
-          />
-        </div>
+        {/* System Health Alert */}
+        {systemHealth.status === "attention_needed" && (
+          <div className={styles.healthAlert} role="alert">
+            <FiAlertTriangle />
+            <div>
+              <strong>Attention Needed:</strong> {systemHealth.message}
+            </div>
+          </div>
+        )}
+
+        {/* Main Stats Grid */}
+        {isLoading ? (
+          <div className={styles.statsGrid}>
+            <div className={styles.statSkeleton}>Loading...</div>
+            <div className={styles.statSkeleton}>Loading...</div>
+            <div className={styles.statSkeleton}>Loading...</div>
+            <div className={styles.statSkeleton}>Loading...</div>
+          </div>
+        ) : error ? (
+          <div className={styles.errorCard} role="alert">
+            <div>{error}</div>
+            <Button
+              variant="outline"
+              onClick={fetchDashboard}
+              className={styles.retryButton}
+            >
+              Retry
+            </Button>
+          </div>
+        ) : stats ? (
+          <>
+            <div className={styles.statsGrid}>
+              <StatCard
+                title="Pending Review"
+                value={stats.pending}
+                icon={FiClock}
+                colorClass={styles.pending}
+              />
+              <StatCard
+                title="System Approval Rate"
+                value={`${stats.approvalRate}%`}
+                icon={FiCheckCircle}
+                colorClass={styles.positive}
+                subtitle={`${stats.rejectionRate}% rejected`}
+              />
+              <StatCard
+                title="Total Volume"
+                value={formatCurrency(stats.totalVolume)}
+                icon={FiDollarSign}
+                colorClass={styles.neutral}
+                subtitle={`${stats.totalTransactions} transactions`}
+              />
+              <StatCard
+                title="My Performance"
+                value={`${stats.myApprovalRate}%`}
+                icon={FiActivity}
+                colorClass={styles.highlight}
+                subtitle={`${stats.myTotal} reviewed • ${
+                  stats.avgReviewTime || 0
+                }min avg`}
+              />
+            </div>
+
+            {/* Risk Distribution */}
+            {(riskDistribution.high > 0 ||
+              riskDistribution.medium > 0 ||
+              riskDistribution.low > 0) && (
+              <div className={styles.riskOverview}>
+                <h3>Risk Distribution</h3>
+                <div className={styles.riskStats}>
+                  {riskDistribution.high > 0 && (
+                    <div className={styles.riskStat}>
+                      <span className={styles.riskHigh}>High</span>
+                      <span className={styles.riskCount}>
+                        {riskDistribution.high}
+                      </span>
+                    </div>
+                  )}
+                  {riskDistribution.medium > 0 && (
+                    <div className={styles.riskStat}>
+                      <span className={styles.riskMedium}>Medium</span>
+                      <span className={styles.riskCount}>
+                        {riskDistribution.medium}
+                      </span>
+                    </div>
+                  )}
+                  {riskDistribution.low > 0 && (
+                    <div className={styles.riskStat}>
+                      <span className={styles.riskLow}>Low</span>
+                      <span className={styles.riskCount}>
+                        {riskDistribution.low}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        ) : null}
 
         <div className={styles.dashboardGrid}>
           <div className={styles.card}>
             <div className={styles.cardHeader}>
               <h3>Pending Transactions</h3>
               <Link to="/transactions/pending" className={styles.viewAll}>
-                View All
+                View All ({stats?.pending || 0})
               </Link>
             </div>
             <div className={styles.transactionsList}>
-              {isTransactionsLoading ? (
+              {isLoading ? (
                 <div className={styles.transactionSkeleton}>
                   Loading pending transactions…
                 </div>
-              ) : transactionsError ? (
+              ) : error ? (
                 <div className={styles.transactionError} role="alert">
-                  <div>{transactionsError}</div>
+                  <div>{error}</div>
                   <Button
                     variant="outline"
-                    onClick={() => fetchPendingTransactions()}
+                    onClick={fetchDashboard}
                     className={styles.retryButton}
                   >
                     Retry
@@ -256,6 +358,9 @@ function EmployeeDashboard({ role }) {
               <Link to="/transactions/pending" className={styles.actionButton}>
                 <FiList />
                 <span>Review Pending</span>
+                {stats && stats.pending > 0 && (
+                  <span className={styles.badge}>{stats.pending}</span>
+                )}
               </Link>
               <Link to="/transactions/approved" className={styles.actionButton}>
                 <FiCheckCircle />

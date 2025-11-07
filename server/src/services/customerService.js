@@ -38,16 +38,18 @@ export async function getCustomerDashboard(userId, options = {}) {
     );
 
     // Fetch data in parallel
-    const [transactions, statusCounts, userInfo] = await Promise.all([
-      transactionRepo.getTransactionsMadeByUser(userId, {
-        ...options,
-        limit,
-      }),
-      transactionRepo.countTransactionsMadeByUserByStatus(userId),
-      customerRepo.getUserById(userId, {
-        projection: customerRepo.PROJECTIONS.PUBLIC_PROFILE,
-      }),
-    ]);
+    const [transactions, statusCounts, userInfo, monthStats] =
+      await Promise.all([
+        transactionRepo.getTransactionsMadeByUser(userId, {
+          ...options,
+          limit,
+        }),
+        transactionRepo.countTransactionsMadeByUserByStatus(userId),
+        customerRepo.getUserById(userId, {
+          projection: customerRepo.PROJECTIONS.PUBLIC_PROFILE,
+        }),
+        getCustomerTransactionStats(userId, "month"),
+      ]);
 
     const total = Object.values(statusCounts).reduce(
       (sum, count) => sum + count,
@@ -64,6 +66,12 @@ export async function getCustomerDashboard(userId, options = {}) {
       summary: {
         total,
         byStatus: statusCounts,
+      },
+      monthStats: {
+        count: monthStats.count,
+        totalVolume: monthStats.totalVolume,
+        startEpoch: monthStats.startEpoch,
+        endEpoch: monthStats.endEpoch,
       },
       user: {
         firstName: userInfo?.firstName,
