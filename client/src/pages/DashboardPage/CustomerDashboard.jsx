@@ -12,7 +12,6 @@ import {
 } from "react-icons/fi";
 
 // Components
-import Footer from "../../components/Footer/Footer";
 import { apiRequest } from "../../utils/apiUtil";
 import TransactionItem from "../../components/Common/TransactionItem";
 
@@ -340,7 +339,6 @@ function CustomerDashboard() {
           </div>
         </div>
       )}
-      <Footer />
     </div>
   );
 }

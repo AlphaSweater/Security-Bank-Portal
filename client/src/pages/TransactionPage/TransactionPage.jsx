@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import Button from "../../components/Common/Button/Button";
 import Dropdown from "../../components/Common/Dropdown/Dropdown";
 import styles from "./TransactionPage.module.css";
-import Footer from "../../components/Footer/Footer";
 import Notification from "../../components/Common/Notification/Notification";
 import { apiRequest } from "../../utils/apiUtil";
 import { createTransactionSchema } from "../../utils/validation/transactionValidation";
@@ -1105,7 +1104,6 @@ const TransactionPage = () => {
         </div>
       )}
 
-      <Footer />
     </div>
   );
 };
