@@ -78,23 +78,23 @@ function PendingTransactionPreview({ transaction }) {
   };
 
   const getRiskBadge = (riskLevel) => {
-    if (!riskLevel || riskLevel === "none") return null;
+    const level = riskLevel || "none";
 
     const riskClasses = {
       high: styles.riskHigh,
       medium: styles.riskMedium,
       low: styles.riskLow,
+      none: styles.riskNone,
     };
 
     return (
-      <span className={`${styles.riskBadge} ${riskClasses[riskLevel] || ""}`}>
-        {riskLevel.toUpperCase()}
+      <span className={`${styles.riskBadge} ${riskClasses[level] || ""}`}>
+        {level.toUpperCase()}
       </span>
     );
   };
 
-  const recipientName =
-    transaction.recipient || transaction.recipientAccountNumber || "Unknown";
+  const senderName = transaction.senderName || "Unknown Sender";
 
   return (
     <Link
@@ -106,8 +106,8 @@ function PendingTransactionPreview({ transaction }) {
         <FiClock />
       </div>
       <div className={styles.transactionDetails}>
-        <div className={styles.transactionName} title={recipientName}>
-          {recipientName}
+        <div className={styles.transactionName} title={senderName}>
+          {senderName}
         </div>
         <div className={styles.transactionDate}>{formatDate(transaction)}</div>
       </div>
