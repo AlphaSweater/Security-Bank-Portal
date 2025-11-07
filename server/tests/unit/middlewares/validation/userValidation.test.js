@@ -18,7 +18,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { validateData } from "#middlewares/validationMiddleware.js";
 import * as userValidation from "#utils/validation/userValidation.js";
-import * as loggerSpyHelper from "../../loggerTestSpyHelpers.js";
+import * as loggerSpyHelper from "../../../loggerTestSpyHelpers.js";
 import logger from "#utils/logger.js";
 
 // -----------------------------------------------------------------------------
