@@ -172,7 +172,6 @@ export const loginUserSchema = Joi.object({
     .messages({
       "string.empty": "Email is required",
       "any.required": "Email is required",
-      // keep generic — don’t leak format details
       "string.base": "Invalid email or password",
       "string.email": "Invalid email or password",
       "string.min": "Invalid email or password",
@@ -182,7 +181,6 @@ export const loginUserSchema = Joi.object({
   password: Joi.string().trim().min(1).max(128).required().messages({
     "string.empty": "Password is required",
     "any.required": "Password is required",
-    // keep generic — don’t leak format details
     "string.base": "Invalid email or password",
     "string.min": "Invalid email or password",
     "string.max": "Invalid email or password",
