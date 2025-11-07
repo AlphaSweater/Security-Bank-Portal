@@ -4,7 +4,7 @@ import { ObjectId } from "mongodb";
 import { epochSecondsNow } from "#utils/timeUtil.js";
 
 /* =============================================================================
- * CONSTANTS
+ * TRANSACTION STATUS CONSTANTS
  * ========================================================================== */
 
 export const TRANSACTION_STATUS = Object.freeze({
@@ -12,19 +12,23 @@ export const TRANSACTION_STATUS = Object.freeze({
   APPROVED: "approved",
   REJECTED: "rejected",
 });
+
 const ALLOWED_STATUS = new Set(Object.values(TRANSACTION_STATUS));
+const DEFAULT_PAGE_LIMIT = 50;
+const MAX_PAGE_LIMIT = 200;
 
 /* =============================================================================
- * COLLECTION ACCESSOR
+ * DATABASE COLLECTION
  * ========================================================================== */
 
-const collection = () => getDB().collection("transactions");
+const getTransactionsCollection = () => getDB().collection("transactions");
 
 /* =============================================================================
- * INTERNAL HELPERS (private)
+ * HELPER FUNCTIONS (Internal Use Only)
  * ========================================================================== */
 
-function toObjectIdOrThrow(id, fieldName = "id") {
+// Converts a string ID to MongoDB ObjectId, throws error if invalid
+function toObjectId(id, fieldName = "id") {
   const value = String(id ?? "");
   if (!/^[a-fA-F0-9]{24}$/.test(value)) {
     throw new Error(`Invalid ObjectId for ${fieldName}: "${id}"`);
@@ -32,7 +36,19 @@ function toObjectIdOrThrow(id, fieldName = "id") {
   return new ObjectId(value);
 }
 
-function addCreatedAtRange(query, startEpoch, endEpoch) {
+// Validates status is one of: pending, approved, rejected
+function validateStatus(status) {
+  if (!ALLOWED_STATUS.has(status)) {
+    throw new Error(
+      `Invalid status "${status}". Must be one of: ${[...ALLOWED_STATUS].join(
+        ", "
+      )}`
+    );
+  }
+}
+
+// Adds date range filter to query if start/end epochs provided
+function addDateRangeFilter(query, startEpoch, endEpoch) {
   if (startEpoch !== null || endEpoch !== null) {
     query.createdAtEpoch = {};
     if (startEpoch !== null) query.createdAtEpoch.$gte = startEpoch;
@@ -40,14 +56,15 @@ function addCreatedAtRange(query, startEpoch, endEpoch) {
   }
 }
 
-// Cursor helpers (newest-first): "epoch:_id"
-function parseCursor(after) {
-  if (!after) return null;
-  const [epochStr, idStr] = String(after).split(":");
+// Parses pagination cursor (format: "epoch:_id") for newest-first sorting
+function parsePaginationCursor(cursor) {
+  if (!cursor) return null;
+  const [epochStr, idStr] = String(cursor).split(":");
   const epoch = Number(epochStr);
-  const _id = toObjectIdOrThrow(idStr, "afterCursor._id");
-  if (Number.isNaN(epoch))
-    throw new Error("Invalid cursor: epoch is not a number");
+  if (Number.isNaN(epoch)) {
+    throw new Error("Invalid cursor format");
+  }
+  const _id = toObjectId(idStr, "cursor._id");
   return {
     $or: [
       { createdAtEpoch: { $lt: epoch } },
@@ -55,21 +72,30 @@ function parseCursor(after) {
     ],
   };
 }
-function makeCursor(lastDoc) {
+
+// Creates pagination cursor from last document in result set
+function createPaginationCursor(lastDoc) {
   if (!lastDoc) return null;
   return `${lastDoc.createdAtEpoch}:${lastDoc._id.toString()}`;
 }
 
+// Ensures limit is within acceptable bounds
+function normalizeLimit(limit) {
+  return Math.max(1, Math.min(limit || DEFAULT_PAGE_LIMIT, MAX_PAGE_LIMIT));
+}
+
 /* =============================================================================
- * OPTIONAL: INDEX BOOTSTRAP (public)
+ * DATABASE SETUP
  * ========================================================================== */
 
 /**
- * ensureTransactionIndexes() → Promise<void>
- * Creates the compound/partial indexes used by your common queries. Call once at server startup.
+ * Creates database indexes for optimal query performance.
+ * Call this once when your server starts up.
+ *
+ * Usage: await ensureTransactionIndexes();
  */
 export async function ensureTransactionIndexes() {
-  const col = collection();
+  const col = getTransactionsCollection();
   await col.createIndexes([
     { key: { userId: 1, createdAtEpoch: -1 }, name: "user_created_desc" },
     { key: { status: 1, createdAtEpoch: -1 }, name: "status_created_desc" },
@@ -86,103 +112,109 @@ export async function ensureTransactionIndexes() {
 }
 
 /* =============================================================================
- * PRIVATE CORES
+ * CORE QUERY FUNCTIONS
  * ========================================================================== */
 
-async function _listTransactions({
-  status = null,
-  userId = null,
-  reviewedBy = null,
-  startEpoch = null,
-  endEpoch = null,
-  limit = 50,
-  after = null,
-  projection,
-} = {}) {
-  const query = {};
-  addCreatedAtRange(query, startEpoch, endEpoch);
+// Flexible query builder for listing transactions with pagination
+async function queryTransactions(filters = {}) {
+  const {
+    status = null,
+    userId = null,
+    reviewedBy = null,
+    startEpoch = null,
+    endEpoch = null,
+    limit = DEFAULT_PAGE_LIMIT,
+    after = null,
+    projection = null,
+  } = filters;
 
-  if (status !== null) {
-    if (!ALLOWED_STATUS.has(status)) {
-      throw new Error(
-        `Invalid status "${status}". Allowed: ${[...ALLOWED_STATUS].join(", ")}`
-      );
-    }
+  const query = {};
+
+  // Add filters
+  if (status) {
+    validateStatus(status);
     query.status = status;
   }
-  if (userId !== null) query.userId = toObjectIdOrThrow(userId, "userId");
-  if (reviewedBy !== null)
-    query.reviewedBy = toObjectIdOrThrow(reviewedBy, "reviewedBy");
+  if (userId) query.userId = toObjectId(userId, "userId");
+  if (reviewedBy) query.reviewedBy = toObjectId(reviewedBy, "reviewedBy");
+  addDateRangeFilter(query, startEpoch, endEpoch);
 
-  const cursorClause = parseCursor(after);
-  if (cursorClause) Object.assign(query, cursorClause);
+  // Add pagination cursor
+  const cursorFilter = parsePaginationCursor(after);
+  if (cursorFilter) Object.assign(query, cursorFilter);
 
-  const safeLimit = Math.max(1, Math.min(limit, 200));
-  const cursor = collection()
+  // Execute query
+  const safeLimit = normalizeLimit(limit);
+  const items = await getTransactionsCollection()
     .find(query, { projection })
     .sort({ createdAtEpoch: -1, _id: -1 })
-    .limit(safeLimit);
+    .limit(safeLimit)
+    .toArray();
 
-  const items = await cursor.toArray();
-  const nextCursor = items.length ? makeCursor(items[items.length - 1]) : null;
+  const nextCursor = items.length
+    ? createPaginationCursor(items[items.length - 1])
+    : null;
 
   return { items, nextCursor };
 }
 
-async function _countTransactions({
-  status = null,
-  userId = null,
-  reviewedBy = null,
-  startEpoch = null,
-  endEpoch = null,
-} = {}) {
-  const query = {};
-  addCreatedAtRange(query, startEpoch, endEpoch);
+// Flexible counter for transactions
+async function countTransactions(filters = {}) {
+  const {
+    status = null,
+    userId = null,
+    reviewedBy = null,
+    startEpoch = null,
+    endEpoch = null,
+  } = filters;
 
-  if (status !== null) {
-    if (!ALLOWED_STATUS.has(status)) {
-      throw new Error(
-        `Invalid status "${status}". Allowed: ${[...ALLOWED_STATUS].join(", ")}`
-      );
-    }
+  const query = {};
+
+  if (status) {
+    validateStatus(status);
     query.status = status;
   }
-  if (userId !== null) query.userId = toObjectIdOrThrow(userId, "userId");
-  if (reviewedBy !== null)
-    query.reviewedBy = toObjectIdOrThrow(reviewedBy, "reviewedBy");
+  if (userId) query.userId = toObjectId(userId, "userId");
+  if (reviewedBy) query.reviewedBy = toObjectId(reviewedBy, "reviewedBy");
+  addDateRangeFilter(query, startEpoch, endEpoch);
 
-  return collection().countDocuments(query);
+  return getTransactionsCollection().countDocuments(query);
 }
 
-async function _countTransactionsByStatus({
-  status = null, // optional pre-filter to a single status
-  userId = null,
-  reviewedBy = null,
-  startEpoch = null,
-  endEpoch = null,
-} = {}) {
+// Groups transactions by status and returns counts for each
+async function countByStatus(filters = {}) {
+  const {
+    status = null,
+    userId = null,
+    reviewedBy = null,
+    startEpoch = null,
+    endEpoch = null,
+  } = filters;
+
   const matchStage = {};
-  addCreatedAtRange(matchStage, startEpoch, endEpoch);
-  if (userId !== null) matchStage.userId = toObjectIdOrThrow(userId, "userId");
-  if (reviewedBy !== null)
-    matchStage.reviewedBy = toObjectIdOrThrow(reviewedBy, "reviewedBy");
-  if (status !== null) {
-    if (!ALLOWED_STATUS.has(status)) {
-      throw new Error(
-        `Invalid status "${status}". Allowed: ${[...ALLOWED_STATUS].join(", ")}`
-      );
-    }
+
+  if (status) {
+    validateStatus(status);
     matchStage.status = status;
   }
+  if (userId) matchStage.userId = toObjectId(userId, "userId");
+  if (reviewedBy) matchStage.reviewedBy = toObjectId(reviewedBy, "reviewedBy");
+  addDateRangeFilter(matchStage, startEpoch, endEpoch);
 
   const pipeline = [];
-  if (Object.keys(matchStage).length) pipeline.push({ $match: matchStage });
+  if (Object.keys(matchStage).length) {
+    pipeline.push({ $match: matchStage });
+  }
   pipeline.push(
     { $group: { _id: "$status", count: { $sum: 1 } } },
     { $sort: { _id: 1 } }
   );
 
-  const results = await collection().aggregate(pipeline).toArray();
+  const results = await getTransactionsCollection()
+    .aggregate(pipeline)
+    .toArray();
+
+  // Convert to friendly object: { pending: 5, approved: 10, rejected: 2 }
   return results.reduce((acc, { _id, count }) => {
     acc[_id] = count;
     return acc;
@@ -190,20 +222,22 @@ async function _countTransactionsByStatus({
 }
 
 /* =============================================================================
- * PUBLIC API — CREATE
+ * CREATE OPERATIONS
  * ========================================================================== */
 
 /**
- * insertTransaction(doc) → Promise<InsertOneResult>
- * Creates a new transaction with canonical timestamps, pending status, and an initial statusHistory entry.
- * Pass a validated business doc (must include userId).
+ * Creates a new transaction in pending status.
+ * Automatically adds timestamps and initial status history.
+ *
+ * Usage: const result = await insertTransaction({ userId: "123abc...", amount: 500, ... });
+ * Returns: MongoDB InsertOneResult with { insertedId, acknowledged }
  */
 export async function insertTransaction(doc) {
   const createdAtEpoch = epochSecondsNow();
 
   const transaction = {
     ...doc,
-    userId: toObjectIdOrThrow(doc.userId, "userId"),
+    userId: toObjectId(doc.userId, "userId"),
     status: TRANSACTION_STATUS.PENDING,
     createdAtTimeZone: doc.createdAtTimeZone || undefined,
     createdAtEpoch,
@@ -218,219 +252,166 @@ export async function insertTransaction(doc) {
     ],
   };
 
-  return collection().insertOne(transaction);
+  return getTransactionsCollection().insertOne(transaction);
 }
 
 /* =============================================================================
- * PUBLIC API — READ (lists) — all return { items, nextCursor }, newest-first
+ * READ OPERATIONS - Get Single Transaction
  * ========================================================================== */
 
 /**
- * getTransactionsMadeByUser(userId, { startEpoch, endEpoch, limit, after, projection })
- * Lists all transactions for a user, newest first. Optional time window + cursor pagination.
- */
-export async function getTransactionsMadeByUser(
-  userId,
-  {
-    startEpoch = null,
-    endEpoch = null,
-    limit = 50,
-    after = null,
-    projection,
-  } = {}
-) {
-  return _listTransactions({
-    userId,
-    startEpoch,
-    endEpoch,
-    limit,
-    after,
-    projection,
-  });
-}
-
-/**
- * getTransactionsMadeByUserByStatus(userId, { status, startEpoch, endEpoch, limit, after, projection })
- * Lists a user's transactions filtered by a given status.
- */
-export async function getTransactionsMadeByUserByStatus(
-  userId,
-  status,
-  {
-    startEpoch = null,
-    endEpoch = null,
-    limit = 50,
-    after = null,
-    projection,
-  } = {}
-) {
-  return _listTransactions({
-    userId,
-    status,
-    startEpoch,
-    endEpoch,
-    limit,
-    after,
-    projection,
-  });
-}
-
-/**
- * getTransactionsReviewedByEmployee(employeeId, { status, startEpoch, endEpoch, limit, after, projection })
- * Lists transactions reviewed by a given employee, optionally filtered by status and/or time window.
- */
-export async function getTransactionsReviewedByEmployee(
-  employeeId,
-  {
-    startEpoch = null,
-    endEpoch = null,
-    limit = 50,
-    after = null,
-    projection,
-  } = {}
-) {
-  return _listTransactions({
-    reviewedBy: employeeId,
-    startEpoch,
-    endEpoch,
-    limit,
-    after,
-    projection,
-  });
-}
-
-/**
- * getTransactionsReviewedByEmployeeByStatus(employeeId, { status, startEpoch, endEpoch, limit, after, projection })
- * Lists transactions reviewed by a given employee filtered by a specific status.
- */
-export async function getTransactionsReviewedByEmployeeByStatus(
-  employeeId,
-  status,
-  {
-    startEpoch = null,
-    endEpoch = null,
-    limit = 50,
-    after = null,
-    projection,
-  } = {}
-) {
-  return _listTransactions({
-    reviewedBy: employeeId,
-    status,
-    startEpoch,
-    endEpoch,
-    limit,
-    after,
-    projection,
-  });
-}
-
-/**
- * getTransactionById(id, { projection })
- * Fetches a single transaction by its _id.
+ * Fetches a single transaction by ID.
+ *
+ * Usage: const txn = await getTransactionById("507f1f77bcf86cd799439011");
+ * Returns: Transaction object or null if not found
  */
 export async function getTransactionById(id, { projection } = {}) {
-  return collection().findOne(
-    { _id: toObjectIdOrThrow(id, "id") },
+  return getTransactionsCollection().findOne(
+    { _id: toObjectId(id, "id") },
     { projection }
   );
 }
 
 /* =============================================================================
- * PUBLIC API — READ (counts)
+ * READ OPERATIONS - List Transactions (Paginated)
+ * All list functions return: { items: [...], nextCursor: "epoch:id" }
+ * Pass nextCursor to 'after' parameter for next page
  * ========================================================================== */
 
 /**
- * countTransactionsByStatus({ startEpoch=null, endEpoch=null } = {})
- * Global grouped counts by status (optionally by period).
- * Returns: { pending: n, approved: n, rejected: n } (missing keys omitted)
+ * Gets all transactions for a specific user (newest first).
+ *
+ * Usage: const { items, nextCursor } = await getTransactionsMadeByUser("507f...", { limit: 20 });
+ * Returns: { items: [transaction objects], nextCursor: "string or null" }
  */
-export async function countTransactionsByStatus({
-  startEpoch = null,
-  endEpoch = null,
-} = {}) {
-  return _countTransactionsByStatus({ startEpoch, endEpoch });
+export async function getTransactionsMadeByUser(userId, options = {}) {
+  return queryTransactions({ userId, ...options });
 }
 
 /**
- * countTotalPendingTransactions({ userId=null, startEpoch=null, endEpoch=null } = {})
- * Counts pending transactions, optionally for a specific user and/or period.
+ * Gets user's transactions filtered by status.
+ *
+ * Usage: const { items } = await getTransactionsMadeByUserByStatus("507f...", "pending");
+ * Returns: { items: [transaction objects], nextCursor: "string or null" }
  */
-export async function countTotalPendingTransactions({
-  userId = null,
-  startEpoch = null,
-  endEpoch = null,
-} = {}) {
-  return _countTransactions({
-    status: TRANSACTION_STATUS.PENDING,
-    userId,
-    startEpoch,
-    endEpoch,
-  });
-}
-
-/**
- * countUserMadeTransactions(userId, { status=null, startEpoch=null, endEpoch=null } = {})
- * Total count for a user (optionally restricted to a status or time window).
- */
-export async function countUserMadeTransactions(
+export async function getTransactionsMadeByUserByStatus(
   userId,
-  { status = null, startEpoch = null, endEpoch = null } = {}
+  status,
+  options = {}
 ) {
-  return _countTransactions({ userId, status, startEpoch, endEpoch });
+  return queryTransactions({ userId, status, ...options });
 }
 
 /**
- * countUserMadeTransactionsByStatus(userId, { startEpoch=null, endEpoch=null } = {})
- * Grouped counts for a user by status.
+ * Gets all transactions reviewed by an employee.
+ *
+ * Usage: const { items } = await getTransactionsReviewedByEmployee("507f...");
+ * Returns: { items: [transaction objects], nextCursor: "string or null" }
  */
-export async function countUserMadeTransactionsByStatus(
-  userId,
-  { startEpoch = null, endEpoch = null } = {}
-) {
-  return _countTransactionsByStatus({ userId, startEpoch, endEpoch });
-}
-
-/**
- * countEmployeeReviewedTransactions(employeeId, { status=null, startEpoch=null, endEpoch=null } = {})
- * Total transactions reviewed by an employee, optionally by status/time.
- */
-export async function countEmployeeReviewedTransactions(
+export async function getTransactionsReviewedByEmployee(
   employeeId,
-  { status = null, startEpoch = null, endEpoch = null } = {}
+  options = {}
 ) {
-  return _countTransactions({
-    reviewedBy: employeeId,
-    status,
-    startEpoch,
-    endEpoch,
-  });
+  return queryTransactions({ reviewedBy: employeeId, ...options });
 }
 
 /**
- * countEmployeeReviewedTransactionsByStatus(employeeId, { startEpoch=null, endEpoch=null, status=null } = {})
- * Grouped counts by status for an employee’s reviewed transactions.
+ * Gets employee's reviewed transactions filtered by status.
+ *
+ * Usage: const { items } = await getTransactionsReviewedByEmployeeByStatus("507f...", "approved");
+ * Returns: { items: [transaction objects], nextCursor: "string or null" }
  */
-export async function countEmployeeReviewedTransactionsByStatus(
+export async function getTransactionsReviewedByEmployeeByStatus(
   employeeId,
-  { startEpoch = null, endEpoch = null, status = null } = {}
+  status,
+  options = {}
 ) {
-  return _countTransactionsByStatus({
-    reviewedBy: employeeId,
-    startEpoch,
-    endEpoch,
-    status,
-  });
+  return queryTransactions({ reviewedBy: employeeId, status, ...options });
 }
 
 /* =============================================================================
- * PUBLIC API — UPDATE
+ * READ OPERATIONS - Count Transactions
  * ========================================================================== */
 
 /**
- * updateTransactionStatus(id, status, employeeId, reviewReason) → Promise<Object|null>
- * Approves or rejects a pending transaction, sets metadata (reviewedBy, statusUpdatedAtEpoch, reviewReason),
- * appends statusHistory, and returns the updated document. Guards: only pending → approved|rejected.
+ * Counts all transactions grouped by status.
+ *
+ * Usage: const counts = await countTransactionsByStatus();
+ * Returns: { pending: 5, approved: 10, rejected: 2 }
+ */
+export async function countTransactionsByStatus(options = {}) {
+  return countByStatus(options);
+}
+
+/**
+ * Counts all pending transactions (optionally for a specific user).
+ *
+ * Usage: const count = await countTotalPendingTransactions();
+ * Returns: Number (e.g., 42)
+ */
+export async function countTotalPendingTransactions(options = {}) {
+  return countTransactions({ status: TRANSACTION_STATUS.PENDING, ...options });
+}
+
+/**
+ * Counts total transactions made by a user (optionally by status).
+ *
+ * Usage: const count = await countUserMadeTransactions("507f...", { status: "approved" });
+ * Returns: Number (e.g., 15)
+ */
+export async function countTransactionsMadeByUser(userId, options = {}) {
+  return countTransactions({ userId, ...options });
+}
+
+/**
+ * Counts user's transactions grouped by status.
+ *
+ * Usage: const counts = await countUserMadeTransactionsByStatus("507f...");
+ * Returns: { pending: 2, approved: 8, rejected: 1 }
+ */
+export async function countTransactionsMadeByUserByStatus(
+  userId,
+  options = {}
+) {
+  return countByStatus({ userId, ...options });
+}
+
+/**
+ * Counts total transactions reviewed by an employee (optionally by status).
+ *
+ * Usage: const count = await countEmployeeReviewedTransactions("507f...");
+ * Returns: Number (e.g., 89)
+ */
+export async function countTransactionsReviewedByEmployee(
+  employeeId,
+  options = {}
+) {
+  return countTransactions({ reviewedBy: employeeId, ...options });
+}
+
+/**
+ * Counts employee's reviewed transactions grouped by status.
+ *
+ * Usage: const counts = await countEmployeeReviewedTransactionsByStatus("507f...");
+ * Returns: { approved: 45, rejected: 12 }
+ */
+export async function countTransactionsReviewedByEmployeeByStatus(
+  employeeId,
+  options = {}
+) {
+  return countByStatus({ reviewedBy: employeeId, ...options });
+}
+
+/* =============================================================================
+ * UPDATE OPERATIONS
+ * ========================================================================== */
+
+/**
+ * Approves or rejects a pending transaction.
+ * Only works on transactions with "pending" status.
+ *
+ * Usage: const updated = await updateTransactionStatus("507f...", "approved", "employeeId123");
+ * Returns: Updated transaction object or null if not found/not pending
  */
 export async function updateTransactionStatus(
   id,
@@ -446,11 +427,11 @@ export async function updateTransactionStatus(
 
   const nowEpoch = epochSecondsNow();
   const reviewerObjectId = employeeId
-    ? toObjectIdOrThrow(employeeId, "employeeId")
+    ? toObjectId(employeeId, "employeeId")
     : null;
 
-  const result = await collection().findOneAndUpdate(
-    { _id: toObjectIdOrThrow(id, "id"), status: TRANSACTION_STATUS.PENDING },
+  const result = await getTransactionsCollection().findOneAndUpdate(
+    { _id: toObjectId(id, "id"), status: TRANSACTION_STATUS.PENDING },
     {
       $set: {
         status,
@@ -479,7 +460,7 @@ export async function updateTransactionStatus(
 }
 
 /* =============================================================================
- * TRANSACTION DOCUMENT SCHEMA (reference)
+ * TRANSACTION DOCUMENT SCHEMA (Reference)
  * ========================================================================== */
 /**
  * {
