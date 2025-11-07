@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FiUsers, FiSearch, FiPlus, FiEdit2, FiTrash2 } from "react-icons/fi";
 
 import Button from "../../components/Common/Button/Button";
+import Dropdown from "../../components/Common/Dropdown/Dropdown";
 import { apiRequest } from "../../utils/apiUtil";
 import styles from "./ManageEmployeesPage.module.css";
 
@@ -314,16 +315,31 @@ export default function ManageEmployeesPage({ role }) {
         </div>
 
         <div className={styles.toolbar}>
-          <div className={styles.searchBox}>
-            <FiSearch aria-hidden />
-            <input
-              id="employeeSearch"
-              aria-label="Search employees"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search employees..."
-              type="search"
-            />
+          <div className={styles.searchAndFilter}>
+            <div className={styles.searchBox}>
+              <FiSearch aria-hidden />
+              <input
+                id="employeeSearch"
+                aria-label="Search employees"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search employees..."
+                type="search"
+              />
+            </div>
+            <div className={styles.filterDropdown}>
+              <Dropdown
+                id="role-filter"
+                value={roleFilter}
+                options={[
+                  { value: 'all', label: 'All Roles' },
+                  { value: 'employee', label: 'Employees' },
+                  { value: 'admin', label: 'Admins' }
+                ]}
+                onChange={(value) => setRoleFilter(value)}
+                className={styles.roleDropdown}
+              />
+            </div>
           </div>
           <Button
             icon={FiPlus}
@@ -332,39 +348,10 @@ export default function ManageEmployeesPage({ role }) {
               setEditing(null);
               setFormError("");
             }}
+            className={styles.addButton}
           >
             Add Employee
           </Button>
-        </div>
-
-        <div className={styles.roleFilters}>
-          <button
-            className={`${styles.filterButton} ${
-              roleFilter === "all" ? styles.filterActive : ""
-            }`}
-            onClick={() => setRoleFilter("all")}
-            type="button"
-          >
-            All
-          </button>
-          <button
-            className={`${styles.filterButton} ${
-              roleFilter === "employee" ? styles.filterActive : ""
-            }`}
-            onClick={() => setRoleFilter("employee")}
-            type="button"
-          >
-            Employees
-          </button>
-          <button
-            className={`${styles.filterButton} ${
-              roleFilter === "admin" ? styles.filterActive : ""
-            }`}
-            onClick={() => setRoleFilter("admin")}
-            type="button"
-          >
-            Admins
-          </button>
         </div>
 
         <div className={styles.card}>

@@ -90,15 +90,17 @@ const Dropdown = ({
             alignItems: "center",
             justifyContent: "space-between",
             width: "100%",
-            padding: "0.75rem 1rem",
+            padding: "0 1rem",
+            height: "42px",
+            minHeight: "42px",
             background: "var(--color-surface-solid)",
             border: "1px solid var(--color-border)",
-            borderRadius: "var(--radius-md)",
+            borderRadius: "8px",
             color: "var(--color-text-primary)",
             cursor: "pointer",
             textAlign: "left",
-            fontSize: "1rem",
-            lineHeight: "1.5",
+            fontSize: "0.9rem",
+            lineHeight: 1.2,
           }}
           {...props}
         >

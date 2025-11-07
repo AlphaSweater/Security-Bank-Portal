@@ -57,22 +57,38 @@
 /* Toolbar */
 .toolbar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 1rem;
   margin: 1rem 0 1.25rem 0;
+  align-items: center;
+}
+
+.searchAndFilter {
+  display: flex;
+  flex: 1;
+  gap: 1rem;
+  align-items: center;
+  min-width: 0;
 }
 
 .searchBox {
   display: flex;
+  flex: 1;
   align-items: center;
   gap: 0.5rem;
   background: #232946;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 0.5rem 0.75rem;
-  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0 0.75rem;
+  border-radius: 8px;
   color: #b8c1ec;
-  min-width: 260px;
+  min-width: 200px;
+  height: 42px;
+  transition: all 0.2s;
+}
+
+.searchBox:focus-within {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .searchBox input {
@@ -161,31 +177,66 @@
   gap: 0.5rem;
 }
 
-/* Role Filters */
-.roleFilters {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0.25rem 0 1rem 0;
+/* Filter Dropdown */
+.filterDropdown {
+  width: 200px;
+  height: 42px;
+  flex: 0 0 auto;
 }
 
-.filterButton {
-  background: #232946;
-  color: #b8c1ec;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 9999px;
-  padding: 0.35rem 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
+.roleDropdown {
+  margin: 0;
 }
 
-.filterButton:hover {
-  background: rgba(255, 255, 255, 0.06);
+.roleDropdown :global(.dropdownButton) {
+  background: #232946 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #b8c1ec !important;
+  border-radius: 8px !important;
+  padding: 0.5rem 1rem !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+  width: 100% !important;
+  transition: all 0.2s !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  display: flex !important;
+  box-sizing: border-box !important;
+  line-height: 1.2 !important;
+  font-size: 0.9rem !important;
 }
 
-.filterActive {
-  color: #fffffe;
+.roleDropdown :global(.dropdownButton:hover) {
+  background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.2);
+}
+
+.roleDropdown :global(.dropdownMenu) {
+  width: 100%;
+  min-width: 180px;
+  background: #232946;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  margin-top: 4px;
+}
+
+.roleDropdown :global(.dropdownItem) {
+  padding: 0.5rem 1rem;
+  color: #b8c1ec;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.roleDropdown :global(.dropdownItem:hover) {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fffffe;
+}
+
+.roleDropdown :global(.selected) {
+  color: #fffffe;
   background: rgba(238, 187, 195, 0.12);
 }
 
@@ -294,6 +345,19 @@
 .error {
   margin-top: 0.75rem;
   color: #f87171;
+}
+
+/* Add a new class for the add employee button */
+.addButton {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0 1rem;
+  border-radius: 8px;
+  line-height: 1;
+  box-sizing: border-box;
 }
 
 /* Error row shown near the table when loading employees fails */
