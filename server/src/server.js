@@ -3,6 +3,7 @@ import http from "http";
 import "#config/loadEnvConfig.js";
 import { loadCerts } from "#config/loadCertsConfig.js";
 import { connectDB, closeDB } from "#config/mongoDBConfig.js";
+import { ensureAllIndexes } from "#services/dbIndexService.js";
 import app from "./app.js";
 import { getLogger } from "#utils/logger.js";
 
@@ -23,6 +24,17 @@ async function startServer() {
     logger.errorAsync(
       "🛑 Server startup aborted due to database connection failure"
     );
+    process.exit(1);
+  }
+
+  // Ensure indexes
+  try {
+    logger.infoAsync("🧩 Ensuring MongoDB indexes...");
+    await ensureAllIndexes();
+    logger.infoAsync("✨ All MongoDB indexes ensured successfully!");
+  } catch (err) {
+    logger.errorAsync(`❌ Failed to ensure indexes: ${err.message}`);
+    logger.errorAsync("🛑 Server startup aborted due to index setup failure");
     process.exit(1);
   }
 
