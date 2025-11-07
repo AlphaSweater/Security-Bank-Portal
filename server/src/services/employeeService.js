@@ -1,4 +1,5 @@
 import * as transactionRepo from "#models/transactionModel.js";
+import * as userRepo from "#models/userModel.js";
 import { getLogger } from "#utils/logger.js";
 
 const logger = getLogger(import.meta.url);
@@ -26,6 +27,58 @@ const ALLOWED_REVIEW_STATUSES = new Set([
 ]);
 
 /* =============================================================================
+ * HELPER FUNCTIONS
+ * ========================================================================== */
+
+/**
+ * Enriches transaction objects with sender information from the users collection.
+ * Adds fields: senderName, recipientName, senderAccountNumber, recipientAccountNumber
+ *
+ * @param {Array|Object} transactions - Single transaction or array of transactions
+ * @returns {Promise<Array|Object>} - Enriched transaction(s)
+ */
+async function enrichTransactionsWithUserData(transactions) {
+  const isArray = Array.isArray(transactions);
+  const txnArray = isArray ? transactions : [transactions];
+
+  if (txnArray.length === 0) return isArray ? [] : null;
+
+  // Get unique user IDs
+  const userIds = [...new Set(txnArray.map((t) => t.userId).filter(Boolean))];
+
+  // Fetch all users in batch
+  const users = await Promise.all(
+    userIds.map((id) =>
+      userRepo.getUserById(id, {
+        projection: userRepo.PROJECTIONS.PUBLIC_PROFILE,
+      })
+    )
+  );
+
+  // Create a map of userId -> user object
+  const userMap = new Map();
+  users.forEach((user) => {
+    if (user) userMap.set(user.id, user);
+  });
+
+  // Enrich transactions
+  const enriched = txnArray.map((txn) => {
+    const sender = userMap.get(txn.userId);
+    return {
+      ...txn,
+      // Add sender information
+      senderName: sender ? `${sender.firstName} ${sender.lastName}` : "Unknown",
+      senderAccountNumber: "—", // Sender account info not stored in system
+      // Add recipient information (from existing beneficiary fields)
+      recipientName: txn.beneficiaryFullName || "—",
+      recipientAccountNumber: txn.destinationAccountNumber || "—",
+    };
+  });
+
+  return isArray ? enriched : enriched[0];
+}
+
+/* =============================================================================
  * REVIEW QUEUE MANAGEMENT
  * ========================================================================== */
 
@@ -45,12 +98,11 @@ export async function getReviewQueue(options = {}) {
       REVIEW_CONFIG.MAX_PAGE_SIZE
     );
 
-    // Get all pending transactions (no amount gating)
-    const pending = await transactionRepo.getTransactionsMadeByUser(null, {
+    // Get all pending transactions (not tied to a specific user)
+    const pending = await transactionRepo.getAllTransactions({
       status: transactionRepo.TRANSACTION_STATUS.PENDING,
-      ...options,
-      userId: undefined,
       limit: REVIEW_CONFIG.MAX_PAGE_SIZE,
+      ...options,
     });
 
     let filteredItems = pending.items;
@@ -93,13 +145,12 @@ export async function getReviewQueue(options = {}) {
       ).length,
     };
 
-    logger.debug("Retrieved review queue", {
-      ...queueStats,
-      filterType: options.filterType || "all",
-    });
+    // Enrich with user data
+    const slicedItems = prioritized.slice(0, limit);
+    const enrichedItems = await enrichTransactionsWithUserData(slicedItems);
 
     return {
-      items: prioritized.slice(0, limit),
+      items: enrichedItems,
       nextCursor: prioritized.length > limit ? "has_more" : null,
       queueStats,
     };
@@ -144,15 +195,9 @@ export async function reviewTransaction({
     throw new Error("Invalid review status");
   }
 
-  logger.info("Reviewing transaction", {
-    transactionId,
-    status,
-    reviewerId,
-    reviewerRole,
-  });
-
   try {
     const transaction = await transactionRepo.getTransactionById(transactionId);
+
     if (!transaction) throw new Error("Transaction not found");
 
     if (transaction.status !== transactionRepo.TRANSACTION_STATUS.PENDING) {
@@ -176,18 +221,24 @@ export async function reviewTransaction({
       reviewerId,
       reason
     );
-    if (!result) throw new Error("Failed to update transaction status");
 
-    const reviewTime = result.statusUpdatedAtEpoch - result.createdAtEpoch;
-    const reviewTimeMinutes = Math.round(reviewTime / 60);
+    if (!result) {
+      throw new Error(
+        "Failed to update transaction status - transaction may have already been reviewed"
+      );
+    }
 
-    logger.info("Transaction reviewed successfully", {
+    // Calculate review time with fallback for missing timestamps
+    let reviewTimeMinutes = null;
+    if (result.statusUpdatedAtEpoch && result.createdAtEpoch) {
+      const reviewTime = result.statusUpdatedAtEpoch - result.createdAtEpoch;
+      reviewTimeMinutes = Math.round(reviewTime / 60);
+    }
+
+    logger.info("Transaction reviewed", {
       transactionId,
       status,
       reviewerId,
-      reviewerRole,
-      reviewTimeMinutes,
-      amount: transaction.amount,
     });
 
     return {
@@ -206,8 +257,6 @@ export async function reviewTransaction({
     logger.error("Failed to review transaction", {
       error: error.message,
       transactionId,
-      status,
-      reviewerRole,
     });
     throw error;
   }
@@ -255,12 +304,6 @@ export async function getEmployeePerformance(reviewerId, options = {}) {
       avgReviewTime = Math.round(totalTime / reviews.items.length / 60);
     }
 
-    logger.debug("Retrieved reviewer performance", {
-      reviewerId,
-      totalReviews: total,
-      avgReviewTime,
-    });
-
     return {
       reviews,
       performance: {
@@ -299,18 +342,27 @@ export async function getReviewedTransactions(reviewerId, options = {}) {
   try {
     const { status, ...paginationOptions } = options;
 
+    let result;
     if (status) {
-      return transactionRepo.getTransactionsReviewedByEmployeeByStatus(
+      result = await transactionRepo.getTransactionsReviewedByEmployeeByStatus(
         reviewerId,
         status,
         paginationOptions
       );
+    } else {
+      result = await transactionRepo.getTransactionsReviewedByEmployee(
+        reviewerId,
+        paginationOptions
+      );
     }
 
-    return transactionRepo.getTransactionsReviewedByEmployee(
-      reviewerId,
-      paginationOptions
-    );
+    // Enrich with user data
+    const enrichedItems = await enrichTransactionsWithUserData(result.items);
+
+    return {
+      ...result,
+      items: enrichedItems,
+    };
   } catch (error) {
     logger.error("Failed to get reviewed transactions", {
       error: error.message,
@@ -334,8 +386,13 @@ export async function getTransactionForReview(transactionId) {
     const transaction = await transactionRepo.getTransactionById(transactionId);
     if (!transaction) return null;
 
+    // Enrich with user data
+    const enrichedTransaction = await enrichTransactionsWithUserData(
+      transaction
+    );
+
     return {
-      ...transaction,
+      ...enrichedTransaction,
       reviewContext: {
         isPending:
           transaction.status === transactionRepo.TRANSACTION_STATUS.PENDING,
@@ -365,9 +422,8 @@ export async function getSystemAnalytics(options = {}) {
   try {
     const [statusCounts, allTransactions] = await Promise.all([
       transactionRepo.countTransactionsByStatus(options),
-      transactionRepo.getTransactionsMadeByUser(null, {
+      transactionRepo.getAllTransactions({
         ...options,
-        userId: undefined,
         limit: 1000, // Sample for analytics
       }),
     ]);
@@ -428,13 +484,6 @@ export async function getSystemAnalytics(options = {}) {
       });
     }
 
-    logger.debug("Retrieved system analytics", {
-      total,
-      approvalRate,
-      pendingRate,
-      health: health.status,
-    });
-
     return {
       counts: statusCounts,
       total,
@@ -468,8 +517,6 @@ export async function getEmployeeDashboard(reviewerId, options = {}) {
       getReviewQueue({ limit: 10, ...options }),
       getEmployeePerformance(reviewerId, options),
     ]);
-
-    logger.debug("Retrieved reviewer dashboard", { reviewerId });
 
     return {
       systemHealth: analytics.health,

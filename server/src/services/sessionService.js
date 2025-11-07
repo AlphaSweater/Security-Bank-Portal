@@ -9,7 +9,7 @@ const logger = getLogger(import.meta.url);
 /**
  * Regenerates the session and sets user data.
  * @param {object} req - Express request object
- * @param {object} user - User object (must have _id and role)
+ * @param {object} user - User object (must have id and role)
  * @returns {string} sessionID
  */
 export async function createSession(req, user) {
@@ -17,8 +17,8 @@ export async function createSession(req, user) {
   await new Promise((resolve, reject) => {
     req.session.regenerate((err) => (err ? reject(err) : resolve()));
   });
-  logger.debug(`Session created for user ${user._id} with role: ${user.role}`);
-  req.session.userId = user._id;
+  logger.debug(`Session created for user ${user.id} with role: ${user.role}`);
+  req.session.userId = user.id;
   req.session.role = user.role;
   return req.sessionID;
 }

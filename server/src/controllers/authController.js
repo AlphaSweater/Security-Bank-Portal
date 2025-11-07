@@ -24,7 +24,7 @@ export async function login(req, res) {
     await createSession(req, user);
 
     logger.info("User logged in successfully", {
-      userId: user._id.toString(),
+      userId: user.id,
       role: user.role,
     });
 
@@ -53,7 +53,7 @@ export async function register(req, res) {
     });
 
     logger.info("New user registered", {
-      userId: user._id.toString(),
+      userId: user.id,
       email: user.email,
       role: user.role,
     });

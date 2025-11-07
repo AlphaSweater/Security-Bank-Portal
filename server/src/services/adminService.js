@@ -88,14 +88,14 @@ export async function createEmployeeAccount(employeeData, createdByAdminId) {
     });
 
     logger.info("Employee account created successfully", {
-      employeeId: newEmployee._id.toString(),
+      employeeId: newEmployee.id,
       email,
       role,
       createdByAdminId,
     });
 
     return {
-      id: newEmployee._id.toString(),
+      id: newEmployee.id,
       email: newEmployee.email,
       firstName: newEmployee.firstName,
       lastName: newEmployee.lastName,
@@ -195,7 +195,7 @@ export async function updateEmployeeAccount(
     });
 
     return {
-      id: updatedEmployee._id.toString(),
+      id: updatedEmployee.id,
       email: updatedEmployee.email,
       firstName: updatedEmployee.firstName,
       lastName: updatedEmployee.lastName,
@@ -312,7 +312,7 @@ export async function getAllEmployees(options = {}) {
 
     // Format response
     const formattedEmployees = (employees || []).map((emp) => ({
-      id: emp._id.toString(),
+      id: emp.id,
       email: emp.email,
       firstName: emp.firstName,
       lastName: emp.lastName,
@@ -364,7 +364,7 @@ export async function getEmployeeDetails(employeeId) {
     logger.debug("Retrieved employee details", { employeeId });
 
     return {
-      id: employee._id.toString(),
+      id: employee.id,
       email: employee.email,
       firstName: employee.firstName,
       lastName: employee.lastName,

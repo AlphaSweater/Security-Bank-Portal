@@ -113,7 +113,8 @@
   border-radius: 16px;
   padding: 1.25rem;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .cardHeader {
@@ -160,7 +161,8 @@
   color: #fffffe;
 }
 
-.table th, .table td {
+.table th,
+.table td {
   vertical-align: middle;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -169,9 +171,16 @@
   background: rgba(255, 255, 255, 0.02);
 }
 
-.right { text-align: right; }
-.center { text-align: center; }
-.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+.right {
+  text-align: right;
+}
+.center {
+  text-align: center;
+}
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
 
 /* Status pill */
 .statusPill {
@@ -197,10 +206,35 @@
   padding: 1rem 0;
 }
 
+/* Loading State */
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #b8c1ec;
+  font-size: 1rem;
+}
+
+/* Error Message */
+.errorMessage {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
 /* Responsiveness */
 @media (max-width: 768px) {
-  .mainContent { padding: 1.5rem 1rem; }
-  .heading { font-size: 1.6rem; }
+  .mainContent {
+    padding: 1.5rem 1rem;
+  }
+  .heading {
+    font-size: 1.6rem;
+  }
 }
 
 /* Back link */
@@ -212,4 +246,6 @@
   text-decoration: none;
   margin-bottom: 0.5rem;
 }
-.backLink:hover { color: #fffffe; }
+.backLink:hover {
+  color: #fffffe;
+}

@@ -59,6 +59,21 @@ function toObjectId(id, fieldName = "id") {
   return new ObjectId(value);
 }
 
+// Serializes a single document: _id → id
+function serializeUser(doc) {
+  if (!doc) return null;
+  const { _id, ...rest } = doc;
+  return {
+    id: _id.toString(),
+    ...rest,
+  };
+}
+
+// Serializes an array of documents: _id → id for each
+function serializeUsers(docs) {
+  return docs.map(serializeUser);
+}
+
 // Validates role is one of: customer, employee, admin
 function validateRole(role) {
   if (!ALLOWED_ROLES.has(role)) {
@@ -77,7 +92,7 @@ function validateRole(role) {
  * Automatically adds creation timestamp if not provided.
  *
  * Usage: const result = await insertUser({ email: "user@example.com", passwordHash: "...", role: "customer" });
- * Returns: MongoDB InsertOneResult with { insertedId, acknowledged }
+ * Returns: { id: "...", email: "...", role: "customer", ... } - full user object with id field
  */
 export async function insertUser(doc) {
   const user = {
@@ -90,7 +105,13 @@ export async function insertUser(doc) {
     validateRole(user.role);
   }
 
-  return getUsersCollection().insertOne(user);
+  const result = await getUsersCollection().insertOne(user);
+
+  // Return the created user with id field
+  return serializeUser({
+    _id: result.insertedId,
+    ...user,
+  });
 }
 
 /* =============================================================================
@@ -101,37 +122,40 @@ export async function insertUser(doc) {
  * Fetches a user by their email address.
  *
  * Usage: const user = await getUserByEmail("john@example.com", { projection: PROJECTIONS.PUBLIC_PROFILE });
- * Returns: User object or null if not found
+ * Returns: User object with id field, or null if not found
  */
 export async function getUserByEmail(email, { projection } = {}) {
-  return getUsersCollection().findOne({ email }, { projection });
+  const doc = await getUsersCollection().findOne({ email }, { projection });
+  return serializeUser(doc);
 }
 
 /**
  * Fetches a user by their ID.
  *
  * Usage: const user = await getUserById("507f1f77bcf86cd799439011", { projection: PROJECTIONS.PUBLIC_PROFILE });
- * Returns: User object or null if not found
+ * Returns: User object with id field, or null if not found
  */
 export async function getUserById(id, { projection } = {}) {
-  return getUsersCollection().findOne(
+  const doc = await getUsersCollection().findOne(
     { _id: toObjectId(id, "id") },
     { projection }
   );
+  return serializeUser(doc);
 }
 
 /**
  * Fetches a user by their ID and role (for authorization checks).
  *
  * Usage: const employee = await getUserByIdAndRole("507f...", "employee", { projection: PROJECTIONS.PUBLIC_PROFILE });
- * Returns: User object or null if not found or role doesn't match
+ * Returns: User object with id field, or null if not found or role doesn't match
  */
 export async function getUserByIdAndRole(id, role, { projection } = {}) {
   validateRole(role);
-  return getUsersCollection().findOne(
+  const doc = await getUsersCollection().findOne(
     { _id: toObjectId(id, "id"), role },
     { projection }
   );
+  return serializeUser(doc);
 }
 
 /* =============================================================================
@@ -142,32 +166,36 @@ export async function getUserByIdAndRole(id, role, { projection } = {}) {
  * Gets all users with a specific role.
  *
  * Usage: const employees = await getUsersByRole("employee", { limit: 50, projection: PROJECTIONS.PUBLIC_PROFILE });
- * Returns: Array of user objects
+ * Returns: Array of user objects with id field
  */
 export async function getUsersByRole(role, { limit = 100, projection } = {}) {
   validateRole(role);
   const safeLimit = Math.max(1, Math.min(limit, 500));
 
-  return getUsersCollection()
+  const docs = await getUsersCollection()
     .find({ role }, { projection })
     .limit(safeLimit)
     .toArray();
+
+  return serializeUsers(docs);
 }
 
 /**
  * Gets all users (admin function - use with caution).
  *
  * Usage: const allUsers = await getAllUsers({ limit: 100, projection: PROJECTIONS.PUBLIC_PROFILE });
- * Returns: Array of user objects
+ * Returns: Array of user objects with id field
  */
 export async function getAllUsers({ limit = 100, projection } = {}) {
   const safeLimit = Math.max(1, Math.min(limit, 500));
 
-  return getUsersCollection()
+  const docs = await getUsersCollection()
     .find({}, { projection })
     .sort({ createdAt: -1 })
     .limit(safeLimit)
     .toArray();
+
+  return serializeUsers(docs);
 }
 
 /* =============================================================================
@@ -203,7 +231,7 @@ export async function countUsersByRole(role) {
  * Updates a user's password hash.
  *
  * Usage: const updated = await updateUserPassword("507f...", "newHashedPassword");
- * Returns: Updated user object or null if not found
+ * Returns: Updated user object with id field, or null if not found
  */
 export async function updateUserPassword(id, passwordHash) {
   const result = await getUsersCollection().findOneAndUpdate(
@@ -212,14 +240,14 @@ export async function updateUserPassword(id, passwordHash) {
     { returnDocument: "after" }
   );
 
-  return result.value;
+  return serializeUser(result);
 }
 
 /**
  * Updates a user's role (admin function).
  *
  * Usage: const updated = await updateUserRole("507f...", "employee");
- * Returns: Updated user object or null if not found
+ * Returns: Updated user object with id field, or null if not found
  */
 export async function updateUserRole(id, role) {
   validateRole(role);
@@ -230,14 +258,14 @@ export async function updateUserRole(id, role) {
     { returnDocument: "after" }
   );
 
-  return result.value;
+  return serializeUser(result);
 }
 
 /**
  * Updates a user's email address.
  *
  * Usage: const updated = await updateUserEmail("507f...", "newemail@example.com");
- * Returns: Updated user object or null if not found
+ * Returns: Updated user object with id field, or null if not found
  */
 export async function updateUserEmail(id, email) {
   const result = await getUsersCollection().findOneAndUpdate(
@@ -246,7 +274,7 @@ export async function updateUserEmail(id, email) {
     { returnDocument: "after" }
   );
 
-  return result.value;
+  return serializeUser(result);
 }
 
 /* =============================================================================

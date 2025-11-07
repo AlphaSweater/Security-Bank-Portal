@@ -84,14 +84,14 @@ export async function createTransaction(payload) {
     const result = await transactionRepo.insertTransaction(doc);
 
     logger.info("Transaction created successfully", {
-      transactionId: result.insertedId?.toString?.(),
+      transactionId: result.id,
       amount: payload.amount,
       riskLevel: riskAssessment.level,
       factors: riskAssessment.factors,
     });
 
     return {
-      transactionId: result.insertedId,
+      transactionId: result.id,
       status: transactionRepo.TRANSACTION_STATUS.PENDING,
       riskLevel: riskAssessment.level,
       message: riskAssessment.message,

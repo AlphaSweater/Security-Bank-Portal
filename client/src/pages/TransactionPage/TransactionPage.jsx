@@ -350,14 +350,14 @@ const TransactionPage = () => {
     }
 
     try {
-      await apiRequest("/api/transactions", {
+      const response = await apiRequest("/api/customers/transactions", {
         method: "POST",
         body: JSON.stringify(payload),
       });
 
       setNotification({
         type: "success",
-        message: "Payment submitted successfully",
+        message: response.message || "Payment submitted successfully",
       });
       setTimeout(() => navigate("/dashboard"), 800);
     } catch (error) {
@@ -1091,7 +1091,6 @@ const TransactionPage = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

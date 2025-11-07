@@ -1,69 +1,77 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FiCheckCircle, FiEye } from "react-icons/fi";
 import Button from "../../components/Common/Button/Button";
 import SearchBar from "../../components/SearchBar/SearchBar";
+import { apiRequest } from "../../utils/apiUtil";
 import styles from "./ApprovedTransactions.module.css";
 
-// Mock data - replace with API call later
-const mockApproved = [
-  {
-    id: "TXN-987654",
-    sender: "Global Corp",
-    recipient: "Sarah Johnson",
-    amount: 3200.0,
-    currency: "ZAR",
-    createdAt: "2025-11-03 14:30",
-    approvedBy: "admin@example.com",
-    approvedAt: "2025-11-03 14:45"
-  },
-  {
-    id: "TXN-876543",
-    sender: "Tech Solutions",
-    recipient: "Michael Brown",
-    amount: 1750.5,
-    currency: "ZAR",
-    createdAt: "2025-11-03 10:15",
-    approvedBy: "manager@example.com",
-    approvedAt: "2025-11-03 10:30"
-  },
-  {
-    id: "TXN-765432",
-    sender: "Innovate Ltd",
-    recipient: "Emily Davis",
-    amount: 4200.0,
-    currency: "ZAR",
-    createdAt: "2025-11-02 16:45",
-    approvedBy: "admin@example.com",
-    approvedAt: "2025-11-02 17:00"
-  }
-];
-
-function formatMoney(value) {
-  return new Intl.NumberFormat('en-ZA', {
-    style: 'currency',
-    currency: 'ZAR',
+function formatMoney(value, currency = "ZAR") {
+  return new Intl.NumberFormat("en-ZA", {
+    style: "currency",
+    currency: currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(Number(value) || 0);
 }
 
+function formatDate(epoch) {
+  if (!epoch) return "—";
+  const date = new Date(epoch * 1000);
+  return date.toLocaleString("en-ZA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 const ApprovedTransactions = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [transactions, setTransactions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Fetch approved transactions from API
+  useEffect(() => {
+    const fetchApprovedTransactions = async () => {
+      setIsLoading(true);
+      setError("");
+      try {
+        const params = new URLSearchParams({
+          status: "approved",
+          limit: "100",
+        });
+        const data = await apiRequest(
+          `/api/employees/reviewed-transactions?${params}`
+        );
+        setTransactions(data.items || []);
+      } catch (err) {
+        console.error("Failed to fetch approved transactions:", err);
+        setError(err.message || "Failed to load approved transactions");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchApprovedTransactions();
+  }, []);
 
   const filteredApproved = useMemo(() => {
-    if (!searchTerm.trim()) return mockApproved;
-    
+    if (!searchTerm.trim()) return transactions;
+
     const searchLower = searchTerm.toLowerCase();
-    return mockApproved.filter(txn => 
-      txn.id.toLowerCase().includes(searchLower) ||
-      txn.sender.toLowerCase().includes(searchLower) ||
-      txn.recipient.toLowerCase().includes(searchLower) ||
-      txn.amount.toString().includes(searchTerm) ||
-      txn.approvedBy.toLowerCase().includes(searchLower)
+    return transactions.filter(
+      (txn) =>
+        (txn.id || txn._id || "").toLowerCase().includes(searchLower) ||
+        (txn.senderName || "").toLowerCase().includes(searchLower) ||
+        (txn.recipientName || "").toLowerCase().includes(searchLower) ||
+        (txn.amount || "").toString().includes(searchTerm) ||
+        (txn.reviewedBy || "").toLowerCase().includes(searchLower)
     );
-  }, [searchTerm]);
+  }, [searchTerm, transactions]);
   return (
     <div className={styles.pageWrapper}>
       <main className={styles.mainContent}>
@@ -78,7 +86,7 @@ const ApprovedTransactions = () => {
             </span>
             View all approved transactions
           </div>
-          
+
           <div className={styles.searchContainer}>
             <SearchBar
               searchTerm={searchTerm}
@@ -89,65 +97,75 @@ const ApprovedTransactions = () => {
           </div>
         </div>
 
+        {error && <div className={styles.errorMessage}>{error}</div>}
+
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h3>Approval History</h3>
             <div className={styles.queueCount}>
-              {filteredApproved.length} approved
+              {isLoading ? "Loading..." : `${filteredApproved.length} approved`}
             </div>
           </div>
 
           <div className={styles.tableWrapper}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Transaction ID</th>
-                  <th>Sender</th>
-                  <th>Recipient</th>
-                  <th>Amount</th>
-                  <th>Currency</th>
-                  <th>Created</th>
-                  <th>Approved By</th>
-                  <th>Approved At</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredApproved.length > 0 ? (
-                  filteredApproved.map((t) => (
-                  <tr key={t.id}>
-                    <td className={styles.mono}>{t.id}</td>
-                    <td>{t.sender}</td>
-                    <td>{t.recipient}</td>
-                    <td>{formatMoney(t.amount)}</td>
-                    <td>{t.currency}</td>
-                    <td>{t.createdAt}</td>
-                    <td>{t.approvedBy}</td>
-                    <td>{t.approvedAt}</td>
-                    <td>
-                      <Button
-                        size="small"
-                        variant="outline"
-                        aria-label={`View ${t.id}`}
-                        onClick={() => navigate(`/transactions/review/${t.id}`)}
-                        icon={FiEye}
-                      >
-                        View
-                      </Button>
-                    </td>
-                  </tr>
-                  ))
-                ) : (
+            {isLoading ? (
+              <div className={styles.loadingState}>Loading transactions...</div>
+            ) : (
+              <table className={styles.table}>
+                <thead>
                   <tr>
-                    <td colSpan="9" className={styles.noResults}>
-                      No approved transactions found matching your search
-                    </td>
+                    <th>Transaction ID</th>
+                    <th>Sender</th>
+                    <th>Recipient</th>
+                    <th>Amount</th>
+                    <th>Currency</th>
+                    <th>Created</th>
+                    <th>Approved At</th>
+                    <th>Action</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
-            {mockApproved.length === 0 && (
-              <div className={styles.emptyState}>No approved transactions found</div>
+                </thead>
+                <tbody>
+                  {filteredApproved.length > 0 ? (
+                    filteredApproved.map((t) => (
+                      <tr key={t.id || t._id}>
+                        <td className={styles.mono}>{t.id || t._id}</td>
+                        <td>{t.senderName || "—"}</td>
+                        <td>{t.recipientName || "—"}</td>
+                        <td>{formatMoney(t.amount, t.currency)}</td>
+                        <td>{t.currency || "ZAR"}</td>
+                        <td>{formatDate(t.createdAtEpoch)}</td>
+                        <td>{formatDate(t.statusUpdatedAtEpoch)}</td>
+                        <td>
+                          <Button
+                            size="small"
+                            variant="outline"
+                            aria-label={`View ${t.id || t._id}`}
+                            onClick={() =>
+                              navigate(`/transactions/review/${t.id || t._id}`)
+                            }
+                            icon={FiEye}
+                          >
+                            View
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="8" className={styles.noResults}>
+                        {searchTerm
+                          ? "No approved transactions found matching your search"
+                          : "No approved transactions found"}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
+            {!isLoading && transactions.length === 0 && !error && (
+              <div className={styles.emptyState}>
+                No approved transactions found
+              </div>
             )}
           </div>
         </div>
