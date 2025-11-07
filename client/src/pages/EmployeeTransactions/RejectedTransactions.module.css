@@ -47,8 +47,9 @@
   font-style: italic;
 }
 
-.mono { 
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; 
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
 }
 
 .statusPill {
@@ -60,10 +61,10 @@
   border: 1px solid transparent;
 }
 
-.statusRejected { 
-  color: #ef4444; 
-  background: rgba(239, 68, 68, 0.12); 
-  border-color: rgba(239, 68, 68, 0.25); 
+.statusRejected {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.25);
 }
 
 .card {
@@ -71,7 +72,8 @@
   border-radius: 16px;
   padding: 1.25rem;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   margin-bottom: 1rem;
 }
 
@@ -120,7 +122,7 @@
   color: #fffffe;
 }
 
-.table th, 
+.table th,
 .table td {
   vertical-align: middle;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -148,8 +150,8 @@
   margin-bottom: 0.5rem;
 }
 
-.backLink:hover { 
-  color: #fffffe; 
+.backLink:hover {
+  color: #fffffe;
   text-decoration: underline;
 }
 
@@ -166,11 +168,11 @@
   .mainContent {
     padding: 1.5rem 1rem;
   }
-  
+
   .heading {
     font-size: 1.6rem;
   }
-  
+
   .table thead th,
   .table tbody td {
     padding: 0.5rem 0.4rem;
@@ -178,31 +180,52 @@
   }
 }
 
+/* Loading State */
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #b8c1ec;
+  font-size: 1rem;
+}
+
+/* Error Message */
+.errorMessage {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
 @media (max-width: 768px) {
   .table thead {
     display: none;
   }
-  
+
   .table tbody tr {
     display: block;
     margin-bottom: 1rem;
     padding: 0.75rem;
   }
-  
+
   .table tbody td {
     display: flex;
     justify-content: space-between;
     padding: 0.25rem 0;
     border: none;
   }
-  
+
   .table tbody td::before {
     content: attr(data-label);
     color: #a7a9be;
     margin-right: 1rem;
     font-weight: 500;
   }
-  
+
   .table tbody td.mono::before {
     font-family: inherit;
   }
