@@ -491,9 +491,10 @@ const TransactionPage = () => {
                     <div className={styles.currencyDropdownWrapper}>
                       <Dropdown
                         id="currency"
-                        value={formData.currency}
-                        options={currencyOptions}
-                        onChange={handleDropdownChange("currency")}
+                        value={"ZAR"}
+                        options={[{ value: "ZAR", label: "South African Rand (ZAR)" }]}
+                        onChange={() => {}}
+                        disabled={true}
                         className={styles.currencyDropdown}
                         error={
                           showError("currencyCode") ? errors.currencyCode : ""
@@ -778,10 +779,7 @@ const TransactionPage = () => {
                     onBlur={() => markTouched(["destinationBankSwift"])}
                   />
                   <small style={{ color: "var(--color-text-muted)" }}>
-                    {formData.swiftBic.length < 8 ||
-                    formData.swiftBic.length > 11
-                      ? "SWIFT/BIC must be 8 or 11 characters"
-                      : "8 or 11 characters, letters and numbers only"}
+                    Must be a valid SWIFT/BIC code and must be in a valid format
                   </small>
                   <FieldError apiKey="destinationBankSwift" />
                 </div>
@@ -968,15 +966,7 @@ const TransactionPage = () => {
                     <span className={styles.checkmark}></span>
                     <span>
                       I confirm that the information provided is accurate and I
-                      agree to the{" "}
-                      <a
-                        href="/terms"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Terms & Conditions
-                      </a>
-                      .
+                      agree to the Terms & Conditions.
                     </span>
                   </label>
                 </div>
