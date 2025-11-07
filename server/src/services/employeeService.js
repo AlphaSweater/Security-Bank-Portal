@@ -1,4 +1,5 @@
 import * as transactionRepo from "#models/transactionModel.js";
+import * as userRepo from "#models/userModel.js";
 import { getLogger } from "#utils/logger.js";
 
 const logger = getLogger(import.meta.url);
@@ -24,6 +25,58 @@ const ALLOWED_REVIEW_STATUSES = new Set([
   transactionRepo.TRANSACTION_STATUS.APPROVED,
   transactionRepo.TRANSACTION_STATUS.REJECTED,
 ]);
+
+/* =============================================================================
+ * HELPER FUNCTIONS
+ * ========================================================================== */
+
+/**
+ * Enriches transaction objects with sender information from the users collection.
+ * Adds fields: senderName, recipientName, senderAccountNumber, recipientAccountNumber
+ *
+ * @param {Array|Object} transactions - Single transaction or array of transactions
+ * @returns {Promise<Array|Object>} - Enriched transaction(s)
+ */
+async function enrichTransactionsWithUserData(transactions) {
+  const isArray = Array.isArray(transactions);
+  const txnArray = isArray ? transactions : [transactions];
+
+  if (txnArray.length === 0) return isArray ? [] : null;
+
+  // Get unique user IDs
+  const userIds = [...new Set(txnArray.map((t) => t.userId).filter(Boolean))];
+
+  // Fetch all users in batch
+  const users = await Promise.all(
+    userIds.map((id) =>
+      userRepo.getUserById(id, {
+        projection: userRepo.PROJECTIONS.PUBLIC_PROFILE,
+      })
+    )
+  );
+
+  // Create a map of userId -> user object
+  const userMap = new Map();
+  users.forEach((user) => {
+    if (user) userMap.set(user.id, user);
+  });
+
+  // Enrich transactions
+  const enriched = txnArray.map((txn) => {
+    const sender = userMap.get(txn.userId);
+    return {
+      ...txn,
+      // Add sender information
+      senderName: sender ? `${sender.firstName} ${sender.lastName}` : "Unknown",
+      senderAccountNumber: "—", // Sender account info not stored in system
+      // Add recipient information (from existing beneficiary fields)
+      recipientName: txn.beneficiaryFullName || "—",
+      recipientAccountNumber: txn.destinationAccountNumber || "—",
+    };
+  });
+
+  return isArray ? enriched : enriched[0];
+}
 
 /* =============================================================================
  * REVIEW QUEUE MANAGEMENT
@@ -92,8 +145,12 @@ export async function getReviewQueue(options = {}) {
       ).length,
     };
 
+    // Enrich with user data
+    const slicedItems = prioritized.slice(0, limit);
+    const enrichedItems = await enrichTransactionsWithUserData(slicedItems);
+
     return {
-      items: prioritized.slice(0, limit),
+      items: enrichedItems,
       nextCursor: prioritized.length > limit ? "has_more" : null,
       queueStats,
     };
@@ -285,18 +342,27 @@ export async function getReviewedTransactions(reviewerId, options = {}) {
   try {
     const { status, ...paginationOptions } = options;
 
+    let result;
     if (status) {
-      return transactionRepo.getTransactionsReviewedByEmployeeByStatus(
+      result = await transactionRepo.getTransactionsReviewedByEmployeeByStatus(
         reviewerId,
         status,
         paginationOptions
       );
+    } else {
+      result = await transactionRepo.getTransactionsReviewedByEmployee(
+        reviewerId,
+        paginationOptions
+      );
     }
 
-    return transactionRepo.getTransactionsReviewedByEmployee(
-      reviewerId,
-      paginationOptions
-    );
+    // Enrich with user data
+    const enrichedItems = await enrichTransactionsWithUserData(result.items);
+
+    return {
+      ...result,
+      items: enrichedItems,
+    };
   } catch (error) {
     logger.error("Failed to get reviewed transactions", {
       error: error.message,
@@ -320,8 +386,13 @@ export async function getTransactionForReview(transactionId) {
     const transaction = await transactionRepo.getTransactionById(transactionId);
     if (!transaction) return null;
 
+    // Enrich with user data
+    const enrichedTransaction = await enrichTransactionsWithUserData(
+      transaction
+    );
+
     return {
-      ...transaction,
+      ...enrichedTransaction,
       reviewContext: {
         isPending:
           transaction.status === transactionRepo.TRANSACTION_STATUS.PENDING,
