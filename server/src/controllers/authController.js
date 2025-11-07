@@ -5,23 +5,32 @@ import {
 } from "#services/sessionService.js";
 import * as authService from "#services/authService.js";
 
-import { isActiveUser, getBasicUserInfo } from "#services/userService.js";
 import { getLogger } from "#utils/logger.js";
 
 const logger = getLogger(import.meta.url);
 
-// --- Auth Controller ---
+/* =============================================================================
+ * AUTH CONTROLLER - Authentication Operations
+ * Handles user authentication, registration, and session management
+ * ========================================================================== */
 
 // POST /auth/login
-export async function login(req, res, next) {
+export async function login(req, res) {
   res.set({ "Cache-Control": "no-store" });
   // All fields are already validated and stripped by middleware
   const { email, password } = req.body;
   try {
     const user = await authService.authenticateUser({ email, password });
     await createSession(req, user);
+
+    logger.info("User logged in successfully", {
+      userId: user._id.toString(),
+      role: user.role,
+    });
+
     return res.json({ message: "Log in successful" });
   } catch (err) {
+    logger.warn("Login attempt failed", { email, error: err.message });
     // Invalid credentials or session error
     return res
       .status(401)
@@ -30,20 +39,28 @@ export async function login(req, res, next) {
 }
 
 // POST /auth/register
-export async function register(req, res, next) {
+export async function register(req, res) {
   // All fields are already validated and stripped by middleware
   res.set({ "Cache-Control": "no-store" });
   const { firstName, lastName, saIdNumber, email, password } = req.body;
   try {
-    await authService.registerNewUser({
+    const user = await authService.registerNewUser({
       firstName,
       lastName,
       saIdNumber,
       email,
       password,
     });
+
+    logger.info("New user registered", {
+      userId: user._id.toString(),
+      email: user.email,
+      role: user.role,
+    });
+
     return res.status(201).json({ message: "Registration successful" });
   } catch (err) {
+    logger.warn("Registration failed", { email, error: err.message });
     // Duplicate email or other registration error response
     return res
       .status(400)
@@ -54,10 +71,16 @@ export async function register(req, res, next) {
 // POST /auth/logout
 export async function logout(req, res) {
   res.set({ "Cache-Control": "no-store" });
+  const userId = req.session?.userId;
+
   try {
     await destroySession(req, res);
+
+    logger.info("User logged out", { userId });
+
     return res.json({ message: "Logged out" });
   } catch (err) {
+    logger.error("Logout failed", { userId, error: err.message });
     return res.status(500).json({ message: "Logout failed" });
   }
 }
@@ -73,15 +96,21 @@ export async function sessionCheck(req, res) {
     // 1) Fetch session
     const session = await fetchSession(req);
     if (!session || !session.userId) {
+      logger.debug("Session check failed: no session");
       return res.status(401).json({ authenticated: false });
     }
 
     // 2) Check active user by id from session (with a 3s safety timeout)
     let timeoutHit = false;
-    const active = await withTimeout(isActiveUser(session.userId), 3000, () => {
-      timeoutHit = true;
-    });
+    const active = await withTimeout(
+      authService.isActiveUser(session.userId),
+      3000,
+      () => {
+        timeoutHit = true;
+      }
+    );
     if (timeoutHit) {
+      logger.warn("Session check timed out", { userId: session.userId });
       // Timeout-specific response
       return res.status(503).json({
         authenticated: false,
@@ -89,28 +118,40 @@ export async function sessionCheck(req, res) {
       });
     }
     if (!active) {
+      logger.debug("Session check failed: user inactive", {
+        userId: session.userId,
+      });
       try {
         await destroySession(req, res);
       } catch (destroyErr) {
-        logger.warnAsync(
-          `destroySession failed for ${session.userId}: ${destroyErr.message}`
-        );
+        logger.warn("destroySession failed for inactive user", {
+          userId: session.userId,
+          error: destroyErr.message,
+        });
       }
       return res.status(401).json({ authenticated: false });
     }
 
     // 3) OK
+    logger.debug("Session check successful", {
+      userId: session.userId,
+      role: session.role,
+    });
     return res.status(200).json({ authenticated: true, role: session.role });
   } catch (err) {
     // Safer for the gate: fail closed on unexpected errors
-    logger.warnAsync(`Session check failed: ${err.message}`);
+    logger.warn("Session check failed with error", { error: err.message });
     return res.status(401).json({ authenticated: false });
   }
 }
 
-// ---- Helpers ----
+/* =============================================================================
+ * HELPER FUNCTIONS
+ * ========================================================================== */
 
-// Small utility to bound latency on external checks
+/**
+ * Small utility to bound latency on external checks
+ */
 function withTimeout(promise, ms, onTimeout) {
   let timeoutId;
   const timeoutPromise = new Promise((resolve) => {

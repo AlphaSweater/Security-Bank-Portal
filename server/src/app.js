@@ -5,7 +5,9 @@ import errorHandler from "#middlewares/errorHandlerMiddleware.js";
 import session from "#middlewares/sessionMiddleware.js";
 import authRoutes from "#routes/authRoutes.js";
 import userRoutes from "#routes/userRoutes.js";
-import transactionRoutes from "#routes/transactionRoutes.js";
+import customerRoutes from "#routes/customerRoutes.js";
+import employeeRoutes from "#routes/employeeRoutes.js";
+import adminRoutes from "#routes/adminRoutes.js";
 import { getLogger } from "#utils/logger.js";
 
 const logger = getLogger(import.meta.url);
@@ -38,9 +40,12 @@ app.use((req, res, next) => {
 setupSecurity(app);
 
 // Register routes
+logger.info("Registering API routes");
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/transactions", transactionRoutes);
+app.use("/api/customers", customerRoutes);
+app.use("/api/employees", employeeRoutes);
+app.use("/api/admin", adminRoutes);
 app.get("/api/health", (req, res) => res.status(200).send("OK"));
 
 // 404 handler (for unmatched routes)
