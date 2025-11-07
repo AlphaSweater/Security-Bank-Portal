@@ -284,7 +284,7 @@ All tests passed successfully, ensuring that input validation, authentication, a
 ## 🎥 Video Demo
 
 📺 **Watch the full walkthrough of Security Bank Portal on YouTube:**
-👉 [Click here to view](PUT YOUTUBE VIDEO!)
+👉 [Click here to view](https://youtu.be/WscAZa2Mw3E)
 
 <br>
 
