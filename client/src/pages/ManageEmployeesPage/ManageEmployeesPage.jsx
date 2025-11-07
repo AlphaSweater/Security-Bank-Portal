@@ -73,7 +73,13 @@ function ConfirmDialog({ open, title, message, onCancel, onConfirm }) {
 
 function EmployeeForm({ initial, onSubmit, onCancel, submitting }) {
   const [form, setForm] = useState(
-    initial || { firstName: "", lastName: "", email: "", role: "employee" }
+    initial || {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      role: "employee",
+    }
   );
 
   useEffect(() => {
@@ -139,6 +145,23 @@ function EmployeeForm({ initial, onSubmit, onCancel, submitting }) {
             autoComplete="email"
           />
         </div>
+        <div>
+          <label htmlFor="password" className={styles.fieldLabel}>
+            Password
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            className={styles.txInput}
+            value={form.password}
+            onChange={(e) => update("password", e.target.value)}
+            required={!initial}
+            autoComplete="new-password"
+          />
+        </div>
+      </div>
+      <div className={styles.formRow}>
         <div className={styles.selectField}>
           {/* Associate label with select */}
           <label htmlFor="role" className={styles.label}>
@@ -332,9 +355,9 @@ export default function ManageEmployeesPage({ role }) {
                 id="role-filter"
                 value={roleFilter}
                 options={[
-                  { value: 'all', label: 'All Roles' },
-                  { value: 'employee', label: 'Employees' },
-                  { value: 'admin', label: 'Admins' }
+                  { value: "all", label: "All Roles" },
+                  { value: "employee", label: "Employees" },
+                  { value: "admin", label: "Admins" },
                 ]}
                 onChange={(value) => setRoleFilter(value)}
                 className={styles.roleDropdown}

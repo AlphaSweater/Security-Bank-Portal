@@ -1,3 +1,4 @@
+import argon2 from "argon2";
 import * as userRepo from "#models/userModel.js";
 import { getLogger } from "#utils/logger.js";
 
@@ -76,15 +77,18 @@ export async function createEmployeeAccount(employeeData, createdByAdminId) {
       throw new Error("Email already in use");
     }
 
-    // Create the employee account (password will be hashed by authService/userRepo)
-    const newEmployee = await userRepo.createUser({
+    // Hash the password using Argon2id
+    const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
+
+    // Create the employee account
+    const newEmployee = await userRepo.insertUser({
       email,
-      password,
+      passwordHash,
       firstName,
       lastName,
       role,
       createdBy: createdByAdminId,
-      createdAt: Math.floor(Date.now() / 1000),
+      createdAt: new Date(),
     });
 
     logger.info("Employee account created successfully", {
