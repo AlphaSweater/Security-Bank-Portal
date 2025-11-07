@@ -92,7 +92,7 @@ const routes = [
     path: "/admin/employees",
     label: "Manage Employees",
     element: <ManageEmployeesPage />,
-    showInNav: false,
+    showInNav: true,
     isPrivate: true,
     allowedRoles: ["admin"],
     showNavbar: true,

@@ -3,9 +3,9 @@ import { getDB } from "#config/mongoDBConfig.js";
 import { ObjectId } from "mongodb";
 import { epochSecondsNow } from "#utils/timeUtil.js";
 
-// =============================================================================
-// CONSTANTS
-// =============================================================================
+/* =============================================================================
+ * CONSTANTS
+ * ========================================================================== */
 
 export const TRANSACTION_STATUS = Object.freeze({
   PENDING: "pending",
@@ -14,15 +14,15 @@ export const TRANSACTION_STATUS = Object.freeze({
 });
 const ALLOWED_STATUS = new Set(Object.values(TRANSACTION_STATUS));
 
-// =============================================================================
-// COLLECTION ACCESSOR
-// =============================================================================
+/* =============================================================================
+ * COLLECTION ACCESSOR
+ * ========================================================================== */
 
 const collection = () => getDB().collection("transactions");
 
-// =============================================================================
-// HELPERS (local + readable)
-// =============================================================================
+/* =============================================================================
+ * INTERNAL HELPERS (private)
+ * ========================================================================== */
 
 function toObjectIdOrThrow(id, fieldName = "id") {
   const value = String(id ?? "");
@@ -40,6 +40,7 @@ function addCreatedAtRange(query, startEpoch, endEpoch) {
   }
 }
 
+// Cursor helpers (newest-first): "epoch:_id"
 function parseCursor(after) {
   if (!after) return null;
   const [epochStr, idStr] = String(after).split(":");
@@ -54,16 +55,19 @@ function parseCursor(after) {
     ],
   };
 }
-
 function makeCursor(lastDoc) {
   if (!lastDoc) return null;
   return `${lastDoc.createdAtEpoch}:${lastDoc._id.toString()}`;
 }
 
-// =============================================================================
-// OPTIONAL: INDEX BOOTSTRAP
-// =============================================================================
+/* =============================================================================
+ * OPTIONAL: INDEX BOOTSTRAP (public)
+ * ========================================================================== */
 
+/**
+ * ensureTransactionIndexes() → Promise<void>
+ * Creates the compound/partial indexes used by your common queries. Call once at server startup.
+ */
 export async function ensureTransactionIndexes() {
   const col = collection();
   await col.createIndexes([
@@ -81,38 +85,11 @@ export async function ensureTransactionIndexes() {
   ]);
 }
 
-// =============================================================================
-// CREATE
-// =============================================================================
+/* =============================================================================
+ * PRIVATE CORES
+ * ========================================================================== */
 
-export async function insertTransaction(doc) {
-  const createdAtEpoch = epochSecondsNow();
-
-  const transaction = {
-    ...doc,
-    userId: toObjectIdOrThrow(doc.userId, "userId"),
-    status: TRANSACTION_STATUS.PENDING,
-    createdAtTimeZone: doc.createdAtTimeZone || undefined,
-    createdAtEpoch,
-    statusUpdatedAtEpoch: createdAtEpoch,
-    statusHistory: [
-      {
-        status: TRANSACTION_STATUS.PENDING,
-        at: createdAtEpoch,
-        by: null,
-        reason: null,
-      },
-    ],
-  };
-
-  return collection().insertOne(transaction);
-}
-
-// =============================================================================
-// READ — CORE LIST (newest first)
-// =============================================================================
-
-export async function listTransactions({
+async function _listTransactions({
   status = null,
   userId = null,
   reviewedBy = null,
@@ -152,115 +129,7 @@ export async function listTransactions({
   return { items, nextCursor };
 }
 
-// =============================================================================
-// READ — CONVENIENCE LIST ACCESSORS
-// =============================================================================
-
-export async function getTransactionsByUser(
-  userId,
-  {
-    startEpoch = null,
-    endEpoch = null,
-    limit = 50,
-    after = null,
-    projection,
-  } = {}
-) {
-  return listTransactions({
-    userId,
-    startEpoch,
-    endEpoch,
-    limit,
-    after,
-    projection,
-  });
-}
-
-export async function getTransactionsByStatus(
-  status,
-  {
-    userId = null,
-    reviewedBy = null,
-    startEpoch = null,
-    endEpoch = null,
-    limit = 50,
-    after = null,
-    projection,
-  } = {}
-) {
-  return listTransactions({
-    status,
-    userId,
-    reviewedBy,
-    startEpoch,
-    endEpoch,
-    limit,
-    after,
-    projection,
-  });
-}
-
-export async function getPendingTransactions({
-  userId = null,
-  startEpoch = null,
-  endEpoch = null,
-  limit = 50,
-  after = null,
-  projection,
-} = {}) {
-  return listTransactions({
-    status: TRANSACTION_STATUS.PENDING,
-    userId,
-    startEpoch,
-    endEpoch,
-    limit,
-    after,
-    projection,
-  });
-}
-
-export async function getTransactionsReviewedByEmployee(
-  employeeId,
-  {
-    status = null,
-    startEpoch = null,
-    endEpoch = null,
-    limit = 50,
-    after = null,
-    projection,
-  } = {}
-) {
-  return listTransactions({
-    reviewedBy: employeeId,
-    status,
-    startEpoch,
-    endEpoch,
-    limit,
-    after,
-    projection,
-  });
-}
-
-// =============================================================================
-// READ — SINGLE DOC
-// =============================================================================
-
-export async function getTransactionById(id, { projection } = {}) {
-  return collection().findOne(
-    { _id: toObjectIdOrThrow(id, "id") },
-    { projection }
-  );
-}
-
-// =============================================================================
-// COUNT — CORE TOTAL + CORE GROUPED
-// =============================================================================
-
-/**
- * countTransactions — total count matching filters (mirrors listTransactions filters).
- * @returns {Promise<number>}
- */
-export async function countTransactions({
+async function _countTransactions({
   status = null,
   userId = null,
   reviewedBy = null,
@@ -285,22 +154,15 @@ export async function countTransactions({
   return collection().countDocuments(query);
 }
 
-/**
- * countTransactionsByStatus — grouped counts matching filters.
- * Returns: { pending: n, approved: n, rejected: n } (missing keys omitted)
- * @returns {Promise<Object>}
- */
-export async function countTransactionsByStatus({
+async function _countTransactionsByStatus({
+  status = null, // optional pre-filter to a single status
   userId = null,
   reviewedBy = null,
   startEpoch = null,
   endEpoch = null,
-  // Optional pre-filter by a single status if you want a subset; null = all
-  status = null,
 } = {}) {
   const matchStage = {};
   addCreatedAtRange(matchStage, startEpoch, endEpoch);
-
   if (userId !== null) matchStage.userId = toObjectIdOrThrow(userId, "userId");
   if (reviewedBy !== null)
     matchStage.reviewedBy = toObjectIdOrThrow(reviewedBy, "reviewedBy");
@@ -327,19 +189,179 @@ export async function countTransactionsByStatus({
   }, {});
 }
 
-// =============================================================================
-// COUNT — CONVENIENCE ACCESSORS (thin wrappers)
-// =============================================================================
+/* =============================================================================
+ * PUBLIC API — CREATE
+ * ========================================================================== */
 
 /**
- * Total number of pending transactions, optionally within a time window or for a user.
+ * insertTransaction(doc) → Promise<InsertOneResult>
+ * Creates a new transaction with canonical timestamps, pending status, and an initial statusHistory entry.
+ * Pass a validated business doc (must include userId).
  */
-export async function countPendingTransactions({
+export async function insertTransaction(doc) {
+  const createdAtEpoch = epochSecondsNow();
+
+  const transaction = {
+    ...doc,
+    userId: toObjectIdOrThrow(doc.userId, "userId"),
+    status: TRANSACTION_STATUS.PENDING,
+    createdAtTimeZone: doc.createdAtTimeZone || undefined,
+    createdAtEpoch,
+    statusUpdatedAtEpoch: createdAtEpoch,
+    statusHistory: [
+      {
+        status: TRANSACTION_STATUS.PENDING,
+        at: createdAtEpoch,
+        by: null,
+        reason: null,
+      },
+    ],
+  };
+
+  return collection().insertOne(transaction);
+}
+
+/* =============================================================================
+ * PUBLIC API — READ (lists) — all return { items, nextCursor }, newest-first
+ * ========================================================================== */
+
+/**
+ * getTransactionsMadeByUser(userId, { startEpoch, endEpoch, limit, after, projection })
+ * Lists all transactions for a user, newest first. Optional time window + cursor pagination.
+ */
+export async function getTransactionsMadeByUser(
+  userId,
+  {
+    startEpoch = null,
+    endEpoch = null,
+    limit = 50,
+    after = null,
+    projection,
+  } = {}
+) {
+  return _listTransactions({
+    userId,
+    startEpoch,
+    endEpoch,
+    limit,
+    after,
+    projection,
+  });
+}
+
+/**
+ * getTransactionsMadeByUserByStatus(userId, { status, startEpoch, endEpoch, limit, after, projection })
+ * Lists a user's transactions filtered by a given status.
+ */
+export async function getTransactionsMadeByUserByStatus(
+  userId,
+  status,
+  {
+    startEpoch = null,
+    endEpoch = null,
+    limit = 50,
+    after = null,
+    projection,
+  } = {}
+) {
+  return _listTransactions({
+    userId,
+    status,
+    startEpoch,
+    endEpoch,
+    limit,
+    after,
+    projection,
+  });
+}
+
+/**
+ * getTransactionsReviewedByEmployee(employeeId, { status, startEpoch, endEpoch, limit, after, projection })
+ * Lists transactions reviewed by a given employee, optionally filtered by status and/or time window.
+ */
+export async function getTransactionsReviewedByEmployee(
+  employeeId,
+  {
+    startEpoch = null,
+    endEpoch = null,
+    limit = 50,
+    after = null,
+    projection,
+  } = {}
+) {
+  return _listTransactions({
+    reviewedBy: employeeId,
+    startEpoch,
+    endEpoch,
+    limit,
+    after,
+    projection,
+  });
+}
+
+/**
+ * getTransactionsReviewedByEmployeeByStatus(employeeId, { status, startEpoch, endEpoch, limit, after, projection })
+ * Lists transactions reviewed by a given employee filtered by a specific status.
+ */
+export async function getTransactionsReviewedByEmployeeByStatus(
+  employeeId,
+  status,
+  {
+    startEpoch = null,
+    endEpoch = null,
+    limit = 50,
+    after = null,
+    projection,
+  } = {}
+) {
+  return _listTransactions({
+    reviewedBy: employeeId,
+    status,
+    startEpoch,
+    endEpoch,
+    limit,
+    after,
+    projection,
+  });
+}
+
+/**
+ * getTransactionById(id, { projection })
+ * Fetches a single transaction by its _id.
+ */
+export async function getTransactionById(id, { projection } = {}) {
+  return collection().findOne(
+    { _id: toObjectIdOrThrow(id, "id") },
+    { projection }
+  );
+}
+
+/* =============================================================================
+ * PUBLIC API — READ (counts)
+ * ========================================================================== */
+
+/**
+ * countTransactionsByStatus({ startEpoch=null, endEpoch=null } = {})
+ * Global grouped counts by status (optionally by period).
+ * Returns: { pending: n, approved: n, rejected: n } (missing keys omitted)
+ */
+export async function countTransactionsByStatus({
+  startEpoch = null,
+  endEpoch = null,
+} = {}) {
+  return _countTransactionsByStatus({ startEpoch, endEpoch });
+}
+
+/**
+ * countTotalPendingTransactions({ userId=null, startEpoch=null, endEpoch=null } = {})
+ * Counts pending transactions, optionally for a specific user and/or period.
+ */
+export async function countTotalPendingTransactions({
   userId = null,
   startEpoch = null,
   endEpoch = null,
 } = {}) {
-  return countTransactions({
+  return _countTransactions({
     status: TRANSACTION_STATUS.PENDING,
     userId,
     startEpoch,
@@ -348,33 +370,52 @@ export async function countPendingTransactions({
 }
 
 /**
- * Total number of transactions for a user (any status), with optional time range.
+ * countUserMadeTransactions(userId, { status=null, startEpoch=null, endEpoch=null } = {})
+ * Total count for a user (optionally restricted to a status or time window).
  */
-export async function countUserTransactions(
+export async function countUserMadeTransactions(
   userId,
-  { startEpoch = null, endEpoch = null, status = null } = {}
+  { status = null, startEpoch = null, endEpoch = null } = {}
 ) {
-  return countTransactions({ userId, startEpoch, endEpoch, status });
+  return _countTransactions({ userId, status, startEpoch, endEpoch });
 }
 
 /**
- * Count a user's transactions grouped by status (e.g., for a user dashboard).
+ * countUserMadeTransactionsByStatus(userId, { startEpoch=null, endEpoch=null } = {})
+ * Grouped counts for a user by status.
  */
-export async function countUserTransactionsByStatus(
+export async function countUserMadeTransactionsByStatus(
   userId,
   { startEpoch = null, endEpoch = null } = {}
 ) {
-  return countTransactionsByStatus({ userId, startEpoch, endEpoch });
+  return _countTransactionsByStatus({ userId, startEpoch, endEpoch });
 }
 
 /**
- * Total number of transactions reviewed by a specific employee (any status).
+ * countEmployeeReviewedTransactions(employeeId, { status=null, startEpoch=null, endEpoch=null } = {})
+ * Total transactions reviewed by an employee, optionally by status/time.
  */
-export async function countTransactionsReviewedByEmployee(
+export async function countEmployeeReviewedTransactions(
+  employeeId,
+  { status = null, startEpoch = null, endEpoch = null } = {}
+) {
+  return _countTransactions({
+    reviewedBy: employeeId,
+    status,
+    startEpoch,
+    endEpoch,
+  });
+}
+
+/**
+ * countEmployeeReviewedTransactionsByStatus(employeeId, { startEpoch=null, endEpoch=null, status=null } = {})
+ * Grouped counts by status for an employee’s reviewed transactions.
+ */
+export async function countEmployeeReviewedTransactionsByStatus(
   employeeId,
   { startEpoch = null, endEpoch = null, status = null } = {}
 ) {
-  return countTransactions({
+  return _countTransactionsByStatus({
     reviewedBy: employeeId,
     startEpoch,
     endEpoch,
@@ -382,26 +423,15 @@ export async function countTransactionsReviewedByEmployee(
   });
 }
 
+/* =============================================================================
+ * PUBLIC API — UPDATE
+ * ========================================================================== */
+
 /**
- * Grouped counts for transactions reviewed by a specific employee (by status).
+ * updateTransactionStatus(id, status, employeeId, reviewReason) → Promise<Object|null>
+ * Approves or rejects a pending transaction, sets metadata (reviewedBy, statusUpdatedAtEpoch, reviewReason),
+ * appends statusHistory, and returns the updated document. Guards: only pending → approved|rejected.
  */
-export async function countTransactionsReviewedByEmployeeByStatus(
-  employeeId,
-  { startEpoch = null, endEpoch = null, status = null } = {}
-) {
-  // status param here acts as an optional pre-filter to a single status; omit for all
-  return countTransactionsByStatus({
-    reviewedBy: employeeId,
-    startEpoch,
-    endEpoch,
-    status,
-  });
-}
-
-// =============================================================================
-// UPDATE
-// =============================================================================
-
 export async function updateTransactionStatus(
   id,
   status,
@@ -445,13 +475,12 @@ export async function updateTransactionStatus(
     { returnDocument: "after" }
   );
 
-  return result.value;
+  return result.value; // null if not found or not pending
 }
 
-// =============================================================================
-// TRANSACTION DOCUMENT SCHEMA (reference)
-// =============================================================================
-
+/* =============================================================================
+ * TRANSACTION DOCUMENT SCHEMA (reference)
+ * ========================================================================== */
 /**
  * {
  *   _id: ObjectId,

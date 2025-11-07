@@ -30,7 +30,7 @@ All client routes are defined in `client/src/routing/routes.jsx`.
 | `/transactions/history`    | Transaction History   | Yes      | `employee`, `admin`    | Yes          | Yes          | No           | View transaction history                       |
 | `/transactions/approved`   | Approved Transactions | Yes      | `employee`, `admin`    | Yes          | Yes          | No           | View approved transactions                     |
 | `/transactions/rejected`   | Rejected Transactions | Yes      | `employee`, `admin`    | Yes          | Yes          | No           | View rejected transactions                     |
-| `/admin/employees`         | Manage Employees      | Yes      | `admin`                | Yes          | Yes          | No           | Create, edit, delete employees                 |
+| `/admin/employees`         | Manage Employees      | Yes      | `admin`                | Yes          | Yes          | Yes          | Create, edit, delete employees                 |
 | `/unauthorized`            | Unauthorized          | No       | -                      | No           | No           | No           | Shown when user lacks required role            |
 
 ### Client-Side Authorization Flow
