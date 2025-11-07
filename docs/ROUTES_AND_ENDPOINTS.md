@@ -56,24 +56,37 @@ All client routes are defined in `client/src/routing/routes.jsx`.
 | POST   | `/api/auth/register`     | No             | -     | AuthFlowLimiter, ExcessLimiter                  | New user registration                          |
 | POST   | `/api/auth/logout`       | No             | -     | AuthFlowLimiter, ExcessLimiter                  | User logout                                    |
 
-### Transaction Endpoints
+### Customer Endpoints
 
-**Base Route**: `/api/transactions` (`server/src/routes/transactionRoutes.js`)
+**Base Route**: `/api/customers` (`server/src/routes/customerRoutes.js`)
 
-| Method | Path                           | Auth Required? | Roles                  | Rate Limit                    | Description                                |
-| ------ | ------------------------------ | -------------- | ---------------------- | ----------------------------- | ------------------------------------------ |
-| POST   | `/api/transactions`            | Yes            | Any authenticated user | GeneralLimiter, ExcessLimiter | Create new transaction (customer)          |
-| GET    | `/api/transactions/pending`    | Yes            | `employee`, `admin`    | GeneralLimiter                | Get all pending transactions for review    |
-| PATCH  | `/api/transactions/:id/status` | Yes            | `employee`, `admin`    | GeneralLimiter, ExcessLimiter | Update transaction status (approve/reject) |
+| Method | Path                              | Auth Required? | Roles      | Rate Limit                    | Description                                               |
+| ------ | --------------------------------- | -------------- | ---------- | ----------------------------- | --------------------------------------------------------- |
+| GET    | `/api/customers/dashboard`        | Yes            | `customer` | GeneralLimiter                | Get customer dashboard with recent transactions           |
+| GET    | `/api/customers/transactions`     | Yes            | `customer` | GeneralLimiter                | Get customer's transactions with filtering/pagination     |
+| GET    | `/api/customers/transactions/:id` | Yes            | `customer` | GeneralLimiter                | Get single transaction details (ownership verified)       |
+| POST   | `/api/customers/transactions`     | Yes            | `customer` | GeneralLimiter, ExcessLimiter | Create new transaction                                    |
+| GET    | `/api/customers/stats`            | Yes            | `customer` | GeneralLimiter                | Get customer transaction statistics (day/week/month/year) |
+
+### Employee Endpoints
+
+**Base Route**: `/api/employees` (`server/src/routes/employeeRoutes.js`)
+
+| Method | Path                                     | Auth Required? | Roles               | Rate Limit                    | Description                                    |
+| ------ | ---------------------------------------- | -------------- | ------------------- | ----------------------------- | ---------------------------------------------- |
+| GET    | `/api/employees/dashboard`               | Yes            | `employee`, `admin` | GeneralLimiter                | Get employee dashboard with review queue stats |
+| GET    | `/api/employees/review-queue`            | Yes            | `employee`, `admin` | GeneralLimiter                | Get pending transactions for review            |
+| GET    | `/api/employees/transactions/:id`        | Yes            | `employee`, `admin` | GeneralLimiter                | Get single transaction details for review      |
+| POST   | `/api/employees/transactions/:id/review` | Yes            | `employee`, `admin` | GeneralLimiter, ExcessLimiter | Review transaction (approve/reject)            |
+| GET    | `/api/employees/reviewed-transactions`   | Yes            | `employee`, `admin` | GeneralLimiter                | Get reviewed transactions with filtering       |
 
 ### User Endpoints
 
 **Base Route**: `/api/users` (`server/src/routes/userRoutes.js`)
 
-| Method | Path                         | Auth Required? | Roles                  | Rate Limit     | Description                     |
-| ------ | ---------------------------- | -------------- | ---------------------- | -------------- | ------------------------------- |
-| GET    | `/api/users/me`              | Yes            | Any authenticated user | GeneralLimiter | Get current user's profile      |
-| GET    | `/api/users/me/transactions` | Yes            | `customer`             | GeneralLimiter | Get current user's transactions |
+| Method | Path            | Auth Required? | Roles                  | Rate Limit     | Description                |
+| ------ | --------------- | -------------- | ---------------------- | -------------- | -------------------------- |
+| GET    | `/api/users/me` | Yes            | Any authenticated user | GeneralLimiter | Get current user's profile |
 
 ### Admin Endpoints
 
@@ -222,7 +235,7 @@ Rate limiters are defined in `server/src/config/rateLimitConfig.js`:
 - [ ] Implement server-side admin endpoints for employee management (`/api/admin/employees`)
 - [ ] Add rate limiters to admin endpoints
 - [ ] Consider adding audit logging for admin actions
-- [ ] Add `/api/transactions/:id` GET endpoint for fetching single transaction details
+- [x] ~~Add `/api/customers/transactions/:id` GET endpoint for fetching single transaction details~~ (Implemented)
 - [ ] Document CSRF token flow and requirements
 - [ ] Add session timeout documentation
 - [ ] Consider implementing refresh token mechanism
@@ -232,10 +245,11 @@ Rate limiters are defined in `server/src/config/rateLimitConfig.js`:
 
 ## Change Log
 
-| Date       | Author | Change                                               |
-| ---------- | ------ | ---------------------------------------------------- |
-| 2025-11-06 | System | Initial documentation created from codebase analysis |
+| Date       | Author | Change                                                    |
+| ---------- | ------ | --------------------------------------------------------- |
+| 2025-11-07 | System | Updated with new customer and employee endpoint structure |
+| 2025-11-06 | System | Initial documentation created from codebase analysis      |
 
 ---
 
-**Last Updated**: November 6, 2025
+**Last Updated**: November 7, 2025

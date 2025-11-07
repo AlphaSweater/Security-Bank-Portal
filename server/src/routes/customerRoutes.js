@@ -51,7 +51,7 @@ router.post(
   addRateLimiter(GeneralLimiter, ExcessLimiter),
   requireAuth,
   requireRole("customer"),
-  validateData(transactionValidation.createTransactionSchema),
+  validateData(transactionValidation.createTransactionSchemaClientFacing),
   asyncHandler(customerController.createTransaction)
 );
 

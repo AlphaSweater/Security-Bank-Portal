@@ -231,6 +231,12 @@ export const createTransactionSchema = Joi.object({
   .options({ stripUnknown: true, abortEarly: false })
   .meta({ schemaName: "transaction:create" });
 
+// --- Create Transaction schema for client-facing routes (userId injected server-side) ---
+export const createTransactionSchemaClientFacing = createTransactionSchema.fork(
+  ["userId"],
+  (schema) => schema.optional()
+);
+
 // --- Update Transaction Status schema (minimal, server-side use) ---
 export const updateTransactionStatusSchema = Joi.object({
   id: objectId("Transaction ID").optional(), // Optional because id comes from URL params
