@@ -305,6 +305,7 @@ const TransactionPage = () => {
 
   // Handle dropdown changes
   const handleDropdownChange = (name) => (value) => {
+    // Do not change source currency; it stays ZAR. Only update the selected field.
     const next = { ...formData, [name]: value };
     setFormData(next);
     runValidation(next);
@@ -451,7 +452,7 @@ const TransactionPage = () => {
                     marginBottom: "2rem",
                   }}
                 >
-                  Enter the amount you want to transfer and select the currency.
+                  Enter the amount you want to transfer in Rand (ZAR).
                 </p>
 
                 <div className={styles.formGroup}>
@@ -485,19 +486,6 @@ const TransactionPage = () => {
                         }`}
                         aria-label="Amount to transfer"
                         onBlur={() => markTouched(["amount"])}
-                      />
-                    </div>
-                    <div className={styles.currencyDropdownWrapper}>
-                      <Dropdown
-                        id="currency"
-                        value={"ZAR"}
-                        options={[{ value: "ZAR", label: "South African Rand (ZAR)" }]}
-                        onChange={() => {}}
-                        disabled={true}
-                        className={styles.currencyDropdown}
-                        error={
-                          showError("currencyCode") ? errors.currencyCode : ""
-                        }
                       />
                     </div>
                   </div>
