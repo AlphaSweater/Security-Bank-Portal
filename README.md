@@ -273,9 +273,9 @@ All tests passed successfully, ensuring that input validation, authentication, a
 
 <div align="center">
   
-| Login Page | Dashboard | Transaction Review | Transfer Page |
+| Admin Dashboard | Dashboard | Transaction Review | Transfer Page |
 |-----------------|------------------------|-------------------|-----------------|
-| <img src="https://i.postimg.cc/bwcfsBJm/image.png" width="700"/> | <img src="https://i.postimg.cc/d3kg02KP/image.png" width="700"/> | <img src="https://i.postimg.cc/pLJVxHZQ/image.png" width="700"/> | <img src="https://i.postimg.cc/kGS9H34Z/image.png" width="700"/> |
+| <img src="https://i.postimg.cc/5tyhGdKg/image.png" width="700"/> | <img src="https://i.postimg.cc/d3kg02KP/image.png" width="700"/> | <img src="https://i.postimg.cc/pLJVxHZQ/image.png" width="700"/> | <img src="https://i.postimg.cc/kGS9H34Z/image.png" width="700"/> |
 
 </div>
 
