@@ -18,7 +18,9 @@ Security Bank Portal is a secure Node.js / Express prototype that lets users reg
 
 - [📝 Overview](#-overview)
 - [📚 Table of Contents](#-table-of-contents)
-- [⚙️ How to Install and Setup](#️-how-to-install-and-setup)
+- [🌟 Features](#-features)
+- [🔐 Security Features](#-security-features)
+  - [⚙️ How to Install and Setup](#️-how-to-install-and-setup)
   - [1. Clone repo](#1-clone-repo)
   - [2. Install dependencies (client \& server)](#2-install-dependencies-client--server)
   - [3. Generate HTTPS certs](#3-generate-https-certs)
@@ -28,14 +30,43 @@ Security Bank Portal is a secure Node.js / Express prototype that lets users reg
   - [3.4. Clean up (optional)](#34-clean-up-optional)
   - [4. Run server (dev)](#4-run-server-dev)
   - [5. Run client (dev)](#5-run-client-dev)
-- [🌟 Features](#-features)
-- [🔐 Security Features](#-security-features)
 - [🔧 Tech Stack](#-tech-stack)
 - [🏗️ Architecture](#️-architecture)
 - [🎥 Video Demo](#-video-demo)
 - [👥 contributors](#-contributors)
 - [🧠 Learning Outcomes](#-learning-outcomes)
 - [📚 References](#-references)
+
+<br>
+## 🌟 Features
+
+- Secure Sign Up and Login flows
+
+- International money transfers with validation of amounts, currencies, SWIFT/BIC and account numbers
+
+- Joi schemas for strong input validation and sanitisation
+
+- Argon2id hashing for secure password storage
+
+- Route-level rate limiting for auth endpoints
+
+- Unit & security tests with Vitest
+
+- Local HTTPS via mkcert for production-like dev environment
+
+<br>
+
+## 🔐 Security Features
+
+- Argon2 (Argon2id) for password hashing
+
+- Joi for input validation (users & transactions)
+
+- Validation middleware that masks passwords in logs and returns structured error responses
+
+- Tests that simulate NoSQL injection and XSS attempts to ensure the validation layer blocks them
+
+- Route-level rate limiting to reduce brute-force and abuse
 
 <br>
 
@@ -140,51 +171,21 @@ cd client
 npm run dev
 ```
 
-## 🌟 Features
-
-- Secure Sign Up and Login flows
-
-- International money transfers with validation of amounts, currencies, SWIFT/BIC and account numbers
-
-- Joi schemas for strong input validation and sanitisation
-
-- Argon2id hashing for secure password storage
-
-- Route-level rate limiting for auth endpoints
-
-- Unit & security tests with Vitest
-
-- Local HTTPS via mkcert for production-like dev environment
-
-<br>
-
-## 🔐 Security Features
-
-- Argon2 (Argon2id) for password hashing
-
-- Joi for input validation (users & transactions)
-
-- Validation middleware that masks passwords in logs and returns structured error responses
-
-- Tests that simulate NoSQL injection and XSS attempts to ensure the validation layer blocks them
-
-- Route-level rate limiting to reduce brute-force and abuse
-
-<br>
 
 ## 🔧 Tech Stack
 
-- Node.js, Express.js
+### 🧠 Core
+- **[Node.js](https://nodejs.org/)** – JavaScript runtime environment for the backend.
+- **[Express.js](https://expressjs.com/)** – Web framework for building APIs and middleware.
+- **[Joi](https://joi.dev/)** – Schema-based validation for user and transaction data.
+- **[argon2](https://www.npmjs.com/package/argon2)** – Secure password hashing algorithm.
 
-- Joi for validation
+### Database
+- **[MongoDB](https://www.mongodb.com/)** – NoSQL database for storing user and transaction data.
 
-- argon2 for password hashing
-
-- MongoDB (or any compatible persistence)
-
-- Vitest for tests
-
-- mkcert for local HTTPS certs
+### 🧪 Testing & Security
+- **[Vitest](https://vitest.dev/)** – Unit and integration testing framework.
+- **mkcert** – Tool for generating local HTTPS certificates.
 
 <br>
 
@@ -208,6 +209,18 @@ project/
 
 <br>
 
+## 📸 Screenshots
+
+<div align="center">
+  
+| Manage Orders | Manage Components | Manage Products | Customer Page |
+|-----------------|------------------------|-------------------|-----------------|
+| <img src="https://i.postimg.cc/WtLF75rq/Screenshot-2025-10-31-164545.png" width="700"/> | <img src="https://i.postimg.cc/Dw1QRXw0/Screenshot-2025-10-31-164451.png" width="700"/> | <img src="https://i.postimg.cc/cL3TZzX1/Screenshot-2025-10-31-164400.png" width="700"/> | <img src="https://i.postimg.cc/hPPHDK73/Screenshot-2025-10-31-164212.png" width="700"/> |
+
+</div>
+
+<br>
+
 ## 🎥 Video Demo
 
 📺 **Watch the full walkthrough of Security Bank Portal on YouTube:**
@@ -216,6 +229,10 @@ project/
 <br>
 
 ## 👥 contributors
+
+<a href="https://github.com/AlphaSweater/BudgetBuddy-Project/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=AlphaSweater/BudgetBuddy-Project" />
+</a>
 
 - Chad Fairlie ST10269509
 - Dhiren Ruthenavelu ST10256859
