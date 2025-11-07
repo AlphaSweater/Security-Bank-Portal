@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { FiArrowLeft, FiClock, FiCheckCircle, FiXCircle, FiSearch, FiDollarSign, FiUser, FiCreditCard, FiFileText, FiArrowUpRight, FiArrowDownLeft } from 'react-icons/fi';
+import { FiArrowLeft, FiClock, FiCheckCircle, FiXCircle, FiSearch, FiDollarSign, FiUser, FiCreditCard, FiFileText } from 'react-icons/fi';
 import SearchBar from '../../components/SearchBar/SearchBar';
 import Dropdown from '../../components/Common/Dropdown/Dropdown';
 import styles from './TransactionHistory.module.css';

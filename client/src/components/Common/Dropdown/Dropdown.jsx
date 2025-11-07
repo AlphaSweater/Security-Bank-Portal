@@ -101,7 +101,6 @@ const Dropdown = ({
             textAlign: "left",
             fontSize: "0.9rem",
             lineHeight: 1.2,
-            lineHeight: "1.5",
           }}
           {...props}
         >
