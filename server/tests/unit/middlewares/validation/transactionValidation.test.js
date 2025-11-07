@@ -64,7 +64,7 @@ describe("[Transaction] Create Data Validation", () => {
         amount: 250.5,
         currencyCode: "USD",
         beneficiaryType: "Individual",
-        beneficiaryFullName: "Jane O'Connor & Sons (Intl.)",
+        beneficiaryFullName: "Jane O'Connor & Sons - International",
         beneficiaryNote: "Rent",
         destinationCountryCode: "US",
         destinationBankName: "Bank of America",

@@ -665,6 +665,15 @@
   border: 1px solid var(--color-border-light);
 }
 
+.termsContainer a {
+  color: #b8c1ec;
+  text-decoration: underline;
+}
+
+.termsContainer a:hover {
+  color: #fffffe;
+}
+
 .checkboxContainer {
   display: flex;
   align-items: flex-start;

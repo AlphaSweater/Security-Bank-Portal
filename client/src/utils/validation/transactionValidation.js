@@ -91,7 +91,7 @@ const swiftBic = (label = "SWIFT/BIC") =>
     .messages({
       "string.base": `${label} must be text`,
       "string.empty": `${label} is required`,
-      "string.pattern.base": `${label} must be 8 or 11 chars (e.g. DEUTDEFF or DEUTDEFF500)`,
+      "string.pattern.base": `Must be a valid SWIFT/BIC code and must be in a valid format`,
     });
 
 // --- Account number (generic, cross-bank) ---
@@ -144,6 +144,7 @@ const timeZoneIana = (label = "Time zone") => {
 // --- Amount (money, > 0) ---
 const moneyAmount = (label = "Amount", { max = 999_999_999_999_999 } = {}) =>
   Joi.number()
+    .unsafe(true)
     .greater(0)
     .max(max)
     .precision(2)
@@ -181,9 +182,9 @@ export const createTransactionSchema = Joi.object({
     label: "Beneficiary name",
     minLength: 2,
     maxLength: 120,
-    // Allow letters, digits, spaces, apostrophes, ampersand, dot, parentheses, hyphen
-    regex: /^[A-Za-z0-9\s'&().-]+$/,
-    regexMsg: "letters, numbers, spaces, and ' & ( ) . - only",
+    // Allow letters, digits, spaces, apostrophes, ampersand, dot, hyphen (no parentheses)
+    regex: /^[A-Za-z0-9\s'&.\-]+$/,
+    regexMsg: "letters, numbers, spaces, and ' & . - only",
   }).required(),
 
   beneficiaryNote: Joi.string().trim().max(200).allow("").messages({
@@ -197,8 +198,8 @@ export const createTransactionSchema = Joi.object({
     label: "Destination bank name",
     minLength: 2,
     maxLength: 120,
-    regex: /^[A-Za-z0-9\s'&().-]+$/,
-    regexMsg: "letters, numbers, spaces, and ' & ( ) . - only",
+    regex: /^[A-Za-z0-9\s'&.\-]+$/,
+    regexMsg: "letters, numbers, spaces, and ' & . - only",
   }).required(),
   destinationBankSwift: swiftBic("SWIFT/BIC").required(),
   destinationAccountNumber: accountNumber().required(),
