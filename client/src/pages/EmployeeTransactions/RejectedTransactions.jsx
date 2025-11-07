@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FiXCircle, FiEye } from "react-icons/fi";
 import Button from "../../components/Common/Button/Button";
+import SearchBar from "../../components/SearchBar/SearchBar";
 import styles from "./RejectedTransactions.module.css";
 
 // Mock data - replace with API call later
@@ -52,6 +53,21 @@ function formatMoney(value) {
 
 const RejectedTransactions = () => {
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredRejected = useMemo(() => {
+    if (!searchTerm.trim()) return mockRejected;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return mockRejected.filter(txn => 
+      txn.id.toLowerCase().includes(searchLower) ||
+      txn.sender.toLowerCase().includes(searchLower) ||
+      txn.recipient.toLowerCase().includes(searchLower) ||
+      txn.amount.toString().includes(searchTerm) ||
+      txn.rejectedBy.toLowerCase().includes(searchLower) ||
+      txn.reason.toLowerCase().includes(searchLower)
+    );
+  }, [searchTerm]);
   
   return (
     <div className={styles.pageWrapper}>
@@ -67,13 +83,22 @@ const RejectedTransactions = () => {
             </span>
             View all rejected transactions
           </div>
+          
+          <div className={styles.searchContainer}>
+            <SearchBar
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              placeholder="Search rejected transactions..."
+              className={styles.searchBar}
+            />
+          </div>
         </div>
 
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h3>Rejection History</h3>
             <div className={styles.queueCount}>
-              {mockRejected.length} rejected
+              {filteredRejected.length} rejected
             </div>
           </div>
 
@@ -94,7 +119,8 @@ const RejectedTransactions = () => {
                 </tr>
               </thead>
               <tbody>
-                {mockRejected.map((t) => (
+                {filteredRejected.length > 0 ? (
+                  filteredRejected.map((t) => (
                   <tr key={t.id}>
                     <td className={styles.mono}>{t.id}</td>
                     <td>{t.sender}</td>
@@ -117,7 +143,14 @@ const RejectedTransactions = () => {
                       </Button>
                     </td>
                   </tr>
-                ))}
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="10" className={styles.noResults}>
+                      No rejected transactions found matching your search
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
             {mockRejected.length === 0 && (

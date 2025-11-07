@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FiClock, FiEye } from "react-icons/fi";
 import Button from "../../components/Common/Button/Button";
+import SearchBar from "../../components/SearchBar/SearchBar";
+import Dropdown from "../../components/Common/Dropdown/Dropdown";
 import styles from "./PendingTransactions.module.css";
 
 const mockPending = [
@@ -11,6 +13,7 @@ const mockPending = [
     recipient: "John Smith",
     amount: 2500.0,
     currency: "ZAR",
+    riskLevel: "high",
     createdAt: "2025-11-04 09:15",
   },
   {
@@ -19,6 +22,7 @@ const mockPending = [
     recipient: "Mike Johnson",
     amount: 1800.5,
     currency: "USD",
+    riskLevel: "medium",
     createdAt: "2025-11-04 08:05",
   },
   {
@@ -27,7 +31,26 @@ const mockPending = [
     recipient: "Alice Brown",
     amount: 5200.75,
     currency: "EUR",
+    riskLevel: "low",
     createdAt: "2025-11-03 17:42",
+  },
+  {
+    id: "TXN-102941",
+    sender: "Global Corp",
+    recipient: "David Wilson",
+    amount: 3200.0,
+    currency: "ZAR",
+    riskLevel: "high",
+    createdAt: "2025-11-03 14:30",
+  },
+  {
+    id: "TXN-102942",
+    sender: "Tech Solutions",
+    recipient: "Sarah Miller",
+    amount: 1200.0,
+    currency: "USD",
+    riskLevel: "medium",
+    createdAt: "2025-11-03 10:15",
   },
 ];
 
@@ -41,6 +64,51 @@ function formatMoney(value) {
 
 const PendingTransactions = () => {
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [riskFilter, setRiskFilter] = useState("all");
+
+  const riskOptions = [
+    { value: "all", label: "All Risk Levels" },
+    { value: "high", label: "High Risk" },
+    { value: "medium", label: "Medium Risk" },
+    { value: "low", label: "Low Risk" },
+  ];
+
+  const getRiskBadge = (riskLevel) => {
+    const riskClasses = {
+      high: `${styles.statusPill} ${styles.riskHigh}`,
+      medium: `${styles.statusPill} ${styles.riskMedium}`,
+      low: `${styles.statusPill} ${styles.riskLow}`
+    };
+    
+    const riskLabels = {
+      high: "High Risk",
+      medium: "Medium Risk",
+      low: "Low Risk"
+    };
+    
+    return (
+      <span className={riskClasses[riskLevel] || ''}>
+        {riskLabels[riskLevel] || riskLevel}
+      </span>
+    );
+  };
+
+  const filteredPending = useMemo(() => {
+    return mockPending.filter(txn => {
+      // Search term filter
+      const matchesSearch = !searchTerm.trim() || 
+        txn.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        txn.sender.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        txn.recipient.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        txn.amount.toString().includes(searchTerm);
+      
+      // Risk level filter
+      const matchesRisk = riskFilter === "all" || txn.riskLevel === riskFilter;
+      
+      return matchesSearch && matchesRisk;
+    });
+  }, [searchTerm, riskFilter]);
   return (
     <div className={styles.pageWrapper}>
       <main className={styles.mainContent}>
@@ -55,13 +123,33 @@ const PendingTransactions = () => {
             </span>
             Review transactions awaiting approval
           </div>
+
+          <div className={styles.toolbar}>
+            <div className={styles.searchAndFilter}>
+              <SearchBar
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                placeholder="Search pending transactions..."
+                className={styles.searchBar}
+              />
+              <div className={styles.filterDropdown}>
+                <Dropdown
+                  id="risk-filter"
+                  value={riskFilter}
+                  options={riskOptions}
+                  onChange={(value) => setRiskFilter(value)}
+                  className={styles.riskDropdown}
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h3>Queue</h3>
             <div className={styles.queueCount}>
-              {mockPending.length} pending
+              {filteredPending.length} pending
             </div>
           </div>
 
@@ -80,7 +168,8 @@ const PendingTransactions = () => {
                 </tr>
               </thead>
               <tbody>
-                {mockPending.map((t) => (
+                {filteredPending.length > 0 ? (
+                  filteredPending.map((t) => (
                   <tr key={t.id}>
                     <td className={styles.mono}>{t.id}</td>
                     <td>{t.sender}</td>
@@ -89,9 +178,7 @@ const PendingTransactions = () => {
                     <td>{t.currency}</td>
                     <td>{t.createdAt}</td>
                     <td>
-                      <span className={`${styles.statusPill} ${styles.statusPending}`}>
-                        Pending
-                      </span>
+                      {getRiskBadge(t.riskLevel)}
                     </td>
                     <td>
                       <Button size="small" variant="outline" aria-label={`View ${t.id}`} onClick={() => navigate(`/transactions/review/${t.id}`)} icon={FiEye}>
@@ -99,7 +186,16 @@ const PendingTransactions = () => {
                       </Button>
                     </td>
                   </tr>
-                ))}
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="8" className={styles.noResults}>
+                      {searchTerm || currencyFilter !== 'all' 
+                        ? 'No pending transactions match your criteria' 
+                        : 'No pending transactions found'}
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
             {mockPending.length === 0 && (

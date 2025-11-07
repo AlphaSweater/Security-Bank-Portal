@@ -33,6 +33,79 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin: 0.5rem 0 0.5rem 0;
+}
+
+/* Search and Filter */
+.toolbar {
+  margin: 1rem 0;
+}
+
+.searchAndFilter {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.searchBar {
+  flex: 1;
+  max-width: 400px;
+}
+
+.filterDropdown {
+  min-width: 180px;
+}
+
+.noResults {
+  text-align: center;
+  padding: 2rem;
+  color: #a7a9be;
+  font-style: italic;
+  grid-column: 1 / -1;
+}
+
+/* Risk Level Badges */
+.riskHigh {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+.riskMedium {
+  background-color: rgba(234, 179, 8, 0.15) !important;
+  color: #eab308 !important;
+  border: 1px solid rgba(234, 179, 8, 0.3) !important;
+}
+
+.riskLow {
+  background-color: rgba(34, 197, 94, 0.15) !important;
+  color: #22c55e !important;
+  border: 1px solid rgba(34, 197, 94, 0.3) !important;
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .searchAndFilter {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .searchBar,
+  .filterDropdown {
+    width: 100%;
+    max-width: 100%;
+  }
 }
 
 .iconPill {

@@ -88,21 +88,33 @@
 .searchBox {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
   background: #232946;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0 0.75rem;
+  padding: 0 1rem 0 0.75rem;
   border-radius: 8px;
   color: #b8c1ec;
   height: 42px;
   flex: 1;
   max-width: 500px;
   transition: all 0.2s;
+  position: relative;
 }
 
 .searchBox:focus-within {
   border-color: rgba(255, 255, 255, 0.2);
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Remove any background or padding from the search icon */
+.searchBox svg {
+  color: #b8c1ec;
+  margin-right: 0.5rem;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  background: transparent !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .searchBox input {
@@ -114,6 +126,19 @@
   height: 100%;
   padding: 0;
   font-size: 0.95rem;
+  margin-left: 0.25rem;
+}
+
+.searchBox input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  opacity: 1;
+}
+
+/* Ensure the search icon has no background or border */
+.searchBox > svg {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .filterDropdown {
@@ -451,17 +476,15 @@
   position: relative;
 }
 
-.searchBox::before {
-  content: '\f002';
-  font-family: 'Font Awesome 5 Free';
-  font-weight: 900;
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.5);
-  pointer-events: none;
+.searchBox::before,
+.searchBox svg {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  outline: none !important;
 }
+
 
 .searchInput {
   width: 100%;
