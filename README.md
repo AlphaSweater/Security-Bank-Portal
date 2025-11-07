@@ -18,18 +18,18 @@ Security Bank Portal is a secure Node.js / Express prototype that lets users reg
 
 - [📝 Overview](#-overview)
 - [📚 Table of Contents](#-table-of-contents)
-- [⚙️ How to Install and Setup](#️-how-to-install-and-setup)
-  - [1. Clone repo](#1-clone-repo)
-  - [2. Install dependencies (client \& server)](#2-install-dependencies-client--server)
-  - [3. Generate HTTPS certs](#3-generate-https-certs)
-  - [3.1. Install mkcert](#31-install-mkcert)
-  - [3.2. Create a project-local CA](#32-create-a-project-local-ca)
-  - [3.3. Generate cert and key](#33-generate-cert-and-key)
-  - [3.4. Clean up (optional)](#34-clean-up-optional)
-  - [4. Run server (dev)](#4-run-server-dev)
-  - [5. Run client (dev)](#5-run-client-dev)
 - [🌟 Features](#-features)
 - [🔐 Security Features](#-security-features)
+  - [⚙️ How to Install and Setup](#️-how-to-install-and-setup)
+  - [1. Clone repo](#1-clone-repo)
+  - [2. Generate HTTPS certs](#3-generate-https-certs)
+  - [2.1. Install mkcert](#31-install-mkcert)
+  - [2.2. Create a project-local CA](#32-create-a-project-local-ca)
+  - [2.3. Generate cert and key](#33-generate-cert-and-key)
+  - [2.4. Clean up (optional)](#34-clean-up-optional)
+  - [3. Install dependencies (client \& server)](#2-install-dependencies-client--server)
+  - [4. Run server (dev)](#4-run-server-dev)
+  - [5. Run client (dev)](#5-run-client-dev)
 - [🔧 Tech Stack](#-tech-stack)
 - [🏗️ Architecture](#️-architecture)
 - [🎥 Video Demo](#-video-demo)
@@ -38,108 +38,6 @@ Security Bank Portal is a secure Node.js / Express prototype that lets users reg
 - [📚 References](#-references)
 
 <br>
-
-## ⚙️ How to Install and Setup
-
-### 1. Clone repo
-
-```
-git clone https://github.com/YourTeam/GlobalBankSecure.git
-```
-
-```
-cd GlobalBankSecure
-```
-
-### 2. Install dependencies (client & server)
-
-From the root:
-
-```
-cd client
-npm install
-```
-
-```
-cd ../server
-npm install
-```
-
-### 3. Generate HTTPS certs
-
-To run local development with trusted HTTPS certs (no browser warnings), use mkcert.
-
-### 3.1. Install mkcert
-
-```
-winget install --id FiloSottile.mkcert -e
-```
-
-### 3.2. Create a project-local CA
-
-From the root:
-
-```
-$env:CAROOT = "$PWD\.certs\ca"
-```
-
-```
-mkdir .certs\ca -Force
-```
-
-```
-mkcert -install
-```
-
-### 3.3. Generate cert and key
-
-```
-mkdir certs -Force
-```
-
-```
-mkcert -key-file .\certs\localhost.key -cert-file .\certs\localhost.crt localhost 127.0.0.1 ::1
-```
-
-- certs/localhost.crt and certs/localhost.key will be created.
-- .certs/ca/ will contain the CA files for your project.
-
-<br>
-
-### 3.4. Clean up (optional)
-
-```
-$env:CAROOT = "$PWD\.certs\ca"
-```
-
-```
-mkcert -uninstall
-```
-
-```
-Remove-Item -Recurse -Force .\.certs\ca
-```
-
-<br>
-
-### 4. Run server (dev)
-
-From root:
-
-```
-cd server
-npm run dev
-```
-
-### 5. Run client (dev)
-
-From root:
-
-```
-cd client
-npm run dev
-```
-
 ## 🌟 Features
 
 - Secure Sign Up and Login flows
@@ -172,19 +70,122 @@ npm run dev
 
 <br>
 
+## ⚙️ How to Install and Setup
+
+### 1. Clone repo
+
+```
+git clone https://github.com/YourTeam/GlobalBankSecure.git
+```
+
+```
+cd GlobalBankSecure
+```
+
+### 2. Generate HTTPS certs
+
+To run local development with trusted HTTPS certs (no browser warnings), use mkcert.
+
+### 2.1. Install mkcert
+
+```
+winget install --id FiloSottile.mkcert -e
+```
+
+### 2.2. Create a project-local CA
+
+From the root:
+
+```
+$env:CAROOT = "$PWD\.certs\ca"
+```
+
+```
+mkdir .certs\ca -Force
+```
+
+```
+mkcert -install
+```
+
+### 2.3. Generate cert and key
+
+```
+mkdir certs -Force
+```
+
+```
+mkcert -key-file .\certs\localhost.key -cert-file .\certs\localhost.crt localhost 127.0.0.1 ::1
+```
+
+- certs/localhost.crt and certs/localhost.key will be created.
+- .certs/ca/ will contain the CA files for your project.
+
+<br>
+
+### 2.4. Clean up (optional)
+
+```
+$env:CAROOT = "$PWD\.certs\ca"
+```
+
+```
+mkcert -uninstall
+```
+
+```
+Remove-Item -Recurse -Force .\.certs\ca
+```
+
+### 3. Install dependencies (client & server)
+
+From the root:
+
+```
+cd client
+npm install
+```
+
+```
+cd ../server
+npm install
+```
+
+<br>
+
+### 4. Run server (dev)
+
+From root:
+
+```
+cd server
+npm run dev
+```
+
+### 5. Run client (dev)
+
+From root:
+
+```
+cd client
+npm run dev
+```
+
+
 ## 🔧 Tech Stack
 
-- Node.js, Express.js
+### 🧠 Core
+- **[Node.js](https://nodejs.org/)** – JavaScript runtime environment for the backend.
+- **[Express.js](https://expressjs.com/)** – Web framework for building APIs and middleware.
+- **[Joi](https://joi.dev/)** – Schema-based validation for user and transaction data.
+- **[argon2](https://www.npmjs.com/package/argon2)** – Secure password hashing algorithm.
 
-- Joi for validation
+### Database
+- **[MongoDB](https://www.mongodb.com/)** – NoSQL database for storing user and transaction data.
 
-- argon2 for password hashing
-
-- MongoDB (or any compatible persistence)
-
-- Vitest for tests
-
-- mkcert for local HTTPS certs
+### 🧪 Testing & Security
+- **[Vitest](https://vitest.dev/)** – Unit and integration testing framework.
+- **mkcert** – Tool for generating local HTTPS certificates.
 
 <br>
 
@@ -208,6 +209,18 @@ project/
 
 <br>
 
+## 📸 Screenshots
+
+<div align="center">
+  
+| Manage Orders | Manage Components | Manage Products | Customer Page |
+|-----------------|------------------------|-------------------|-----------------|
+| <img src="https://i.postimg.cc/WtLF75rq/Screenshot-2025-10-31-164545.png" width="700"/> | <img src="https://i.postimg.cc/Dw1QRXw0/Screenshot-2025-10-31-164451.png" width="700"/> | <img src="https://i.postimg.cc/cL3TZzX1/Screenshot-2025-10-31-164400.png" width="700"/> | <img src="https://i.postimg.cc/hPPHDK73/Screenshot-2025-10-31-164212.png" width="700"/> |
+
+</div>
+
+<br>
+
 ## 🎥 Video Demo
 
 📺 **Watch the full walkthrough of Security Bank Portal on YouTube:**
@@ -216,6 +229,10 @@ project/
 <br>
 
 ## 👥 contributors
+
+<a href="https://github.com/AlphaSweater/BudgetBuddy-Project/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=AlphaSweater/BudgetBuddy-Project" />
+</a>
 
 - Chad Fairlie ST10269509
 - Dhiren Ruthenavelu ST10256859

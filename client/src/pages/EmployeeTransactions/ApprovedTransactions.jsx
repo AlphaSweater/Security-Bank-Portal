@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FiCheckCircle, FiEye } from "react-icons/fi";
 import Button from "../../components/Common/Button/Button";
+import SearchBar from "../../components/SearchBar/SearchBar";
 import styles from "./ApprovedTransactions.module.css";
 
 // Mock data - replace with API call later
@@ -49,6 +50,20 @@ function formatMoney(value) {
 
 const ApprovedTransactions = () => {
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredApproved = useMemo(() => {
+    if (!searchTerm.trim()) return mockApproved;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return mockApproved.filter(txn => 
+      txn.id.toLowerCase().includes(searchLower) ||
+      txn.sender.toLowerCase().includes(searchLower) ||
+      txn.recipient.toLowerCase().includes(searchLower) ||
+      txn.amount.toString().includes(searchTerm) ||
+      txn.approvedBy.toLowerCase().includes(searchLower)
+    );
+  }, [searchTerm]);
   return (
     <div className={styles.pageWrapper}>
       <main className={styles.mainContent}>
@@ -63,13 +78,22 @@ const ApprovedTransactions = () => {
             </span>
             View all approved transactions
           </div>
+          
+          <div className={styles.searchContainer}>
+            <SearchBar
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              placeholder="Search approved transactions..."
+              className={styles.searchBar}
+            />
+          </div>
         </div>
 
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h3>Approval History</h3>
             <div className={styles.queueCount}>
-              {mockApproved.length} approved
+              {filteredApproved.length} approved
             </div>
           </div>
 
@@ -89,7 +113,8 @@ const ApprovedTransactions = () => {
                 </tr>
               </thead>
               <tbody>
-                {mockApproved.map((t) => (
+                {filteredApproved.length > 0 ? (
+                  filteredApproved.map((t) => (
                   <tr key={t.id}>
                     <td className={styles.mono}>{t.id}</td>
                     <td>{t.sender}</td>
@@ -111,7 +136,14 @@ const ApprovedTransactions = () => {
                       </Button>
                     </td>
                   </tr>
-                ))}
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="9" className={styles.noResults}>
+                      No approved transactions found matching your search
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
             {mockApproved.length === 0 && (
