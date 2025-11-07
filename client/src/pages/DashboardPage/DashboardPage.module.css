@@ -43,6 +43,22 @@
   font-weight: 700;
 }
 
+/* Error Banner */
+.errorBanner {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+}
+
+.errorBanner strong {
+  color: #ef4444;
+  margin-right: 0.5rem;
+}
+
 /* Stats Grid */
 .statsGrid {
   display: grid;
@@ -116,6 +132,10 @@
 
 .negative {
   color: #f87171;
+}
+
+.warning {
+  color: #fbbf24;
 }
 
 /* Dashboard Grid */
@@ -239,6 +259,54 @@
   color: #a7a9be;
   font-size: 0.95rem;
   padding: 0.5rem 0.25rem;
+}
+
+/* Pagination */
+.paginationInfo {
+  color: #b8c1ec;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.paginationControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.paginationButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: rgba(184, 193, 236, 0.08);
+  border: 1px solid rgba(184, 193, 236, 0.15);
+  color: #b8c1ec;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.paginationButton:hover:not(:disabled) {
+  background: rgba(184, 193, 236, 0.15);
+  border-color: rgba(184, 193, 236, 0.3);
+  color: #fffffe;
+}
+
+.paginationButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pageIndicator {
+  color: #b8c1ec;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 /* Inline error shown under the transactions list with a retry button */
