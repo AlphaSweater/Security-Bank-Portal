@@ -43,19 +43,15 @@ export async function registerNewUser({
     createdAt: new Date(),
   };
 
-  const insertResult = await userRepo.insertUser(newUser);
+  const created = await userRepo.insertUser(newUser);
 
-  // Return a safe view of the newly created user
-  const created = await userRepo.getUserById(insertResult.insertedId, {
-    projection: userRepo.PROJECTIONS.PUBLIC_PROFILE,
-  });
-
-  return created; // { _id, firstName, lastName, email, role }
+  // insertUser now returns the created user directly with id field
+  return created; // { id, firstName, lastName, email, role }
 }
 
 /**
  * Verifies user credentials by email and password.
- * Uses AUTH_MINIMAL projection to fetch only what's needed for auth.
+ * Uses AUTH projection to fetch only what's needed for auth.
  *
  * Returns PUBLIC_PROFILE for session consumption.
  */
@@ -67,7 +63,7 @@ export async function authenticateUser({ email, password }) {
   logger.debug("Attempting to authenticate user");
 
   const authDoc = await userRepo.getUserByEmail(email, {
-    projection: userRepo.PROJECTIONS.AUTH_MINIMAL,
+    projection: userRepo.PROJECTIONS.AUTH,
   });
 
   // Avoid user enumeration in messages
@@ -83,12 +79,12 @@ export async function authenticateUser({ email, password }) {
   }
 
   // Fetch a safe profile for downstream consumers (no passwordHash)
-  const user = await userRepo.getUserById(authDoc._id, {
+  const user = await userRepo.getUserById(authDoc.id, {
     projection: userRepo.PROJECTIONS.PUBLIC_PROFILE,
   });
 
   logger.debug("User authenticated successfully");
-  return user; // { _id, firstName, lastName, email, role }
+  return user; // { id, firstName, lastName, email, role }
 }
 
 /* =============================================================================
@@ -109,7 +105,7 @@ export async function getBasicUserInfo(userId) {
     if (!user) return null;
 
     return {
-      id: user._id.toString(),
+      id: user.id,
       email: user.email,
       role: user.role,
       firstName: user.firstName,
@@ -138,7 +134,7 @@ export async function getUserProfile(userId) {
     if (!profile) return null;
 
     return {
-      id: profile._id.toString(),
+      id: profile.id,
       email: profile.email,
       role: profile.role,
       firstName: profile.firstName,
@@ -204,7 +200,7 @@ export async function updateUserProfile(userId, updates) {
     logger.info("User profile updated successfully", { userId });
 
     return {
-      id: updated._id.toString(),
+      id: updated.id,
       email: updated.email,
       role: updated.role,
       firstName: updated.firstName,

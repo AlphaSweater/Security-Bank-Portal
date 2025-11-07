@@ -56,6 +56,9 @@ function PendingTransactionPreview({ transaction }) {
     maximumFractionDigits: 2,
   }).format(Number(transaction.amount) || 0);
 
+  // Handle both id and _id fields
+  const transactionId = transaction.id || transaction._id;
+
   // Format date - handle both epoch timestamps and date strings
   const formatDate = (tx) => {
     if (tx.createdAtEpoch) {
@@ -95,7 +98,7 @@ function PendingTransactionPreview({ transaction }) {
 
   return (
     <Link
-      to={`/transactions/review/${transaction.id}`}
+      to={`/transactions/review/${transactionId}`}
       className={styles.transactionItem}
       style={{ textDecoration: "none", color: "inherit" }}
     >
@@ -342,7 +345,7 @@ function EmployeeDashboard({ role }) {
               ) : (
                 pendingTransactions.map((transaction) => (
                   <PendingTransactionPreview
-                    key={transaction.id}
+                    key={transaction.id || transaction._id}
                     transaction={transaction}
                   />
                 ))

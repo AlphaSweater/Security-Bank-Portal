@@ -27,11 +27,6 @@ export async function getEmployeeDashboard(req, res) {
       options
     );
 
-    logger.debug("Retrieved employee dashboard", {
-      reviewerId,
-      systemHealth: dashboard.systemHealth.status,
-    });
-
     return res.json(dashboard);
   } catch (err) {
     logger.error("Failed to fetch employee dashboard", {
@@ -55,12 +50,6 @@ export async function getReviewQueue(req, res) {
   try {
     const queue = await employeeService.getReviewQueue(options);
 
-    logger.debug("Retrieved review queue", {
-      total: queue.queueStats.total,
-      filterType: options.filterType,
-      itemsReturned: queue.items.length,
-    });
-
     return res.json(queue);
   } catch (err) {
     logger.error("Failed to fetch review queue", { error: err.message });
@@ -77,15 +66,8 @@ export async function getTransactionForReview(req, res) {
     const transaction = await employeeService.getTransactionForReview(id);
 
     if (!transaction) {
-      logger.warn("Transaction not found for review", { transactionId: id });
       return res.status(404).json({ message: "Transaction not found" });
     }
-
-    logger.debug("Retrieved transaction for review", {
-      transactionId: id,
-      riskLevel: transaction.riskLevel,
-      status: transaction.status,
-    });
 
     return res.json({ transaction });
   } catch (err) {
@@ -132,7 +114,6 @@ export async function reviewTransaction(req, res) {
     logger.error("Failed to review transaction", {
       error: err.message,
       transactionId: id,
-      reviewerId,
     });
 
     // Handle specific error cases
@@ -170,11 +151,6 @@ export async function getMyPerformance(req, res) {
       options
     );
 
-    logger.debug("Retrieved reviewer performance", {
-      reviewerId,
-      totalReviews: performance.performance.total,
-    });
-
     return res.json(performance);
   } catch (err) {
     logger.error("Failed to fetch reviewer performance", {
@@ -208,12 +184,6 @@ export async function getMyReviewedTransactions(req, res) {
       options
     );
 
-    logger.debug("Retrieved reviewed transactions", {
-      reviewerId,
-      count: transactions.items.length,
-      status: options.status || "all",
-    });
-
     return res.json(transactions);
   } catch (err) {
     logger.error("Failed to fetch reviewed transactions", {
@@ -239,11 +209,6 @@ export async function getSystemAnalytics(req, res) {
 
   try {
     const analytics = await employeeService.getSystemAnalytics(options);
-
-    logger.debug("Retrieved system analytics", {
-      total: analytics.total,
-      health: analytics.health.status,
-    });
 
     return res.json(analytics);
   } catch (err) {

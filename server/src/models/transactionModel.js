@@ -2,6 +2,9 @@
 import { getDB } from "#config/mongoDBConfig.js";
 import { ObjectId } from "mongodb";
 import { epochSecondsNow } from "#utils/timeUtil.js";
+import { getLogger } from "#utils/logger.js";
+
+const logger = getLogger(import.meta.url);
 
 /* =============================================================================
  * TRANSACTION STATUS CONSTANTS
@@ -117,6 +120,23 @@ function toObjectId(id, fieldName = "id") {
   return new ObjectId(value);
 }
 
+// Serializes a single document: _id → id
+function serializeTransaction(doc) {
+  if (!doc) return null;
+  const { _id, userId, reviewedBy, ...rest } = doc;
+  return {
+    id: _id.toString(),
+    userId: userId?.toString ? userId.toString() : userId,
+    reviewedBy: reviewedBy?.toString ? reviewedBy.toString() : reviewedBy,
+    ...rest,
+  };
+}
+
+// Serializes an array of documents: _id → id for each
+function serializeTransactions(docs) {
+  return docs.map(serializeTransaction);
+}
+
 // Validates status is one of: pending, approved, rejected
 function validateStatus(status) {
   if (!ALLOWED_STATUS.has(status)) {
@@ -209,7 +229,7 @@ async function queryTransactions(filters = {}) {
     ? createPaginationCursor(items[items.length - 1])
     : null;
 
-  return { items, nextCursor };
+  return { items: serializeTransactions(items), nextCursor };
 }
 
 // Flexible counter for transactions
@@ -284,7 +304,7 @@ async function countByStatus(filters = {}) {
  * Automatically adds timestamps and initial status history.
  *
  * Usage: const result = await insertTransaction({ userId, amount, riskLevel, riskFactors, ... });
- * Returns: MongoDB InsertOneResult with { insertedId, acknowledged }
+ * Returns: { id: "...", userId: "...", status: "pending", ... } - full transaction object with id field
  */
 export async function insertTransaction(doc) {
   const createdAtEpoch = epochSecondsNow();
@@ -308,7 +328,13 @@ export async function insertTransaction(doc) {
     ],
   };
 
-  return getTransactionsCollection().insertOne(transaction);
+  const result = await getTransactionsCollection().insertOne(transaction);
+
+  // Return the created transaction with id field
+  return serializeTransaction({
+    _id: result.insertedId,
+    ...transaction,
+  });
 }
 
 /* =============================================================================
@@ -319,13 +345,14 @@ export async function insertTransaction(doc) {
  * Fetches a single transaction by ID.
  *
  * Usage: const txn = await getTransactionById("507f1f77bcf86cd799439011", { projection: PROJECTIONS.DETAIL_PUBLIC });
- * Returns: Transaction object or null if not found
+ * Returns: Transaction object with id field, or null if not found
  */
 export async function getTransactionById(id, { projection } = {}) {
-  return getTransactionsCollection().findOne(
+  const doc = await getTransactionsCollection().findOne(
     { _id: toObjectId(id, "id") },
     { projection }
   );
+  return serializeTransaction(doc);
 }
 
 /* =============================================================================
@@ -333,6 +360,14 @@ export async function getTransactionById(id, { projection } = {}) {
  * All list functions return: { items: [...], nextCursor: "epoch:id" }
  * Pass nextCursor to 'after' parameter for next page
  * ========================================================================== */
+
+/**
+ * Gets all transactions (system-wide) with optional filters.
+ * Use for admin/employee dashboards and review queues.
+ */
+export async function getAllTransactions(options = {}) {
+  return queryTransactions(options);
+}
 
 /**
  * Gets all transactions for a specific user (newest first).
@@ -422,6 +457,7 @@ export async function countTransactionsReviewedByEmployeeByStatus(
  *   const updated = await updateTransactionStatus(id, "approved", employeeId, "ok", {
  *     returnProjection: PROJECTIONS.DETAIL_INTERNAL
  *   });
+ * Returns: Updated transaction with id field, or null if not found/not pending
  */
 export async function updateTransactionStatus(
   id,
@@ -441,36 +477,58 @@ export async function updateTransactionStatus(
     ? toObjectId(employeeId, "employeeId")
     : null;
 
-  const result = await getTransactionsCollection().findOneAndUpdate(
-    { _id: toObjectId(id, "id"), status: TRANSACTION_STATUS.PENDING },
-    {
-      $set: {
-        status,
-        statusUpdatedAtEpoch: nowEpoch,
-        reviewedBy: reviewerObjectId,
-        ...(status === TRANSACTION_STATUS.REJECTED
-          ? { reviewReason: reviewReason ?? "unspecified" }
-          : {}),
-      },
-      ...(status === TRANSACTION_STATUS.APPROVED
-        ? { $unset: { reviewReason: "" } }
+  // Build the update operation correctly
+  const updateOp = {
+    $set: {
+      status,
+      statusUpdatedAtEpoch: nowEpoch,
+      reviewedBy: reviewerObjectId,
+      ...(status === TRANSACTION_STATUS.REJECTED
+        ? { reviewReason: reviewReason ?? "unspecified" }
         : {}),
-      $push: {
-        statusHistory: {
-          status,
-          at: nowEpoch,
-          by: reviewerObjectId,
-          reason: reviewReason ?? null,
-        },
+    },
+    $push: {
+      statusHistory: {
+        status,
+        at: nowEpoch,
+        by: reviewerObjectId,
+        reason: reviewReason ?? null,
       },
     },
-    {
-      returnDocument: "after",
-      projection: returnProjection || undefined,
-    }
+  };
+
+  // Only add $unset if approving (to remove rejection reason from previous review)
+  if (status === TRANSACTION_STATUS.APPROVED) {
+    updateOp.$unset = { reviewReason: 1 };
+  }
+
+  const queryFilter = {
+    _id: toObjectId(id, "id"),
+  };
+
+  const options = {
+    returnDocument: "after",
+  };
+
+  // Only add projection if explicitly provided (undefined causes issues)
+  if (returnProjection) {
+    options.projection = returnProjection;
+  }
+
+  const result = await getTransactionsCollection().findOneAndUpdate(
+    queryFilter,
+    updateOp,
+    options
   );
 
-  return result.value; // null if not found or not pending
+  if (!result) {
+    logger.warn("Transaction not found for status update", {
+      transactionId: id,
+      targetStatus: status,
+    });
+  }
+
+  return serializeTransaction(result); // MongoDB v4+ returns document directly, not wrapped in .value
 }
 
 /* =============================================================================

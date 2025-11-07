@@ -45,12 +45,11 @@ export async function getReviewQueue(options = {}) {
       REVIEW_CONFIG.MAX_PAGE_SIZE
     );
 
-    // Get all pending transactions (no amount gating)
-    const pending = await transactionRepo.getTransactionsMadeByUser(null, {
+    // Get all pending transactions (not tied to a specific user)
+    const pending = await transactionRepo.getAllTransactions({
       status: transactionRepo.TRANSACTION_STATUS.PENDING,
-      ...options,
-      userId: undefined,
       limit: REVIEW_CONFIG.MAX_PAGE_SIZE,
+      ...options,
     });
 
     let filteredItems = pending.items;
@@ -92,11 +91,6 @@ export async function getReviewQueue(options = {}) {
         (t) => !t.riskLevel || t.riskLevel === "none"
       ).length,
     };
-
-    logger.debug("Retrieved review queue", {
-      ...queueStats,
-      filterType: options.filterType || "all",
-    });
 
     return {
       items: prioritized.slice(0, limit),
@@ -144,15 +138,9 @@ export async function reviewTransaction({
     throw new Error("Invalid review status");
   }
 
-  logger.info("Reviewing transaction", {
-    transactionId,
-    status,
-    reviewerId,
-    reviewerRole,
-  });
-
   try {
     const transaction = await transactionRepo.getTransactionById(transactionId);
+
     if (!transaction) throw new Error("Transaction not found");
 
     if (transaction.status !== transactionRepo.TRANSACTION_STATUS.PENDING) {
@@ -176,18 +164,24 @@ export async function reviewTransaction({
       reviewerId,
       reason
     );
-    if (!result) throw new Error("Failed to update transaction status");
 
-    const reviewTime = result.statusUpdatedAtEpoch - result.createdAtEpoch;
-    const reviewTimeMinutes = Math.round(reviewTime / 60);
+    if (!result) {
+      throw new Error(
+        "Failed to update transaction status - transaction may have already been reviewed"
+      );
+    }
 
-    logger.info("Transaction reviewed successfully", {
+    // Calculate review time with fallback for missing timestamps
+    let reviewTimeMinutes = null;
+    if (result.statusUpdatedAtEpoch && result.createdAtEpoch) {
+      const reviewTime = result.statusUpdatedAtEpoch - result.createdAtEpoch;
+      reviewTimeMinutes = Math.round(reviewTime / 60);
+    }
+
+    logger.info("Transaction reviewed", {
       transactionId,
       status,
       reviewerId,
-      reviewerRole,
-      reviewTimeMinutes,
-      amount: transaction.amount,
     });
 
     return {
@@ -206,8 +200,6 @@ export async function reviewTransaction({
     logger.error("Failed to review transaction", {
       error: error.message,
       transactionId,
-      status,
-      reviewerRole,
     });
     throw error;
   }
@@ -254,12 +246,6 @@ export async function getEmployeePerformance(reviewerId, options = {}) {
       );
       avgReviewTime = Math.round(totalTime / reviews.items.length / 60);
     }
-
-    logger.debug("Retrieved reviewer performance", {
-      reviewerId,
-      totalReviews: total,
-      avgReviewTime,
-    });
 
     return {
       reviews,
@@ -365,9 +351,8 @@ export async function getSystemAnalytics(options = {}) {
   try {
     const [statusCounts, allTransactions] = await Promise.all([
       transactionRepo.countTransactionsByStatus(options),
-      transactionRepo.getTransactionsMadeByUser(null, {
+      transactionRepo.getAllTransactions({
         ...options,
-        userId: undefined,
         limit: 1000, // Sample for analytics
       }),
     ]);
@@ -428,13 +413,6 @@ export async function getSystemAnalytics(options = {}) {
       });
     }
 
-    logger.debug("Retrieved system analytics", {
-      total,
-      approvalRate,
-      pendingRate,
-      health: health.status,
-    });
-
     return {
       counts: statusCounts,
       total,
@@ -468,8 +446,6 @@ export async function getEmployeeDashboard(reviewerId, options = {}) {
       getReviewQueue({ limit: 10, ...options }),
       getEmployeePerformance(reviewerId, options),
     ]);
-
-    logger.debug("Retrieved reviewer dashboard", { reviewerId });
 
     return {
       systemHealth: analytics.health,
