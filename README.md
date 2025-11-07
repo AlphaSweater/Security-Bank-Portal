@@ -42,6 +42,15 @@ Security Bank Portal is a secure Node.js / Express prototype that lets users reg
 
 <br>
 
+## Logins
+### Admin:
+- admin@sbp.com
+- Admin1234!
+
+### Employee:
+- employee@sbp.com
+- Employee1234!
+
 ## 🌟 Features
 
 - Secure Sign Up and Login flows
