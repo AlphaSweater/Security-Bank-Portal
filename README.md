@@ -1,3 +1,8 @@
+<img width="1414" height="2000" alt="cHADfRONTcOVER" src="https://github.com/user-attachments/assets/afcf2fd1-d89c-4d8c-b869-9f6130be83e5" />
+
+
+
+
 ![Logo](https://i.postimg.cc/L6MYhpN8/Logo-With-Title.png)
 
 <h1 align="center">Security Bank Portal</h1>
